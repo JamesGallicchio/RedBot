@@ -1,2 +1,2 @@
 # RedBot
-General Purpose Bot
+General purpose Discord Bot
