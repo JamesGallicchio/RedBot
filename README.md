@@ -1,0 +1,2 @@
+# RedBot
+General Purpose Bot
