@@ -11,11 +11,6 @@ import java.io.File;
 
 public class RedBot {
 
-    private IDiscordClient client;
-    private CommandHandler cmdh;
-    private DataHandler datah;
-    private PermissionHandler permh;
-
     public static void main(String[] args) {
 
         try {
@@ -26,16 +21,16 @@ public class RedBot {
     }
 
     public RedBot(String token) {
+        IDiscordClient client;
         try {
             client = new ClientBuilder().withToken(token).login();
+
+            DataHandler datah = new DataHandler();
+            new CommandHandler(client, datah.getPermHandler(), datah);
         } catch (Exception e) {
             System.out.println("Failed login:");
             e.printStackTrace();
             System.exit(0);
         }
-
-        datah = new DataHandler();
-        permh = datah.getPermHandler();
-        new CommandHandler(client, permh);
     }
 }
