@@ -5,19 +5,20 @@ import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IDiscordObject;
 import sx.blah.discord.handle.obj.IUser;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class PermissionContext {
 
     private String id;
     private IDiscordClient client;
-    private List<PermissionContext> list;
+    private ArrayList<PermissionContext> list;
 
-    public PermissionContext(List<PermissionContext> perms) {
+    public PermissionContext(ArrayList<PermissionContext> perms) {
         list = perms;
     }
 
-    public PermissionContext(IDiscordObject o, List<PermissionContext> blacklist) {
+    public PermissionContext(IDiscordObject o, ArrayList<PermissionContext> blacklist) {
         id = o.getID();
         client = o.getClient();
         list = blacklist;
@@ -38,17 +39,17 @@ public class PermissionContext {
                 list.stream().noneMatch(it -> it.hasPermission(user, channel));
     }
 
-    public List<PermissionContext> getSubPerms() {
+    public ArrayList<PermissionContext> getSubPerms() {
         return list;
     }
 
-    public void setSubPerms(List<PermissionContext> list) {
+    public void setSubPerms(ArrayList<PermissionContext> list) {
         this.list = list;
     }
 
     public IDiscordObject getDiscordObject() {
         if(client == null) return null;
-        return chooseNotNull(
+        return firstNotNull(
                 client.getUserByID(id),
                 client.getChannelByID(id),
                 client.getRoleByID(id),
@@ -56,7 +57,7 @@ public class PermissionContext {
         );
     }
 
-    private IDiscordObject chooseNotNull(IDiscordObject... o) {
+    private IDiscordObject firstNotNull(IDiscordObject... o) {
         for (IDiscordObject anO : o) if (anO != null) return anO;
         return null;
     }
