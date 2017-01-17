@@ -11,31 +11,42 @@ public class PermissionContext {
 
     private String id;
     private IDiscordClient client;
+
     private ArrayList<PermissionContext> list;
+    private boolean negate;
+    private Operation operation;
 
-    public PermissionContext(ArrayList<PermissionContext> perms) {
-        list = perms;
-    }
-
-    public PermissionContext(IDiscordObject o, ArrayList<PermissionContext> blacklist) {
-        id = o.getID();
-        client = o.getClient();
-        list = blacklist;
+    public PermissionContext(ArrayList<PermissionContext> sub) {
+        this(null, sub);
     }
 
     public PermissionContext(IDiscordObject o) {
         this(o, null);
     }
 
+    public PermissionContext(IDiscordObject o, ArrayList<PermissionContext> sub) {
+        this(o, sub, Operation.AND, false);
+    }
+
+    public PermissionContext(IDiscordObject o, ArrayList<PermissionContext> sub, Operation op, boolean negate) {
+        if(o != null) {
+            id = o.getID();
+            client = o.getClient();
+        }
+        list = sub;
+        this.operation = op;
+        this.negate = negate;
+    }
+
     public boolean hasPermission(IUser user, IChannel channel) {
-        if(id == null)
+        /*if(id == null)
             return list.stream().anyMatch(it -> it.hasPermission(user, channel));
         return (id.equals(user.getID()) ||
                 id.equals(channel.getID()) ||
                 id.equals(channel.getGuild().getID()) ||
                 user.getRolesForGuild(channel.getGuild())
                         .stream().anyMatch(it -> id.equals(it.getID()))) &&
-                list.stream().noneMatch(it -> it.hasPermission(user, channel));
+                list.stream().allMatch(it -> it.hasPermission(user, channel));*/
     }
 
     public ArrayList<PermissionContext> getSubPerms() {
@@ -59,5 +70,10 @@ public class PermissionContext {
     private IDiscordObject firstNotNull(IDiscordObject... o) {
         for (IDiscordObject anO : o) if (anO != null) return anO;
         return null;
+    }
+
+    public enum Operation {
+        AND,
+        OR;
     }
 }
