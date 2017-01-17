@@ -35,9 +35,21 @@ public class DataHandler {
 
     public void savePerms() {
         try{
-            new FileWriter(permFile).write(gson.toJson(permh.getPerms()));
+            gson.toJson(permh.getPerms(), new FileWriter(permFile));
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void save(Object o, String name) {
+        try{
+            gson.toJson(o, new FileWriter("data/" + name + ".json"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public <T> T get(String name, Class<T> typeClass) throws FileNotFoundException {
+        return gson.fromJson(new FileReader("data/" + name + ".json"), typeClass);
     }
 }
