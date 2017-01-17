@@ -10,8 +10,8 @@ import java.util.stream.Collectors;
 
 public class PermissionHandler {
 
-    HashMap<String, PermissionContext> perms;
-    DataHandler datah;
+    private HashMap<String, PermissionContext> perms;
+    private DataHandler datah;
 
     public PermissionHandler(DataHandler datah) {
         this(new HashMap<>(), datah);
@@ -20,6 +20,10 @@ public class PermissionHandler {
     public PermissionHandler(HashMap<String, PermissionContext> perms, DataHandler datah) {
         this.perms = perms;
         this.datah = datah;
+    }
+
+    public HashMap<String, PermissionContext> getPerms() {
+        return perms;
     }
 
     public boolean hasPermission(String perm, IUser user, IChannel channel) {

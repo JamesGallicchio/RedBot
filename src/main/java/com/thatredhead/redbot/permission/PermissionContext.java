@@ -83,6 +83,6 @@ public class PermissionContext {
 
     public enum Operation {
         AND,
-        OR;
+        OR
     }
 }
