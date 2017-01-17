@@ -24,8 +24,8 @@
         </dependency>
         <dependency>
             <groupId>com.github.austinv11</groupId>
-            <artifactId>Discord4j</artifactId>
-            <version>websocket-rewrite-SNAPSHOT</version>
+            <artifactId>Discord4J</artifactId>
+            <version>2.7.0</version>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
