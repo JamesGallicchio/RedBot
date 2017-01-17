@@ -11,9 +11,10 @@ public class CommandHandler {
     private PermissionHandler perms;
 
 
-    public CommandHandler(IDiscordClient client) {
+    public CommandHandler(IDiscordClient client, PermissionHandler perms) {
         this.client = client;
         client.getDispatcher().registerListener(this);
+        this.perms = perms;
     }
 
     @EventSubscriber
