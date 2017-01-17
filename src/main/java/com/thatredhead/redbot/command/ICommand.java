@@ -4,6 +4,7 @@ import sx.blah.discord.handle.obj.IMessage;
 
 public interface ICommand {
 
-    boolean isKeyword(String keyword);
-    void invoke(IMessage message);
+    boolean triggeredBy(String str);
+    String getPermission();
+    void invoke(IMessage msg);
 }
