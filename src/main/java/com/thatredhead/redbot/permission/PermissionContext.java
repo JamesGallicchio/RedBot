@@ -39,14 +39,15 @@ public class PermissionContext {
     }
 
     public boolean hasPermission(IUser user, IChannel channel) {
-        /*if(id == null)
-            return list.stream().anyMatch(it -> it.hasPermission(user, channel));
-        return (id.equals(user.getID()) ||
-                id.equals(channel.getID()) ||
-                id.equals(channel.getGuild().getID()) ||
-                user.getRolesForGuild(channel.getGuild())
-                        .stream().anyMatch(it -> id.equals(it.getID()))) &&
-                list.stream().allMatch(it -> it.hasPermission(user, channel));*/
+        if(operation == Operation.AND) {
+            boolean val = negate == list.stream().allMatch(it -> it.hasPermission(user, channel));
+            if(id == null) return val;
+            return applies(user, channel) && val;
+        } else {
+            boolean val = negate == list.stream().anyMatch(it -> it.hasPermission(user, channel));
+            if(id == null) return val;
+            return applies(user, channel) && val;
+        }
     }
 
     public ArrayList<PermissionContext> getSubPerms() {
@@ -65,6 +66,14 @@ public class PermissionContext {
                 client.getRoleByID(id),
                 client.getGuildByID(id)
         );
+    }
+
+    private boolean applies(IUser user, IChannel channel) {
+        return id.equals(user.getID()) ||
+               id.equals(channel.getID()) ||
+               id.equals(channel.getGuild().getID()) ||
+               user.getRolesForGuild(channel.getGuild())
+                        .stream().anyMatch(it -> id.equals(it.getID()));
     }
 
     private IDiscordObject firstNotNull(IDiscordObject... o) {
