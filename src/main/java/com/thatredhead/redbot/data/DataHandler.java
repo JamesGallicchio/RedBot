@@ -29,7 +29,7 @@ public class DataHandler {
         }
     }
 
-    public PermissionHandler getPermHandler() throws FileNotFoundException {
+    public PermissionHandler getPermHandler() {
         return permh;
     }
 
