@@ -10,7 +10,6 @@ import java.util.ArrayList;
 public class PermissionContext {
 
     private String id;
-    private IDiscordClient client;
 
     private ArrayList<PermissionContext> list;
     private boolean negate;
@@ -31,7 +30,6 @@ public class PermissionContext {
     public PermissionContext(IDiscordObject o, ArrayList<PermissionContext> sub, Operation op, boolean negate) {
         if(o != null) {
             id = o.getID();
-            client = o.getClient();
         }
         list = sub;
         this.operation = op;
@@ -58,7 +56,7 @@ public class PermissionContext {
         this.list = list;
     }
 
-    public IDiscordObject getDiscordObject() {
+    public IDiscordObject getDiscordObject(IDiscordClient client) {
         if(client == null) return null;
         return firstNotNull(
                 client.getUserByID(id),
