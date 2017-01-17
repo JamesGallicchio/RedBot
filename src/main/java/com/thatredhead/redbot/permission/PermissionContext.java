@@ -6,7 +6,6 @@ import sx.blah.discord.handle.obj.IDiscordObject;
 import sx.blah.discord.handle.obj.IUser;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class PermissionContext {
 
