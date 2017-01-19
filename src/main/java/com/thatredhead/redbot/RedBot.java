@@ -2,7 +2,6 @@ package com.thatredhead.redbot;
 
 import com.thatredhead.redbot.command.CommandHandler;
 import com.thatredhead.redbot.data.DataHandler;
-import com.thatredhead.redbot.permission.PermissionHandler;
 import org.apache.commons.io.FileUtils;
 import sx.blah.discord.api.ClientBuilder;
 import sx.blah.discord.api.IDiscordClient;
@@ -26,7 +25,7 @@ public class RedBot {
             client = new ClientBuilder().withToken(token).login();
 
             DataHandler datah = new DataHandler();
-            new CommandHandler(client, datah.getPermHandler(), datah);
+            new CommandHandler(client, datah);
         } catch (Exception e) {
             System.out.println("Failed login:");
             e.printStackTrace();

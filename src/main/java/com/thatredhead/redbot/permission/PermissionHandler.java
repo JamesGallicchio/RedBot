@@ -2,6 +2,7 @@ package com.thatredhead.redbot.permission;
 
 import com.thatredhead.redbot.data.DataHandler;
 import sx.blah.discord.handle.obj.IChannel;
+import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.handle.obj.IUser;
 
 import java.util.Arrays;
@@ -34,5 +35,9 @@ public class PermissionHandler {
                 return perms.containsKey(perm) && perms.get(perm).hasPermission(user, channel);
         }
         return false;
+    }
+
+    public boolean hasPermission(String perm, IMessage message) {
+        return hasPermission(perm, message.getAuthor(), message.getChannel());
     }
 }

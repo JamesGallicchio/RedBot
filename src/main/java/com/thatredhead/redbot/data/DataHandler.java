@@ -41,15 +41,24 @@ public class DataHandler {
         }
     }
 
-    public void save(Object o, String name) {
+    public Object save(Object o, String name) {
         try{
             gson.toJson(o, new FileWriter("data/" + name + ".json"));
         } catch (IOException e) {
             e.printStackTrace();
         }
+        return o;
     }
 
     public <T> T get(String name, Class<T> typeClass) throws FileNotFoundException {
         return gson.fromJson(new FileReader("data/" + name + ".json"), typeClass);
+    }
+
+    public <T> T get(String name, Class<T> typeClass, T def) {
+        try {
+            return get(name, typeClass);
+        } catch (FileNotFoundException e) {
+            return (T) save(def, name);
+        }
     }
 }
