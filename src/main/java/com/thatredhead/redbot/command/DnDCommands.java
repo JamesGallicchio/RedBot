@@ -9,15 +9,15 @@ import sx.blah.discord.handle.obj.IUser;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class DnDCommands {
+public class DnDCommands implements ICommandGroup {
 
-    private DataHandler datah;
-    private PermissionHandler perms;
-
-    public DnDCommands(DataHandler datah, PermissionHandler perms) {
-        this.datah = datah;
-        this.perms = perms;
+    @Override
+    public ICommand[] getCommands() {
+        return new ICommand[]{
+            new Roll()
+        };
     }
+
 
     public static class Roll implements ICommand {
 

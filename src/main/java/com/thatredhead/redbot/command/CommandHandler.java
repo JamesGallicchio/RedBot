@@ -9,8 +9,11 @@ import sx.blah.discord.handle.impl.events.MessageReceivedEvent;
 import sx.blah.discord.handle.obj.IGuild;
 import sx.blah.discord.handle.obj.IMessage;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
+import java.util.function.Function;
 
 public class CommandHandler {
 
@@ -18,8 +21,8 @@ public class CommandHandler {
     private PermissionHandler perms;
     private DataHandler datah;
 
-    private ICommand[] commands;
-    private ICommand[] noPrefixCommands;
+    private List<ICommand> commands;
+    private List<ICommand> noPrefixCommands;
 
     private HashMap<IGuild, String> prefixes;
 
@@ -31,13 +34,11 @@ public class CommandHandler {
 
         prefixes = datah.get("guildprefixes", HashMap.class, new HashMap<IGuild, String>());
 
-        commands = new ICommand[]{
-            new DnDCommands.Roll()
-        };
+        commands = Arrays.stream(new ICommandGroup[] {
 
-        noPrefixCommands = new ICommand[] {
+        }).map(group -> group.getCommands()).;
 
-        };
+        noPrefixCommands = new ArrayList<>();
     }
 
     @EventSubscriber
@@ -63,7 +64,7 @@ public class CommandHandler {
                 DiscordUtils.sendTemporaryMessage("Unknown command! Use help command for a list of commands.", msg.getChannel());
         }
 
-        Arrays.stream(noPrefixCommands)
+        noPrefixCommands.stream()
                 .filter(it -> perms.hasPermission(it.getPermission(), msg))
                 .forEach(it -> it.invoke(msg.getContent(), msg.getAuthor(), msg.getChannel()));
     }
