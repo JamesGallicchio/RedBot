@@ -1,6 +1,8 @@
-package com.thatredhead.redbot.command;
+package com.thatredhead.redbot.command.impl;
 
 import com.thatredhead.redbot.DiscordUtils;
+import com.thatredhead.redbot.command.ICommand;
+import com.thatredhead.redbot.command.ICommandGroup;
 import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IUser;
 
