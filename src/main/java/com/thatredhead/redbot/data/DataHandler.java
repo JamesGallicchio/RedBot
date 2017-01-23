@@ -1,6 +1,7 @@
 package com.thatredhead.redbot.data;
 
 import com.google.gson.Gson;
+import com.thatredhead.redbot.permission.PermissionContext;
 import com.thatredhead.redbot.permission.PermissionHandler;
 
 import java.io.*;
@@ -19,7 +20,11 @@ public class DataHandler {
         permFile = new File("data/perms.json");
         if(permFile.exists())
             try {
-                permh = new PermissionHandler(gson.fromJson(new FileReader(permFile), HashMap.class), this);
+                HashMap<String, PermissionContext> perms = gson.fromJson(new FileReader(permFile), HashMap.class);
+                if(perms == null)
+                    permh = new PermissionHandler(this);
+                else
+                    permh = new PermissionHandler(perms, this);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
@@ -56,7 +61,8 @@ public class DataHandler {
 
     public <T> T get(String name, Class<T> typeClass, T def) {
         try {
-            return get(name, typeClass);
+            T obj = get(name, typeClass);
+            return obj == null ? def : obj;
         } catch (FileNotFoundException e) {
             return (T) save(def, name);
         }

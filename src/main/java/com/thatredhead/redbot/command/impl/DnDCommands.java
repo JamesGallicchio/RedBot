@@ -1,21 +1,27 @@
 package com.thatredhead.redbot.command;
 
 import com.thatredhead.redbot.DiscordUtils;
-import com.thatredhead.redbot.data.DataHandler;
-import com.thatredhead.redbot.permission.PermissionHandler;
 import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IUser;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class DnDCommands implements ICommandGroup {
 
+    private List<ICommand> commands;
+
+    public DnDCommands() {
+        commands = new ArrayList<>();
+
+        commands.add(new Roll());
+    }
+
     @Override
-    public ICommand[] getCommands() {
-        return new ICommand[]{
-            new Roll()
-        };
+    public List<ICommand> getCommands() {
+        return commands;
     }
 
 

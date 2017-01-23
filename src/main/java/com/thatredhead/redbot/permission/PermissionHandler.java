@@ -28,8 +28,9 @@ public class PermissionHandler {
     }
 
     public boolean hasPermission(String perm, IUser user, IChannel channel) {
+        if("".equals(perm)) return true;
         String[] permStructure = perm.split(".");
-        for(int i = permStructure.length; i > 0; i++) {
+        for(int i = permStructure.length; i > 0; i--) {
             String check = Arrays.stream(permStructure).limit(i).collect(Collectors.joining("."));
             if(perms.containsKey(check))
                 return perms.containsKey(perm) && perms.get(perm).hasPermission(user, channel);
@@ -39,5 +40,21 @@ public class PermissionHandler {
 
     public boolean hasPermission(String perm, IMessage message) {
         return hasPermission(perm, message.getAuthor(), message.getChannel());
+    }
+
+    public void add(String name) {
+        add(name, new PermissionContext());
+    }
+
+    public void add(String name, PermissionContext perm) {
+        perms.put(name, perm);
+    }
+
+    public PermissionContext get(String name) {
+        return perms.get(name);
+    }
+
+    public PermissionContext remove(String name) {
+        return perms.remove(name);
     }
 }

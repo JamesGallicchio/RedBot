@@ -1,6 +1,8 @@
 package com.thatredhead.redbot.command;
 
+import java.util.List;
+
 public interface ICommandGroup {
 
-    public ICommand[] getCommands();
+    public List<ICommand> getCommands();
 }

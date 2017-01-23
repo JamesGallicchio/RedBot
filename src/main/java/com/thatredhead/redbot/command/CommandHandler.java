@@ -1,6 +1,8 @@
 package com.thatredhead.redbot.command;
 
 import com.thatredhead.redbot.DiscordUtils;
+import com.thatredhead.redbot.command.impl.DnDCommands;
+import com.thatredhead.redbot.command.impl.PermsCommand;
 import com.thatredhead.redbot.data.DataHandler;
 import com.thatredhead.redbot.permission.PermissionHandler;
 import sx.blah.discord.api.IDiscordClient;
@@ -13,7 +15,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class CommandHandler {
 
@@ -35,10 +37,14 @@ public class CommandHandler {
         prefixes = datah.get("guildprefixes", HashMap.class, new HashMap<IGuild, String>());
 
         commands = Arrays.stream(new ICommandGroup[] {
+                new DnDCommands()
+        }).flatMap(group -> group.getCommands().stream()).collect(Collectors.toList());
 
-        }).map(group -> group.getCommands()).;
+        commands.add(new PermsCommand(perms));
 
         noPrefixCommands = new ArrayList<>();
+
+
     }
 
     @EventSubscriber
@@ -46,7 +52,7 @@ public class CommandHandler {
         IMessage msg = e.getMessage();
 
         String content = msg.getContent();
-        String prefix = prefixes.get(msg.getGuild());
+        String prefix = getPrefix(msg.getGuild());
         if(content.startsWith(prefix)) {
             content = content.substring(prefix.length());
             boolean success = false;
@@ -54,7 +60,7 @@ public class CommandHandler {
                 String keyword = c.getKeyword();
                 if(content.startsWith(keyword)) {
                     if(perms.hasPermission(c.getPermission(), msg.getAuthor(), msg.getChannel()))
-                        c.invoke(content.substring(keyword.length()), msg.getAuthor(), msg.getChannel());
+                        c.invoke(content.substring(keyword.length()).trim(), msg.getAuthor(), msg.getChannel());
                     else
                         DiscordUtils.sendTemporaryMessage("You don't have permission to perform this command.", msg.getChannel());
                     success = true;
@@ -67,5 +73,11 @@ public class CommandHandler {
         noPrefixCommands.stream()
                 .filter(it -> perms.hasPermission(it.getPermission(), msg))
                 .forEach(it -> it.invoke(msg.getContent(), msg.getAuthor(), msg.getChannel()));
+    }
+
+    private String getPrefix(IGuild guild) {
+        if(!prefixes.containsKey(guild))
+            prefixes.put(guild, "%");
+        return prefixes.get(guild);
     }
 }

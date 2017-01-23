@@ -1,9 +1,9 @@
 package com.thatredhead.redbot.permission;
 
 import sx.blah.discord.api.IDiscordClient;
-import sx.blah.discord.handle.obj.IChannel;
-import sx.blah.discord.handle.obj.IDiscordObject;
-import sx.blah.discord.handle.obj.IUser;
+import sx.blah.discord.handle.impl.obj.Guild;
+import sx.blah.discord.handle.impl.obj.User;
+import sx.blah.discord.handle.obj.*;
 
 import java.util.ArrayList;
 
@@ -14,6 +14,10 @@ public class PermissionContext {
     private ArrayList<PermissionContext> list;
     private boolean negate;
     private Operation operation;
+
+    public PermissionContext() {
+        this(new ArrayList<>());
+    }
 
     public PermissionContext(ArrayList<PermissionContext> sub) {
         this(null, sub);
@@ -52,8 +56,12 @@ public class PermissionContext {
         return list;
     }
 
-    public void setSubPerms(ArrayList<PermissionContext> list) {
-        this.list = list;
+    public void addSub(PermissionContext perm) {
+        list.add(perm);
+    }
+
+    public void removeSub(PermissionContext perm) {
+        list.remove(perm);
     }
 
     public IDiscordObject getDiscordObject(IDiscordClient client) {
@@ -74,6 +82,15 @@ public class PermissionContext {
                         .stream().anyMatch(it -> id.equals(it.getID()));
     }
 
+    private String getName(IDiscordClient client) {
+        IDiscordObject o = getDiscordObject(client);
+        if(o instanceof IUser) return ((User) o).getName();
+        if(o instanceof IGuild) return ((Guild) o).getName();
+        if(o instanceof IRole) return ((IRole) o).getName();
+        if(o instanceof IChannel) return ((IChannel) o).getName();
+        return "";
+    }
+
     private IDiscordObject firstNotNull(IDiscordObject... o) {
         for (IDiscordObject anO : o) if (anO != null) return anO;
         return null;
@@ -82,5 +99,17 @@ public class PermissionContext {
     public enum Operation {
         AND,
         OR
+    }
+
+    public String toString(IDiscordClient client) {
+        StringBuilder result = new StringBuilder();
+        result.append(getName(client));
+        for(PermissionContext pc : list)
+            result.append(pc.toString(client));
+        for(int pos = 0; pos < result.length(); pos++) {
+            pos = result.indexOf("\n", pos) + 1;
+            result.insert(pos, "\t");
+        }
+        return result.toString();
     }
 }
