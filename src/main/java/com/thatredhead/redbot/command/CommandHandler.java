@@ -1,6 +1,8 @@
 package com.thatredhead.redbot.command;
 
+import com.google.gson.reflect.TypeToken;
 import com.thatredhead.redbot.DiscordUtils;
+import com.thatredhead.redbot.command.impl.CuteCommands;
 import com.thatredhead.redbot.command.impl.DnDCommands;
 import com.thatredhead.redbot.command.impl.PermsCommand;
 import com.thatredhead.redbot.data.DataHandler;
@@ -34,10 +36,11 @@ public class CommandHandler {
         this.perms = datah.getPermHandler();
         this.datah = datah;
 
-        prefixes = datah.get("guildprefixes", HashMap.class, new HashMap<IGuild, String>());
+        prefixes = datah.get("guildprefixes", new TypeToken<HashMap<IGuild, String>>(){}.getType(), new HashMap<IGuild, String>());
 
         commands = Arrays.stream(new ICommandGroup[] {
-                new DnDCommands()
+                new DnDCommands(),
+                new CuteCommands(datah)
         }).flatMap(group -> group.getCommands().stream()).collect(Collectors.toList());
 
         commands.add(new PermsCommand(perms));
@@ -51,16 +54,15 @@ public class CommandHandler {
     public void onMessageReceive(MessageReceivedEvent e) {
         IMessage msg = e.getMessage();
 
-        String content = msg.getContent();
         String prefix = getPrefix(msg.getGuild());
-        if(content.startsWith(prefix)) {
-            content = content.substring(prefix.length());
+        MessageParser msgp = new MessageParser(msg, prefix);
+
+        if(msgp.construct()) {
             boolean success = false;
             for (ICommand c : commands) {
-                String keyword = c.getKeyword();
-                if(content.startsWith(keyword)) {
+                if(c.getKeyword().equals(msgp.getArg(0))) {
                     if(perms.hasPermission(c.getPermission(), msg.getAuthor(), msg.getChannel()))
-                        c.invoke(content.substring(keyword.length()).trim(), msg.getAuthor(), msg.getChannel());
+                        invoke(c, msgp);
                     else
                         DiscordUtils.sendTemporaryMessage("You don't have permission to perform this command.", msg.getChannel());
                     success = true;
@@ -72,7 +74,18 @@ public class CommandHandler {
 
         noPrefixCommands.stream()
                 .filter(it -> perms.hasPermission(it.getPermission(), msg))
-                .forEach(it -> it.invoke(msg.getContent(), msg.getAuthor(), msg.getChannel()));
+                .forEach(it -> invoke(it, msgp));
+    }
+
+    private static void invoke(ICommand c, MessageParser msg) {
+        try {
+            c.invoke(msg);
+        } catch (CommandArgumentException e) {
+            DiscordUtils.sendTemporaryMessage("Invalid argument #" + e.idx + " \"" + e.arg
+                                              + "\"! Proper format:\n`" + e.correctFormat + "`", msg.getChannel());
+        } catch (CommandException e) {
+            DiscordUtils.sendTemporaryMessage(e.reason, msg.getChannel());
+        }
     }
 
     private String getPrefix(IGuild guild) {

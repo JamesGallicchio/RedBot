@@ -3,8 +3,7 @@ package com.thatredhead.redbot.command.impl;
 import com.thatredhead.redbot.DiscordUtils;
 import com.thatredhead.redbot.command.ICommand;
 import com.thatredhead.redbot.command.ICommandGroup;
-import sx.blah.discord.handle.obj.IChannel;
-import sx.blah.discord.handle.obj.IUser;
+import com.thatredhead.redbot.command.MessageParser;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,8 +41,8 @@ public class DnDCommands implements ICommandGroup {
         }
 
         @Override
-        public void invoke(String msg, IUser user, IChannel channel) {
-            Matcher m = Pattern.compile(pattern).matcher(msg);
+        public void invoke(MessageParser msgp) {
+            Matcher m = Pattern.compile(pattern).matcher(msgp.getContentAfter(1));
             if(m.find()) {
 
                 int dice, size, mod;
@@ -60,8 +59,8 @@ public class DnDCommands implements ICommandGroup {
                 for(int i = 0; i < dice; i++)
                     total += (int) (Math.random()*size) + 1;
 
-                DiscordUtils.sendMessage("Result for " + dice + "d" + size + " + " + mod + ": " + total, channel);
-            } else DiscordUtils.sendMessage("Bad format- use: (# of dice)d(dice size) + offset", channel);
+                DiscordUtils.sendMessage("Result for " + dice + "d" + size + " + " + mod + ": " + total, msgp.getChannel());
+            } else DiscordUtils.sendMessage("Bad format- use: (# of dice)d(dice size) + offset", msgp.getChannel());
         }
     }
 }

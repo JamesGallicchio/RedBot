@@ -9,11 +9,11 @@ import java.util.ArrayList;
 
 public class PermissionContext {
 
-    private String id;
+    String id;
 
-    private ArrayList<PermissionContext> list;
-    private boolean negate;
-    private Operation operation;
+    ArrayList<PermissionContext> list;
+    boolean negate;
+    Operation operation;
 
     public PermissionContext() {
         this(new ArrayList<>());
