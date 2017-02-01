@@ -1,16 +1,15 @@
 package com.thatredhead.redbot.permission;
 
-import sx.blah.discord.api.IDiscordClient;
-import sx.blah.discord.handle.impl.obj.Guild;
-import sx.blah.discord.handle.impl.obj.User;
-import sx.blah.discord.handle.obj.*;
+import sx.blah.discord.handle.obj.IChannel;
+import sx.blah.discord.handle.obj.IDiscordObject;
+import sx.blah.discord.handle.obj.IRole;
+import sx.blah.discord.handle.obj.IUser;
 
 import java.util.ArrayList;
 
 public class PermissionContext {
 
-    String id;
-
+    IDiscordObject obj;
     ArrayList<PermissionContext> list;
     boolean negate;
     Operation operation;
@@ -32,22 +31,21 @@ public class PermissionContext {
     }
 
     public PermissionContext(IDiscordObject o, ArrayList<PermissionContext> sub, Operation op, boolean negate) {
-        if(o != null) {
-            id = o.getID();
-        }
+        obj = o;
         list = sub;
         this.operation = op;
         this.negate = negate;
     }
 
     public boolean hasPermission(IUser user, IChannel channel) {
+        if(list == null || list.isEmpty()) return applies(user, channel);
         if(operation == Operation.AND) {
-            boolean val = negate == list.stream().allMatch(it -> it.hasPermission(user, channel));
-            if(id == null) return val;
+            boolean val = negate != list.stream().allMatch(it -> it.hasPermission(user, channel));
+            if(obj == null) return val;
             return applies(user, channel) && val;
         } else {
-            boolean val = negate == list.stream().anyMatch(it -> it.hasPermission(user, channel));
-            if(id == null) return val;
+            boolean val = negate != list.stream().anyMatch(it -> it.hasPermission(user, channel));
+            if(obj == null) return val;
             return applies(user, channel) && val;
         }
     }
@@ -64,36 +62,22 @@ public class PermissionContext {
         list.remove(perm);
     }
 
-    public IDiscordObject getDiscordObject(IDiscordClient client) {
-        if(client == null) return null;
-        return firstNotNull(
-                client.getUserByID(id),
-                client.getChannelByID(id),
-                client.getRoleByID(id),
-                client.getGuildByID(id)
-        );
+    public IDiscordObject getDiscordObject() {
+        return obj;
     }
 
     private boolean applies(IUser user, IChannel channel) {
-        return id.equals(user.getID()) ||
-               id.equals(channel.getID()) ||
-               id.equals(channel.getGuild().getID()) ||
+        return user.equals(obj) ||
+               channel.equals(obj) ||
                user.getRolesForGuild(channel.getGuild())
-                        .stream().anyMatch(it -> id.equals(it.getID()));
+                        .stream().anyMatch(it -> it.equals(obj));
     }
 
-    private String getName(IDiscordClient client) {
-        IDiscordObject o = getDiscordObject(client);
-        if(o instanceof IUser) return ((User) o).getName();
-        if(o instanceof IGuild) return ((Guild) o).getName();
-        if(o instanceof IRole) return ((IRole) o).getName();
-        if(o instanceof IChannel) return ((IChannel) o).getName();
+    private String getName() {
+        if(obj instanceof IUser) return ((IUser) obj).getName();
+        if(obj instanceof IRole) return ((IRole) obj).getName();
+        if(obj instanceof IChannel) return ((IChannel) obj).getName();
         return "";
-    }
-
-    private IDiscordObject firstNotNull(IDiscordObject... o) {
-        for (IDiscordObject anO : o) if (anO != null) return anO;
-        return null;
     }
 
     public enum Operation {
@@ -101,15 +85,16 @@ public class PermissionContext {
         OR
     }
 
-    public String toString(IDiscordClient client) {
+    public String toString() {
         StringBuilder result = new StringBuilder();
-        result.append(getName(client));
-        for(PermissionContext pc : list)
-            result.append(pc.toString(client));
-        for(int pos = 0; pos < result.length(); pos++) {
-            pos = result.indexOf("\n", pos) + 1;
-            result.insert(pos, "\t");
+        result.append(getName());
+        if(list != null) {
+            for (PermissionContext pc : list) {
+                result.append('\n');
+                result.append(pc.toString());
+            }
+            if(result.charAt(0) == '\n') result.setCharAt(0, '\t');
         }
-        return result.toString();
+        return result.toString().replaceAll("\n", "\n\t");
     }
 }

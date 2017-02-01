@@ -23,7 +23,7 @@
     <orderEntry type="library" name="Maven: com.googlecode.soundlibs:jlayer:1.0.1-2" level="project" />
     <orderEntry type="library" name="Maven: com.googlecode.soundlibs:tritonus-share:0.3.7-3" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: junit:junit:3.8.1" level="project" />
-    <orderEntry type="library" name="Maven: com.github.austinv11:Discord4J:2.7.0" level="project" />
+    <orderEntry type="library" name="Maven: com.github.austinv11:Discord4J:dev-2.7.0-g2426fff-104" level="project" />
     <orderEntry type="library" name="Maven: org.slf4j:slf4j-api:1.7.21" level="project" />
     <orderEntry type="library" name="Maven: org.apache.httpcomponents:httpcore:4.4.5" level="project" />
     <orderEntry type="library" name="Maven: org.apache.httpcomponents:httpclient:4.5.2" level="project" />

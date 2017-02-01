@@ -5,10 +5,13 @@ import com.thatredhead.redbot.data.DataHandler;
 import org.apache.commons.io.FileUtils;
 import sx.blah.discord.api.ClientBuilder;
 import sx.blah.discord.api.IDiscordClient;
+import sx.blah.discord.handle.impl.events.ReadyEvent;
 
 import java.io.File;
 
 public class RedBot {
+
+    public static IDiscordClient client;
 
     public static void main(String[] args) {
 
@@ -20,9 +23,12 @@ public class RedBot {
     }
 
     public RedBot(String token) {
-        IDiscordClient client;
         try {
-            client = new ClientBuilder().withToken(token).login();
+            client = new ClientBuilder()
+                    .withToken(token)
+                    .login();
+
+            client.getDispatcher().waitFor(ReadyEvent.class);
 
             DataHandler datah = new DataHandler();
             new CommandHandler(client, datah);

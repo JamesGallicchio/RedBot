@@ -1,5 +1,6 @@
 package com.thatredhead.redbot.permission;
 
+import com.sun.istack.internal.NotNull;
 import com.thatredhead.redbot.data.DataHandler;
 import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IGuild;
@@ -31,11 +32,11 @@ public class PermissionHandler {
 
         HashMap<String, PermissionContext> guildperms = perms.get(channel.getGuild().getID());
         if("".equals(perm)) return true;
-        String[] permStructure = perm.split(".");
+        String[] permStructure = perm.split("\\.");
         for(int i = permStructure.length; i > 0; i--) {
             String check = Arrays.stream(permStructure).limit(i).collect(Collectors.joining("."));
             if(guildperms.containsKey(check))
-                return guildperms.containsKey(perm) && guildperms.get(perm).hasPermission(user, channel);
+                return guildperms.get(check).hasPermission(user, channel);
         }
         return false;
     }
@@ -58,15 +59,27 @@ public class PermissionHandler {
         return perms.get(g.getID()).get(perm);
     }
 
+    public HashMap<String, PermissionContext> getOrAdd(IGuild g) {
+        HashMap<String, PermissionContext> guildPerms = perms.get(g.getID());
+        if(guildPerms == null)
+            return perms.put(g.getID(), new HashMap<>());
+        else
+            return guildPerms;
+    }
+
+    @NotNull
     public PermissionContext getOrAdd(IGuild g, String perm) {
         HashMap<String, PermissionContext> guildPerms = perms.get(g.getID());
         if(guildPerms == null)
             return perms.put(g.getID(), new HashMap<>()).put(perm, new PermissionContext());
         else
-            if(perms.get(g).containsKey(perm))
-                return perms.get(g).get(perm);
-            else
-                return perms.get(g).put(perm, new PermissionContext());
+            if(guildPerms.containsKey(perm))
+                return guildPerms.get(perm);
+            else {
+                PermissionContext blank = new PermissionContext();
+                guildPerms.put(perm, blank);
+                return blank;
+            }
     }
 
     public PermissionContext remove(IGuild g, String perm) {
@@ -76,13 +89,17 @@ public class PermissionHandler {
     public String toStringForGuild(IGuild g) {
         StringBuilder sb = new StringBuilder();
         sb.append("Permissions for this guild: ```");
-        for(Map.Entry<String, PermissionContext> p : perms.get(g).entrySet()) {
+        for(Map.Entry<String, PermissionContext> p : this.getOrAdd(g).entrySet()) {
             sb.append("\n");
             sb.append(p.getKey());
             sb.append("\n");
-            sb.append(p.getValue());
+            sb.append(p.getValue().toString());
         }
         sb.append("```");
         return sb.toString();
+    }
+
+    public void save() {
+        datah.savePerms();
     }
 }

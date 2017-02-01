@@ -43,24 +43,35 @@ public class DnDCommands implements ICommandGroup {
         @Override
         public void invoke(MessageParser msgp) {
             Matcher m = Pattern.compile(pattern).matcher(msgp.getContentAfter(1));
-            if(m.find()) {
+            try {
+                if (m.find()) {
 
-                int dice, size, mod;
+                    int dice, size, mod;
 
-                if(m.group(1) == null) dice = 1;
-                else dice = Integer.parseInt(m.group(3));
+                    if (m.group(1) == null) dice = 1;
+                    else {
+                        if (m.group(1).length() > 3) throw new NumberFormatException("Number of dice is too big! (Max 999)");
+                        dice = Integer.parseInt(m.group(1));
+                    }
 
-                size = Integer.parseInt(m.group(2));
+                    if (m.group(2).length() > 3) throw new NumberFormatException("Size of dice is too big! (Max 999)");
+                    size = Integer.parseInt(m.group(2));
 
-                if(m.group(3) == null) mod = 0;
-                else mod = Integer.parseInt(m.group(3));
+                    if (m.group(3) == null) mod = 0;
+                    else {
+                        if (m.group(3).length() > 3) throw new NumberFormatException("Modifier is too big! (Max 999)");
+                        mod = Integer.parseInt(m.group(3));
+                    }
 
-                int total = mod;
-                for(int i = 0; i < dice; i++)
-                    total += (int) (Math.random()*size) + 1;
+                    int total = mod;
+                    for (int i = 0; i < dice; i++)
+                        total += (int) (Math.random() * size) + 1;
 
-                DiscordUtils.sendMessage("Result for " + dice + "d" + size + " + " + mod + ": " + total, msgp.getChannel());
-            } else DiscordUtils.sendMessage("Bad format- use: (# of dice)d(dice size) + offset", msgp.getChannel());
+                    DiscordUtils.sendMessage("Result for `" + dice + "d" + size + " + " + mod + "`: **" + total + "**", msgp.getChannel());
+                } else throw new NumberFormatException("Bad format- use: (# of dice)d(dice size) + offset");
+            } catch (NumberFormatException e) {
+                DiscordUtils.sendTemporaryMessage(e.getMessage(), msgp.getChannel());
+            }
         }
     }
 }
