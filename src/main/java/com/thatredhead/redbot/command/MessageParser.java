@@ -1,6 +1,5 @@
 package com.thatredhead.redbot.command;
 
-import sx.blah.discord.handle.impl.obj.Message;
 import sx.blah.discord.handle.obj.*;
 
 import java.util.regex.Matcher;

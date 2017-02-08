@@ -2,6 +2,7 @@ package com.thatredhead.redbot;
 
 import com.thatredhead.redbot.command.CommandHandler;
 import com.thatredhead.redbot.data.DataHandler;
+import com.thatredhead.redbot.permission.PermissionHandler;
 import org.apache.commons.io.FileUtils;
 import sx.blah.discord.api.ClientBuilder;
 import sx.blah.discord.api.IDiscordClient;
@@ -11,7 +12,9 @@ import java.io.File;
 
 public class RedBot {
 
-    public static IDiscordClient client;
+    private static IDiscordClient client;
+    private static DataHandler datah;
+    private static PermissionHandler permh;
 
     public static void main(String[] args) {
 
@@ -30,12 +33,25 @@ public class RedBot {
 
             client.getDispatcher().waitFor(ReadyEvent.class);
 
-            DataHandler datah = new DataHandler();
+            datah = new DataHandler();
+            permh = datah.getPermHandler();
             new CommandHandler(client, datah);
         } catch (Exception e) {
             System.out.println("Failed login:");
             e.printStackTrace();
             System.exit(0);
         }
+    }
+
+    public static DataHandler getDataHandler() {
+        return datah;
+    }
+
+    public static IDiscordClient getClient() {
+        return client;
+    }
+
+    public static PermissionHandler getPermHandler() {
+        return permh;
     }
 }
