@@ -56,11 +56,11 @@ public class PermissionContextSerializer implements JsonSerializer<PermissionCon
     private static IDiscordObject getObject(String id, int type) {
         switch(type) {
             case 0:
-                return RedBot.client.getUserByID(id);
+                return RedBot.getClient().getUserByID(id);
             case 1:
-                return RedBot.client.getRoleByID(id);
+                return RedBot.getClient().getRoleByID(id);
             case 2:
-                return RedBot.client.getChannelByID(id);
+                return RedBot.getClient().getChannelByID(id);
             default:
                 return null;
         }

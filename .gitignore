@@ -4,4 +4,6 @@
 
 /RedBot.iml
 
+target/
+
 *.json

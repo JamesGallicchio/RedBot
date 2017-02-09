@@ -104,7 +104,17 @@ public class CuteCommands implements ICommandGroup {
             int startEng = engineNum;
             while (true) {
                 try {
-                    String urlString = "https://www.googleapis.com/customsearch/v1?q=cute" + encoded + "&cx=" + engines. + type + "&filter=1&num=1&safe=" + safe + "&searchType=image&start=" + startAt + "&fields=items%2Flink&key=" + search.getKey();
+                    String urlString = "https://www.googleapis.com/customsearch/v1?" +
+                            "q=cute" + encoded +
+                            "&cx=" + engines.get(engineNum).getKey() +
+                            type +
+                            "&filter=1" +
+                            "&num=1" +
+                            "&safe=" + safe +
+                            "&searchType=image" +
+                            "&start=" + startAt +
+                            "&fields=items%2Flink" +
+                            "&key=" + engines.get(engineNum).getValue();
                     URL googleURL = new URL(urlString);
                     String jsonString = IOUtils.toString(new InputStreamReader(googleURL.openStream()));
                     Pattern pattern = Pattern.compile("\"link\": \"(.+)\"", Pattern.DOTALL);
