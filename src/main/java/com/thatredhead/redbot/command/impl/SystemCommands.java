@@ -1,6 +1,7 @@
 package com.thatredhead.redbot.command.impl;
 
 import com.thatredhead.redbot.DiscordUtils;
+import com.thatredhead.redbot.RedBot;
 import com.thatredhead.redbot.command.CommandException;
 import com.thatredhead.redbot.command.ICommand;
 import com.thatredhead.redbot.command.ICommandGroup;
@@ -12,12 +13,10 @@ import java.util.List;
 public class SystemCommands implements ICommandGroup {
 
     private List<ICommand> commands;
-    private long startup;
 
     public SystemCommands() {
         commands = new ArrayList<>();
         commands.add(new UptimeCommand());
-        startup = System.currentTimeMillis();
     }
 
     @Override
@@ -39,7 +38,7 @@ public class SystemCommands implements ICommandGroup {
 
         @Override
         public void invoke(MessageParser msgp) throws CommandException {
-            DiscordUtils.sendMessage("Current uptime: " + (System.currentTimeMillis() - startup), msgp.getChannel());
+            DiscordUtils.sendMessage("Current uptime: " + RedBot.getUptime(), msgp.getChannel());
         }
     }
 }
