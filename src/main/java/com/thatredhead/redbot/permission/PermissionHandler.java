@@ -41,8 +41,28 @@ public class PermissionHandler {
         return false;
     }
 
+    public boolean hasPermission(String perm, IUser user, IChannel channel, PermissionContext defaultPerms) {
+        if(!perms.containsKey(channel.getGuild().getID()))
+            perms.put(channel.getGuild().getID(), new HashMap<>());
+
+        HashMap<String, PermissionContext> guildperms = perms.get(channel.getGuild().getID());
+        if("".equals(perm)) return true;
+        String[] permStructure = perm.split("\\.");
+        for(int i = permStructure.length; i > 0; i--) {
+            String check = Arrays.stream(permStructure).limit(i).collect(Collectors.joining("."));
+            if(guildperms.containsKey(check))
+                return guildperms.get(check).hasPermission(user, channel);
+        }
+        perms.get(channel.getGuild().getID()).put(perm, defaultPerms);
+        return defaultPerms.hasPermission(user, channel);
+    }
+
     public boolean hasPermission(String perm, IMessage message) {
         return hasPermission(perm, message.getAuthor(), message.getChannel());
+    }
+
+    public boolean hasPermission(String perm, IMessage message, PermissionContext defaultPerms) {
+        return hasPermission(perm, message.getAuthor(), message.getChannel(), defaultPerms);
     }
 
     public void add(IGuild g) {

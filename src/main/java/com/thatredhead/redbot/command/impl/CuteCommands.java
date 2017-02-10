@@ -6,6 +6,7 @@ import com.thatredhead.redbot.command.ICommand;
 import com.thatredhead.redbot.command.ICommandGroup;
 import com.thatredhead.redbot.command.MessageParser;
 import com.thatredhead.redbot.data.DataHandler;
+import com.thatredhead.redbot.permission.PermissionContext;
 import javafx.util.Pair;
 import org.apache.commons.io.IOUtils;
 import sx.blah.discord.handle.obj.IChannel;
@@ -45,15 +46,29 @@ public class CuteCommands implements ICommandGroup {
     public class CuteCommand implements ICommand {
 
         @Override
+        public String getKeyword() {
+            return "cute";
+        }
+
+        @Override
+        public String getDescription() {
+            return "Searches Google for cute images";
+        }
+
+        @Override
+        public String getUsage() {
+            return "cute *search terms* <gif if you want a gif>";
+        }
+
+        @Override
         public String getPermission() {
             return "cute.cute";
         }
 
         @Override
-        public String getKeyword() {
-            return "cute";
+        public PermissionContext getDefaultPermissions() {
+            return new PermissionContext();
         }
-
         @Override
         public void invoke(MessageParser msgp) {
             if (!safeties.containsKey(msgp.getChannel().toString()))

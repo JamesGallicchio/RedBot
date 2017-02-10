@@ -20,9 +20,25 @@ public class PermsCommand implements ICommand {
     }
 
     @Override
+    public String getDescription() {
+        return "Sets permissions- currently not working";
+    }
+
+    @Override
+    public String getUsage() {
+        return "will finish eventually";
+    }
+
+    @Override
     public String getPermission() {
         return "";
     }
+
+    @Override
+    public PermissionContext getDefaultPermissions() {
+        return new PermissionContext();
+    }
+
 
     @Override
     public void invoke(MessageParser msgp) {

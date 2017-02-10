@@ -6,6 +6,7 @@ import com.thatredhead.redbot.RedBot;
 import com.thatredhead.redbot.command.impl.CuteCommands;
 import com.thatredhead.redbot.command.impl.DnDCommands;
 import com.thatredhead.redbot.command.impl.PermsCommand;
+import com.thatredhead.redbot.command.impl.SystemCommands;
 import com.thatredhead.redbot.data.DataHandler;
 import com.thatredhead.redbot.permission.PermissionHandler;
 import sx.blah.discord.api.events.EventSubscriber;
@@ -37,6 +38,7 @@ public class CommandHandler {
         prefixes = datah.get("guildprefixes", new TypeToken<HashMap<IGuild, String>>(){}.getType(), new HashMap<IGuild, String>());
 
         commands = Arrays.stream(new ICommandGroup[] {
+                new SystemCommands(),
                 new DnDCommands(),
                 new CuteCommands(datah)
         }).flatMap(group -> group.getCommands().stream()).collect(Collectors.toList());
@@ -57,7 +59,7 @@ public class CommandHandler {
             boolean success = false;
             for (ICommand c : commands) {
                 if(c.getKeyword().equals(msgp.getArg(0))) {
-                    if(perms.hasPermission(c.getPermission(), msg.getAuthor(), msg.getChannel()))
+                    if(perms.hasPermission(c.getPermission(), msg.getAuthor(), msg.getChannel(), c.getDefaultPermissions()))
                         invoke(c, msgp);
                     else
                         DiscordUtils.sendTemporaryMessage("You don't have permission to perform this command.", msg.getChannel());
@@ -69,7 +71,7 @@ public class CommandHandler {
         }
 
         noPrefixCommands.stream()
-                .filter(it -> perms.hasPermission(it.getPermission(), msg))
+                .filter(it -> perms.hasPermission(it.getPermission(), msg, it.getDefaultPermissions()))
                 .forEach(it -> invoke(it, msgp));
     }
 

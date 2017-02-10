@@ -4,6 +4,7 @@ import com.thatredhead.redbot.DiscordUtils;
 import com.thatredhead.redbot.command.ICommand;
 import com.thatredhead.redbot.command.ICommandGroup;
 import com.thatredhead.redbot.command.MessageParser;
+import com.thatredhead.redbot.permission.PermissionContext;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,8 +37,23 @@ public class DnDCommands implements ICommandGroup {
         }
 
         @Override
+        public String getDescription() {
+            return "Rolls a die in D&D fashion";
+        }
+
+        @Override
+        public String getUsage() {
+            return "<# of dice>d<size> + <modifier>";
+        }
+
+        @Override
         public String getPermission() {
             return "dnd.roll";
+        }
+
+        @Override
+        public PermissionContext getDefaultPermissions() {
+            return new PermissionContext();
         }
 
         @Override

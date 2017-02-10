@@ -1,15 +1,13 @@
 package com.thatredhead.redbot.permission;
 
-import sx.blah.discord.handle.obj.IChannel;
-import sx.blah.discord.handle.obj.IDiscordObject;
-import sx.blah.discord.handle.obj.IRole;
-import sx.blah.discord.handle.obj.IUser;
+import sx.blah.discord.handle.obj.*;
 
 import java.util.ArrayList;
 
 public class PermissionContext {
 
     IDiscordObject obj;
+    Permissions perm;
     ArrayList<PermissionContext> list;
     boolean negate;
     Operation operation;
@@ -32,6 +30,18 @@ public class PermissionContext {
 
     public PermissionContext(IDiscordObject o, ArrayList<PermissionContext> sub, Operation op, boolean negate) {
         obj = o;
+        list = sub;
+        this.operation = op;
+        this.negate = negate;
+    }
+
+    public PermissionContext(Permissions p) {
+        this();
+        perm = p;
+    }
+
+    public PermissionContext(Permissions p, ArrayList<PermissionContext> sub, Operation op, boolean negate) {
+        perm = p;
         list = sub;
         this.operation = op;
         this.negate = negate;
@@ -67,13 +77,16 @@ public class PermissionContext {
     }
 
     private boolean applies(IUser user, IChannel channel) {
-        return user.equals(obj) ||
-               channel.equals(obj) ||
-               user.getRolesForGuild(channel.getGuild())
+        return obj == null ?
+                   perm == null || channel.getModifiedPermissions(user).contains(perm)
+               : user.equals(obj) ||
+                   channel.equals(obj) ||
+                   user.getRolesForGuild(channel.getGuild())
                         .stream().anyMatch(it -> it.equals(obj));
     }
 
     private String getName() {
+        if(obj == null) return perm.toString();
         if(obj instanceof IUser) return ((IUser) obj).getName();
         if(obj instanceof IRole) return ((IRole) obj).getName();
         if(obj instanceof IChannel) return ((IChannel) obj).getName();

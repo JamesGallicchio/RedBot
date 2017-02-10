@@ -12,6 +12,8 @@ import java.io.File;
 
 public class RedBot {
 
+    public static final String INVITE = "https://discordapp.com/oauth2/authorize?client_id=270057017966723083&scope=bot&permissions=68672";
+
     private static IDiscordClient client;
     private static DataHandler datah;
     private static PermissionHandler permh;
@@ -42,7 +44,7 @@ public class RedBot {
             e.printStackTrace();
             System.exit(0);
         }
-        
+
         datah = new DataHandler();
         permh = datah.getPermHandler();
         startup = System.currentTimeMillis();
