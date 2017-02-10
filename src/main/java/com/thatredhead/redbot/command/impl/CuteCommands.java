@@ -56,14 +56,14 @@ public class CuteCommands implements ICommandGroup {
 
         @Override
         public void invoke(MessageParser msgp) {
-            if (!safeties.containsKey(msgp.getChannel()))
+            if (!safeties.containsKey(msgp.getChannel().toString()))
                 safeties.put(msgp.getChannel().getID(), "safe");
 
         }
 
-        private void cuteSearch(StringBuffer message, IChannel channel) {
+        private void cuteSearch(String msg, IChannel channel) {
 
-            message = new StringBuffer(message.toString().toUpperCase());
+            StringBuilder message = new StringBuilder(msg.toUpperCase());
             String safe = safeties.get(channel.getID());
             if (safe == null || safe.isEmpty())
                 safe = "high";

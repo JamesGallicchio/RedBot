@@ -2,12 +2,12 @@ package com.thatredhead.redbot.command;
 
 import com.google.gson.reflect.TypeToken;
 import com.thatredhead.redbot.DiscordUtils;
+import com.thatredhead.redbot.RedBot;
 import com.thatredhead.redbot.command.impl.CuteCommands;
 import com.thatredhead.redbot.command.impl.DnDCommands;
 import com.thatredhead.redbot.command.impl.PermsCommand;
 import com.thatredhead.redbot.data.DataHandler;
 import com.thatredhead.redbot.permission.PermissionHandler;
-import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.impl.events.MessageReceivedEvent;
 import sx.blah.discord.handle.obj.IGuild;
@@ -21,7 +21,6 @@ import java.util.stream.Collectors;
 
 public class CommandHandler {
 
-    private IDiscordClient client;
     private PermissionHandler perms;
     private DataHandler datah;
 
@@ -30,11 +29,10 @@ public class CommandHandler {
 
     private HashMap<IGuild, String> prefixes;
 
-    public CommandHandler(IDiscordClient client, DataHandler datah) {
-        this.client = client;
-        client.getDispatcher().registerListener(this);
+    public CommandHandler() {
+        RedBot.getClient().getDispatcher().registerListener(this);
+        this.datah = RedBot.getDataHandler();
         this.perms = datah.getPermHandler();
-        this.datah = datah;
 
         prefixes = datah.get("guildprefixes", new TypeToken<HashMap<IGuild, String>>(){}.getType(), new HashMap<IGuild, String>());
 
@@ -46,8 +44,6 @@ public class CommandHandler {
         commands.add(new PermsCommand(perms));
 
         noPrefixCommands = new ArrayList<>();
-
-
     }
 
     @EventSubscriber
