@@ -1,9 +1,9 @@
-/token.txt
+token.txt
 
 /.idea/
 
 /RedBot.iml
 
-target/
+/target/
 
 *.json
