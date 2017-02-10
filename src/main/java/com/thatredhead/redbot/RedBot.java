@@ -7,10 +7,8 @@ import org.apache.commons.io.FileUtils;
 import sx.blah.discord.api.ClientBuilder;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.handle.impl.events.ReadyEvent;
-import sx.blah.discord.util.MessageList;
 
 import java.io.File;
-import java.text.DateFormat;
 
 public class RedBot {
 
@@ -31,10 +29,6 @@ public class RedBot {
     }
 
     public RedBot(String token) {
-        datah = new DataHandler();
-        permh = datah.getPermHandler();
-        startup = System.currentTimeMillis();
-
         try {
             client = new ClientBuilder()
                     .withToken(token)
@@ -42,13 +36,17 @@ public class RedBot {
 
             client.getDispatcher().waitFor(ReadyEvent.class);
 
-            new CommandHandler(datah);
+            ready = true;
         } catch (Exception e) {
             System.out.println("Failed login:");
             e.printStackTrace();
             System.exit(0);
         }
-        ready = true;
+        
+        datah = new DataHandler();
+        permh = datah.getPermHandler();
+        startup = System.currentTimeMillis();
+        new CommandHandler();
     }
 
     public static DataHandler getDataHandler() {
