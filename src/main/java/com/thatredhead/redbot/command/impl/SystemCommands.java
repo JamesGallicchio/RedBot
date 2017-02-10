@@ -17,7 +17,7 @@ public class SystemCommands implements ICommandGroup {
 
     public SystemCommands() {
         commands = new ArrayList<>();
-        commands.add(new UptimeCommand());
+        commands.add(new InfoCommand());
         commands.add(new InviteCommand());
     }
 
@@ -26,31 +26,31 @@ public class SystemCommands implements ICommandGroup {
         return commands;
     }
 
-    public class UptimeCommand implements ICommand {
+    public class InfoCommand implements ICommand {
 
         @Override
         public String getKeyword() {
-            return "uptime";
+            return "info";
         }
 
         @Override
         public String getDescription() {
-            return "Gives the current length of time the bot has been running";
+            return "Gives information about the system";
         }
 
         @Override
         public String getUsage() {
-            return "uptime";
+            return "info";
         }
 
         @Override
         public String getPermission() {
-            return "system.uptime";
+            return "system.info";
         }
 
         @Override
         public PermissionContext getDefaultPermissions() {
-            return new PermissionContext();
+            return PermissionContext.getEveryoneContext();
         }
 
         @Override
@@ -83,7 +83,7 @@ public class SystemCommands implements ICommandGroup {
 
         @Override
         public PermissionContext getDefaultPermissions() {
-            return new PermissionContext();
+            return PermissionContext.getEveryoneContext();
         }
 
 

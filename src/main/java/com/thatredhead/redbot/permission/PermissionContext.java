@@ -8,11 +8,12 @@ public class PermissionContext {
 
     IDiscordObject obj;
     Permissions perm;
+    boolean isEveryone;
     ArrayList<PermissionContext> list;
     boolean negate;
     Operation operation;
 
-    public PermissionContext() {
+    private PermissionContext() {
         this(new ArrayList<>());
     }
 
@@ -47,6 +48,16 @@ public class PermissionContext {
         this.negate = negate;
     }
 
+    public static PermissionContext getEveryoneContext() {
+        PermissionContext perm = new PermissionContext();
+        perm.isEveryone = true;
+        return perm;
+    }
+
+    public static PermissionContext getNobodyContext() {
+        return new PermissionContext();
+    }
+
     public boolean hasPermission(IUser user, IChannel channel) {
         if(list == null || list.isEmpty()) return applies(user, channel);
         if(operation == Operation.AND) {
@@ -78,7 +89,7 @@ public class PermissionContext {
 
     private boolean applies(IUser user, IChannel channel) {
         return obj == null ?
-                   perm == null || channel.getModifiedPermissions(user).contains(perm)
+                   perm == null ? isEveryone : channel.getModifiedPermissions(user).contains(perm)
                : user.equals(obj) ||
                    channel.equals(obj) ||
                    user.getRolesForGuild(channel.getGuild())
