@@ -53,7 +53,7 @@ public class DnDCommands implements ICommandGroup {
 
         @Override
         public PermissionContext getDefaultPermissions() {
-            return new PermissionContext();
+            return PermissionContext.getNobodyContext();
         }
 
         @Override

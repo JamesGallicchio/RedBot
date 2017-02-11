@@ -67,7 +67,7 @@ public class CuteCommands implements ICommandGroup {
 
         @Override
         public PermissionContext getDefaultPermissions() {
-            return new PermissionContext();
+            return PermissionContext.getNobodyContext();
         }
         @Override
         public void invoke(MessageParser msgp) {

@@ -13,7 +13,7 @@ public class PermissionContext {
     boolean negate;
     Operation operation;
 
-    private PermissionContext() {
+    PermissionContext() {
         this(new ArrayList<>());
     }
 

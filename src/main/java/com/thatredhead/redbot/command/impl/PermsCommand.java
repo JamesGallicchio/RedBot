@@ -5,6 +5,7 @@ import com.thatredhead.redbot.command.ICommand;
 import com.thatredhead.redbot.command.MessageParser;
 import com.thatredhead.redbot.permission.PermissionContext;
 import com.thatredhead.redbot.permission.PermissionHandler;
+import sx.blah.discord.handle.obj.Permissions;
 
 public class PermsCommand implements ICommand {
 
@@ -36,7 +37,7 @@ public class PermsCommand implements ICommand {
 
     @Override
     public PermissionContext getDefaultPermissions() {
-        return new PermissionContext();
+        return new PermissionContext(Permissions.ADMINISTRATOR);
     }
 
 

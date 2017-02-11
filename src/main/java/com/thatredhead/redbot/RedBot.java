@@ -9,6 +9,8 @@ import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.handle.impl.events.ReadyEvent;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.Properties;
 
 public class RedBot {
 
@@ -48,6 +50,14 @@ public class RedBot {
         datah = new DataHandler();
         permh = datah.getPermHandler();
         startup = System.currentTimeMillis();
+        try {
+            Properties p = new Properties();
+            p.load(getClass().getClassLoader().getResourceAsStream("version.properties"));
+            version = (String) p.get("version");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         new CommandHandler();
     }
 
@@ -78,6 +88,10 @@ public class RedBot {
                     seconds%60);
         }
         throw new NotReadyException();
+    }
+
+    public static String getVersion() {
+        return version;
     }
 
     public static class NotReadyException extends RuntimeException {}

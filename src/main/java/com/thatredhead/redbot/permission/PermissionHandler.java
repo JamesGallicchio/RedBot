@@ -72,7 +72,7 @@ public class PermissionHandler {
     public void add(IGuild g, String perm) {
         if(!perms.containsKey(g.getID()))
             add(g);
-        perms.get(g.getID()).put(perm, new PermissionContext());
+        perms.get(g.getID()).put(perm, PermissionContext.getNobodyContext());
     }
 
     public PermissionContext get(IGuild g, String perm) {
@@ -91,12 +91,12 @@ public class PermissionHandler {
     public PermissionContext getOrAdd(IGuild g, String perm) {
         HashMap<String, PermissionContext> guildPerms = perms.get(g.getID());
         if(guildPerms == null)
-            return perms.put(g.getID(), new HashMap<>()).put(perm, new PermissionContext());
+            return perms.put(g.getID(), new HashMap<>()).put(perm, PermissionContext.getNobodyContext());
         else
             if(guildPerms.containsKey(perm))
                 return guildPerms.get(perm);
             else {
-                PermissionContext blank = new PermissionContext();
+                PermissionContext blank = PermissionContext.getNobodyContext();
                 guildPerms.put(perm, blank);
                 return blank;
             }
