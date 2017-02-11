@@ -56,7 +56,15 @@ public class SystemCommands implements ICommandGroup {
 
         @Override
         public void invoke(MessageParser msgp) throws CommandException {
-            DiscordUtils.sendMessage("Current uptime: " + RedBot.getUptime(), msgp.getChannel());
+            StringBuilder info = new StringBuilder("**System Info**");
+            info.append("\nGuild count: ").append(RedBot.getClient().getGuilds().size());
+            info.append("\nCurrent uptime: ").append(RedBot.getUptime());
+            info.append("\nThread count: ").append(Thread.activeCount());
+            long total = Runtime.getRuntime().totalMemory();
+            long free = Runtime.getRuntime().freeMemory();
+            info.append("\nMemory usage (MB): ").append((total-free)/1024/1024).append("/").append(total/1024/1024);
+            info.append("\nVersion: ").append(RedBot.getVersion());
+            DiscordUtils.sendMessage(info.toString(), msgp.getChannel());
         }
     }
 

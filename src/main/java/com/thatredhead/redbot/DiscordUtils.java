@@ -3,7 +3,6 @@ package com.thatredhead.redbot;
 import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.handle.obj.IUser;
-import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.RequestBuffer;
 
 import java.util.concurrent.Executors;
@@ -18,7 +17,7 @@ public class DiscordUtils {
         });
     }
 
-    public static RequestBuffer.RequestFuture<IMessage> sendMessage(String msg, IUser user) {
+    public static RequestBuffer.RequestFuture<IMessage> sendPrivateMessage(String msg, IUser user) {
         return RequestBuffer.request(() -> {
             return user.getOrCreatePMChannel().sendMessage(msg);
         });

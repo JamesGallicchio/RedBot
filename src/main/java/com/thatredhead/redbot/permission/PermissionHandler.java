@@ -1,6 +1,5 @@
 package com.thatredhead.redbot.permission;
 
-import com.sun.istack.internal.NotNull;
 import com.thatredhead.redbot.data.DataHandler;
 import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IGuild;
@@ -87,7 +86,6 @@ public class PermissionHandler {
             return guildPerms;
     }
 
-    @NotNull
     public PermissionContext getOrAdd(IGuild g, String perm) {
         HashMap<String, PermissionContext> guildPerms = perms.get(g.getID());
         if(guildPerms == null)

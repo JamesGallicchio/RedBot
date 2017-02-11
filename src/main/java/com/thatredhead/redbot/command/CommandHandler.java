@@ -10,8 +10,8 @@ import com.thatredhead.redbot.command.impl.SystemCommands;
 import com.thatredhead.redbot.data.DataHandler;
 import com.thatredhead.redbot.permission.PermissionHandler;
 import sx.blah.discord.api.events.EventSubscriber;
-import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
+import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IGuild;
 import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.handle.obj.IUser;
@@ -58,18 +58,21 @@ public class CommandHandler {
         MessageParser msgp = new MessageParser(msg, prefix);
 
         if(msgp.construct()) {
-            boolean success = false;
-            for (ICommand c : commands) {
-                if(c.getKeyword().equals(msgp.getArg(0))) {
-                    if(perms.hasPermission(c.getPermission(), msg.getAuthor(), msg.getChannel(), c.getDefaultPermissions()))
-                        invoke(c, msgp);
-                    else
-                        DiscordUtils.sendTemporaryMessage("You don't have permission to perform this command.", msg.getChannel());
-                    success = true;
+            if("help".equals(msgp.getArg(0))) sendHelp(msgp.getAuthor(), msgp.getChannel());
+            else {
+                boolean success = false;
+                for (ICommand c : commands) {
+                    if (c.getKeyword().equals(msgp.getArg(0))) {
+                        if (perms.hasPermission(c.getPermission(), msg.getAuthor(), msg.getChannel(), c.getDefaultPermissions()))
+                            invoke(c, msgp);
+                        else
+                            DiscordUtils.sendTemporaryMessage("You don't have permission to perform this command.", msg.getChannel());
+                        success = true;
+                    }
                 }
+                if (!success)
+                    DiscordUtils.sendTemporaryMessage("Unknown command! Use help command for a list of commands.", msg.getChannel());
             }
-            if(!success)
-                DiscordUtils.sendTemporaryMessage("Unknown command! Use help command for a list of commands.", msg.getChannel());
         }
 
         noPrefixCommands.stream()
@@ -84,7 +87,7 @@ public class CommandHandler {
             DiscordUtils.sendTemporaryMessage("Invalid argument #" + e.idx + " \"" + e.arg
                                               + "\"! Proper format:\n`" + e.correctFormat + "`", msg.getChannel());
         } catch (CommandException e) {
-            DiscordUtils.sendTemporaryMessage(e.reason, msg.getChannel());
+            DiscordUtils.sendTemporaryMessage(e.getMessage(), msg.getChannel());
         }
     }
 
@@ -96,7 +99,7 @@ public class CommandHandler {
 
     void sendHelp(IUser user, IChannel channel) {
         StringBuilder help = new StringBuilder();
-        help.append("```md\n");
+        help.append("Commands you can use in channel ").append(channel.mention()).append("\n```md\n");
         for(ICommand c : commands.stream()
                                     .filter(it -> perms.hasPermission(it.getPermission(), user, channel))
                                     .collect(Collectors.toList())) {
@@ -107,7 +110,8 @@ public class CommandHandler {
             help.append(c.getUsage());
             help.append(")\n");
         }
-        DiscordUtils.sendMessage(help.toString(), user);
-        DiscordUtils.sendMessage();
+        help.append("```");
+        DiscordUtils.sendPrivateMessage(help.toString(), user);
+        DiscordUtils.sendTemporaryMessage("Check your PMs!", channel);
     }
 }
