@@ -11,8 +11,10 @@ import com.thatredhead.redbot.data.DataHandler;
 import com.thatredhead.redbot.permission.PermissionHandler;
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.impl.events.MessageReceivedEvent;
+import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IGuild;
 import sx.blah.discord.handle.obj.IMessage;
+import sx.blah.discord.handle.obj.IUser;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -90,5 +92,22 @@ public class CommandHandler {
         if(!prefixes.containsKey(guild))
             prefixes.put(guild, "%");
         return prefixes.get(guild);
+    }
+
+    void sendHelp(IUser user, IChannel channel) {
+        StringBuilder help = new StringBuilder();
+        help.append("```md\n");
+        for(ICommand c : commands.stream()
+                                    .filter(it -> perms.hasPermission(it.getPermission(), user, channel))
+                                    .collect(Collectors.toList())) {
+            help.append(c.getKeyword());
+            help.append(" - ");
+            help.append(c.getDescription());
+            help.append(" (");
+            help.append(c.getUsage());
+            help.append(")\n");
+        }
+        DiscordUtils.sendMessage(help.toString(), user);
+        DiscordUtils.sendMessage();
     }
 }

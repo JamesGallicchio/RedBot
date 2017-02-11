@@ -14,6 +14,7 @@ import java.util.List;
 public class SystemCommands implements ICommandGroup {
 
     private List<ICommand> commands;
+    private List<ICommand> sysCommands;
 
     public SystemCommands() {
         commands = new ArrayList<>();

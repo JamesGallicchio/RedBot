@@ -2,25 +2,25 @@ package com.thatredhead.redbot;
 
 import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IMessage;
+import sx.blah.discord.handle.obj.IUser;
+import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.RequestBuffer;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Created by JGallicchio on 1/18/2017.
- */
 public class DiscordUtils {
 
     public static RequestBuffer.RequestFuture<IMessage> sendMessage(String msg, IChannel channel) {
         return RequestBuffer.request(() -> {
-            try {
-                return channel.sendMessage(msg);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            return null;
+            return channel.sendMessage(msg);
+        });
+    }
+
+    public static RequestBuffer.RequestFuture<IMessage> sendMessage(String msg, IUser user) {
+        return RequestBuffer.request(() -> {
+            return user.getOrCreatePMChannel().sendMessage(msg);
         });
     }
 
