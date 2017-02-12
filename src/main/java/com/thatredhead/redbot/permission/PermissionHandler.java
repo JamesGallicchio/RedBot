@@ -45,7 +45,9 @@ public class PermissionHandler {
             perms.put(channel.getGuild().getID(), new HashMap<>());
 
         HashMap<String, PermissionContext> guildperms = perms.get(channel.getGuild().getID());
-        if("".equals(perm)) return true;
+
+        if("".equals(perm)) return false;
+
         String[] permStructure = perm.split("\\.");
         for(int i = permStructure.length; i > 0; i--) {
             String check = Arrays.stream(permStructure).limit(i).collect(Collectors.joining("."));

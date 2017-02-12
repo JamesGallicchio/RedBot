@@ -21,12 +21,12 @@ public class MessageParser {
     }
 
     public boolean construct() {
-        if(!msg.getContent().startsWith(prefix)) {
-            args = msg.getContent().split(" ");
-            return false;
+        if(msg.getContent().startsWith(prefix)) {
+            args = msg.getContent().substring(prefix.length()).split(" ");
+            return true;
         }
-        args = msg.getContent().substring(prefix.length()).split(" ");
-        return true;
+        args = msg.getContent().split(" ");
+        return false;
     }
 
     public IMessage getMsg() {

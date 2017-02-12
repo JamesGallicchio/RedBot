@@ -6,7 +6,7 @@
 
     <groupId>com.thatredhead.redbot</groupId>
     <artifactId>RedBot</artifactId>
-    <version>0.4.2-SNAPSHOT</version>
+    <version>0.6.0</version>
 
     <repositories>
         <repository>

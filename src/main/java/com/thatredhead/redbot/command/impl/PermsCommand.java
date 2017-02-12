@@ -1,38 +1,22 @@
 package com.thatredhead.redbot.command.impl;
 
 import com.thatredhead.redbot.DiscordUtils;
-import com.thatredhead.redbot.command.ICommand;
+import com.thatredhead.redbot.command.Command;
 import com.thatredhead.redbot.command.MessageParser;
 import com.thatredhead.redbot.permission.PermissionContext;
 import com.thatredhead.redbot.permission.PermissionHandler;
 import sx.blah.discord.handle.obj.Permissions;
 
-public class PermsCommand implements ICommand {
+public class PermsCommand extends Command {
 
     private PermissionHandler perms;
 
     public PermsCommand(PermissionHandler perms) {
         this.perms = perms;
-    }
-
-    @Override
-    public String getKeyword() {
-        return "perms";
-    }
-
-    @Override
-    public String getDescription() {
-        return "Sets permissions- currently not working";
-    }
-
-    @Override
-    public String getUsage() {
-        return "will finish eventually";
-    }
-
-    @Override
-    public String getPermission() {
-        return "";
+        keyword = "perms";
+        description = "Sets permissions- currently not working";
+        usage = "will finish eventually";
+        permission = "perms";
     }
 
     @Override

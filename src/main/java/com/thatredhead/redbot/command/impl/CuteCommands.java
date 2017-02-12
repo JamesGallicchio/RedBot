@@ -2,8 +2,8 @@ package com.thatredhead.redbot.command.impl;
 
 import com.google.gson.reflect.TypeToken;
 import com.thatredhead.redbot.DiscordUtils;
-import com.thatredhead.redbot.command.ICommand;
-import com.thatredhead.redbot.command.ICommandGroup;
+import com.thatredhead.redbot.command.Command;
+import com.thatredhead.redbot.command.CommandGroup;
 import com.thatredhead.redbot.command.MessageParser;
 import com.thatredhead.redbot.data.DataHandler;
 import com.thatredhead.redbot.permission.PermissionContext;
@@ -23,15 +23,19 @@ import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class CuteCommands implements ICommandGroup {
+public class CuteCommands extends CommandGroup {
 
     private DataHandler datah;
-    private List<ICommand> commands;
+    private List<Command> commands;
     private HashMap<String, String> safeties;
     private List<Pair<String, String>> engines;
     private int engineNum;
 
     public CuteCommands(DataHandler datah) {
+        name = "Cute Commands";
+        description = "Collection of commands to do cute things";
+        permission = "cute";
+
         this.datah = datah;
         safeties = datah.get("cutesafety", new TypeToken<HashMap<String, String>>(){}.getType(), new HashMap<>());
         engines = datah.get("cuteengine", new TypeToken<List<Pair<String, String>>>(){}.getType(), new ArrayList<>());
@@ -39,30 +43,16 @@ public class CuteCommands implements ICommandGroup {
         commands.add(new CuteCommand());
     }
 
-    public List<ICommand> getCommands() {
+    public List<Command> getCommands() {
         return commands;
     }
 
-    public class CuteCommand implements ICommand {
+    public class CuteCommand extends Command {
 
-        @Override
-        public String getKeyword() {
-            return "cute";
-        }
-
-        @Override
-        public String getDescription() {
-            return "Searches Google for cute images";
-        }
-
-        @Override
-        public String getUsage() {
-            return "cute *search terms* <gif if you want a gif>";
-        }
-
-        @Override
-        public String getPermission() {
-            return "cute.cute";
+        public CuteCommand() {
+            keyword = permission = "cute";
+            description = "Searches Google for cute images";
+            usage = "cute *search terms* <gif if you want a gif>";
         }
 
         @Override

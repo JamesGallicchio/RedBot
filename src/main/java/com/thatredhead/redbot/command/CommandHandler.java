@@ -3,18 +3,13 @@ package com.thatredhead.redbot.command;
 import com.google.gson.reflect.TypeToken;
 import com.thatredhead.redbot.DiscordUtils;
 import com.thatredhead.redbot.RedBot;
-import com.thatredhead.redbot.command.impl.CuteCommands;
-import com.thatredhead.redbot.command.impl.DnDCommands;
-import com.thatredhead.redbot.command.impl.PermsCommand;
-import com.thatredhead.redbot.command.impl.SystemCommands;
+import com.thatredhead.redbot.command.impl.*;
 import com.thatredhead.redbot.data.DataHandler;
 import com.thatredhead.redbot.permission.PermissionHandler;
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
-import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IGuild;
 import sx.blah.discord.handle.obj.IMessage;
-import sx.blah.discord.handle.obj.IUser;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,8 +22,7 @@ public class CommandHandler {
     private PermissionHandler perms;
     private DataHandler datah;
 
-    private List<ICommand> commands;
-    private List<ICommand> noPrefixCommands;
+    private List<Command> commands;
 
     private HashMap<IGuild, String> prefixes;
 
@@ -39,15 +33,20 @@ public class CommandHandler {
 
         prefixes = datah.get("guildprefixes", new TypeToken<HashMap<IGuild, String>>(){}.getType(), new HashMap<IGuild, String>());
 
-        commands = Arrays.stream(new ICommandGroup[] {
+        List<CommandGroup> commandGroups = Arrays.asList(
                 new SystemCommands(),
                 new DnDCommands(),
                 new CuteCommands(datah)
-        }).flatMap(group -> group.getCommands().stream()).collect(Collectors.toList());
+        );
 
-        commands.add(new PermsCommand(perms));
+        List<Command> standaloneCommands = new ArrayList<>();
+        standaloneCommands.addAll(Arrays.asList(
+                new HelpCommand(commandGroups, standaloneCommands),
+                new PermsCommand(perms)
+        ));
 
-        noPrefixCommands = new ArrayList<>();
+        commands = commandGroups.stream().flatMap(group -> group.getCommands().stream()).collect(Collectors.toList());
+        commands.addAll(standaloneCommands);
     }
 
     @EventSubscriber
@@ -58,29 +57,26 @@ public class CommandHandler {
         MessageParser msgp = new MessageParser(msg, prefix);
 
         if(msgp.construct()) {
-            if("help".equals(msgp.getArg(0))) sendHelp(msgp.getAuthor(), msgp.getChannel());
-            else {
-                boolean success = false;
-                for (ICommand c : commands) {
-                    if (c.getKeyword().equals(msgp.getArg(0))) {
-                        if (perms.hasPermission(c.getPermission(), msg.getAuthor(), msg.getChannel(), c.getDefaultPermissions()))
-                            invoke(c, msgp);
-                        else
-                            DiscordUtils.sendTemporaryMessage("You don't have permission to perform this command.", msg.getChannel());
-                        success = true;
-                    }
-                }
-                if (!success)
-                    DiscordUtils.sendTemporaryMessage("Unknown command! Use help command for a list of commands.", msg.getChannel());
-            }
-        }
+            boolean success = false;
 
-        noPrefixCommands.stream()
-                .filter(it -> perms.hasPermission(it.getPermission(), msg, it.getDefaultPermissions()))
-                .forEach(it -> invoke(it, msgp));
+            for (Command c : commands) {
+                if (c.usesPrefix() && c.getKeyword().equals(msgp.getArg(0))) {
+                    if (perms.hasPermission(c.getPermission(), msg, c.getDefaultPermissions()))
+                        invoke(c, msgp);
+                    else
+                        DiscordUtils.sendTemporaryMessage("You don't have permission to perform this command.", msg.getChannel());
+                    success = true;
+                }
+            }
+            if (!success)
+                DiscordUtils.sendTemporaryMessage("Unknown command! Use help command for a list of commands.", msg.getChannel());
+        } else
+            commands.stream().filter(c -> !c.usesPrefix())
+                    .filter(c -> perms.hasPermission(c.getPermission(), msg, c.getDefaultPermissions()))
+                    .forEach(c -> c.invoke(msgp));
     }
 
-    private static void invoke(ICommand c, MessageParser msg) {
+    private static void invoke(Command c, MessageParser msg) {
         try {
             c.invoke(msg);
         } catch (CommandArgumentException e) {
@@ -95,23 +91,5 @@ public class CommandHandler {
         if(!prefixes.containsKey(guild))
             prefixes.put(guild, "%");
         return prefixes.get(guild);
-    }
-
-    void sendHelp(IUser user, IChannel channel) {
-        StringBuilder help = new StringBuilder();
-        help.append("Commands you can use in channel ").append(channel.mention()).append("\n```md\n");
-        for(ICommand c : commands.stream()
-                                    .filter(it -> perms.hasPermission(it.getPermission(), user, channel))
-                                    .collect(Collectors.toList())) {
-            help.append(c.getKeyword());
-            help.append(" - ");
-            help.append(c.getDescription());
-            help.append(" (");
-            help.append(c.getUsage());
-            help.append(")\n");
-        }
-        help.append("```");
-        DiscordUtils.sendPrivateMessage(help.toString(), user);
-        DiscordUtils.sendTemporaryMessage("Check your PMs!", channel);
     }
 }

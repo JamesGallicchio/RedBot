@@ -3,58 +3,44 @@ package com.thatredhead.redbot.command.impl;
 import com.thatredhead.redbot.DiscordUtils;
 import com.thatredhead.redbot.RedBot;
 import com.thatredhead.redbot.command.CommandException;
-import com.thatredhead.redbot.command.ICommand;
-import com.thatredhead.redbot.command.ICommandGroup;
+import com.thatredhead.redbot.command.Command;
+import com.thatredhead.redbot.command.CommandGroup;
 import com.thatredhead.redbot.command.MessageParser;
 import com.thatredhead.redbot.permission.PermissionContext;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class SystemCommands implements ICommandGroup {
+public class SystemCommands extends CommandGroup {
 
-    private List<ICommand> commands;
-    private List<ICommand> sysCommands;
+    private List<Command> commands;
 
     public SystemCommands() {
+        name = "System Commands";
+        description = "Commands pertinent to RedBot's system";
+        permission = "system";
+
         commands = new ArrayList<>();
         commands.add(new InfoCommand());
         commands.add(new InviteCommand());
     }
 
     @Override
-    public List<ICommand> getCommands() {
+    public List<Command> getCommands() {
         return commands;
     }
 
-    public class InfoCommand implements ICommand {
+    public class InfoCommand extends Command {
 
-        @Override
-        public String getKeyword() {
-            return "info";
+        public InfoCommand() {
+            keyword = usage = permission = "info";
+            description = "Gives information about the system";
         }
 
-        @Override
-        public String getDescription() {
-            return "Gives information about the system";
-        }
-
-        @Override
-        public String getUsage() {
-            return "info";
-        }
-
-        @Override
-        public String getPermission() {
-            return "system.info";
-        }
-
-        @Override
         public PermissionContext getDefaultPermissions() {
             return PermissionContext.getEveryoneContext();
         }
 
-        @Override
         public void invoke(MessageParser msgp) throws CommandException {
             StringBuilder info = new StringBuilder("**System Info**");
             info.append("\nGuild count: ").append(RedBot.getClient().getGuilds().size());
@@ -68,33 +54,17 @@ public class SystemCommands implements ICommandGroup {
         }
     }
 
-    public class InviteCommand implements ICommand {
+    public class InviteCommand extends Command {
 
-        @Override
-        public String getKeyword() {
-            return "invite";
-        }
-
-        @Override
-        public String getDescription() {
-            return "Gives a link to invite the bot to other servers";
-        }
-
-        @Override
-        public String getUsage() {
-            return "invite";
-        }
-
-        @Override
-        public String getPermission() {
-            return "system.invite";
+        public InviteCommand() {
+            keyword = usage = permission = "invite";
+            description = "Gives a link to invite the bot to other servers";
         }
 
         @Override
         public PermissionContext getDefaultPermissions() {
             return PermissionContext.getEveryoneContext();
         }
-
 
         @Override
         public void invoke(MessageParser msgp) throws CommandException {
