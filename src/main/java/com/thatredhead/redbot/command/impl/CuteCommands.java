@@ -2,6 +2,7 @@ package com.thatredhead.redbot.command.impl;
 
 import com.google.gson.reflect.TypeToken;
 import com.thatredhead.redbot.DiscordUtils;
+import com.thatredhead.redbot.RedBot;
 import com.thatredhead.redbot.command.Command;
 import com.thatredhead.redbot.command.CommandGroup;
 import com.thatredhead.redbot.command.MessageParser;
@@ -16,10 +17,7 @@ import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -31,16 +29,15 @@ public class CuteCommands extends CommandGroup {
     private List<Pair<String, String>> engines;
     private int engineNum;
 
-    public CuteCommands(DataHandler datah) {
+    public CuteCommands() {
         name = "Cute Commands";
         description = "Collection of commands to do cute things";
         permission = "cute";
 
-        this.datah = datah;
+        this.datah = RedBot.getDataHandler();
         safeties = datah.get("cutesafety", new TypeToken<HashMap<String, String>>(){}.getType(), new HashMap<>());
         engines = datah.get("cuteengine", new TypeToken<List<Pair<String, String>>>(){}.getType(), new ArrayList<>());
-        commands = new ArrayList<>();
-        commands.add(new CuteCommand());
+        commands = Arrays.asList(new CuteCommand());
     }
 
     public List<Command> getCommands() {
@@ -53,6 +50,7 @@ public class CuteCommands extends CommandGroup {
             keyword = permission = "cute";
             description = "Searches Google for cute images";
             usage = "cute *search terms* <gif if you want a gif>";
+            noPrefix = true;
         }
 
         @Override

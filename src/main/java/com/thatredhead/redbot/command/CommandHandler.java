@@ -36,13 +36,13 @@ public class CommandHandler {
         List<CommandGroup> commandGroups = Arrays.asList(
                 new SystemCommands(),
                 new DnDCommands(),
-                new CuteCommands(datah)
+                new CuteCommands()
         );
 
         List<Command> standaloneCommands = new ArrayList<>();
         standaloneCommands.addAll(Arrays.asList(
                 new HelpCommand(commandGroups, standaloneCommands),
-                new PermsCommand(perms)
+                new PermsCommand()
         ));
 
         commands = commandGroups.stream().flatMap(group -> group.getCommands().stream()).collect(Collectors.toList());
@@ -71,9 +71,14 @@ public class CommandHandler {
             if (!success)
                 DiscordUtils.sendTemporaryMessage("Unknown command! Use help command for a list of commands.", msg.getChannel());
         } else
-            commands.stream().filter(c -> !c.usesPrefix())
-                    .filter(c -> perms.hasPermission(c.getPermission(), msg, c.getDefaultPermissions()))
-                    .forEach(c -> c.invoke(msgp));
+            for (Command c : commands) {
+                if (!c.usesPrefix() && c.getKeyword().equals(msgp.getArg(0))) {
+                    if (perms.hasPermission(c.getPermission(), msg, c.getDefaultPermissions()))
+                        invoke(c, msgp);
+                    else
+                        DiscordUtils.sendTemporaryMessage("You don't have permission to perform this command.", msg.getChannel());
+                }
+            }
     }
 
     private static void invoke(Command c, MessageParser msg) {
