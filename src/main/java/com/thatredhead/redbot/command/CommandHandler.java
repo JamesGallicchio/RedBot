@@ -28,10 +28,9 @@ public class CommandHandler {
 
     public CommandHandler() {
         RedBot.getClient().getDispatcher().registerListener(this);
-        this.datah = RedBot.getDataHandler();
-        this.perms = datah.getPermHandler();
+        this.perms = RedBot.getPermHandler();
 
-        prefixes = datah.get("guildprefixes", new TypeToken<HashMap<IGuild, String>>(){}.getType(), new HashMap<IGuild, String>());
+        prefixes = RedBot.getDataHandler().get("guildprefixes", new TypeToken<HashMap<IGuild, String>>(){}.getType(), new HashMap<IGuild, String>());
 
         List<CommandGroup> commandGroups = Arrays.asList(
                 new SystemCommands(),

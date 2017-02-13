@@ -1,6 +1,7 @@
 package com.thatredhead.redbot.permission;
 
 import com.google.gson.*;
+import com.thatredhead.redbot.RedBot;
 import com.thatredhead.redbot.data.DataHandler;
 
 import java.lang.reflect.Type;
@@ -9,11 +10,9 @@ import java.util.Map;
 
 public class PermissionSerializer implements JsonSerializer<PermissionHandler>, JsonDeserializer<PermissionHandler> {
 
-    private DataHandler datah;
-
-    public PermissionSerializer(DataHandler datah) {
-        this.datah = datah;
+    /*
     }
+     */
 
     @Override
     public JsonObject serialize(PermissionHandler perms, Type typeOfSrc,
@@ -47,6 +46,6 @@ public class PermissionSerializer implements JsonSerializer<PermissionHandler>, 
             guilds.put(guild.getKey(), perms);
         }
 
-        return new PermissionHandler(guilds, datah);
+        return new PermissionHandler(guilds);
     }
 }

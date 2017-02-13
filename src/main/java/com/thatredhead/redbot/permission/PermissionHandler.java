@@ -1,6 +1,6 @@
 package com.thatredhead.redbot.permission;
 
-import com.thatredhead.redbot.data.DataHandler;
+import com.thatredhead.redbot.RedBot;
 import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IGuild;
 import sx.blah.discord.handle.obj.IMessage;
@@ -14,15 +14,13 @@ import java.util.stream.Collectors;
 public class PermissionHandler {
 
     HashMap<String, HashMap<String, PermissionContext>> perms;
-    DataHandler datah;
 
-    public PermissionHandler(DataHandler datah) {
-        this(new HashMap<>(), datah);
+    public PermissionHandler() {
+        this(new HashMap<>());
     }
 
-    public PermissionHandler(HashMap<String, HashMap<String, PermissionContext>> perms, DataHandler datah) {
+    public PermissionHandler(HashMap<String, HashMap<String, PermissionContext>> perms) {
         this.perms = perms;
-        this.datah = datah;
     }
 
     public boolean hasPermission(String perm, IUser user, IChannel channel) {
@@ -120,6 +118,6 @@ public class PermissionHandler {
     }
 
     public void save() {
-        datah.savePerms();
+        RedBot.getDataHandler().savePerms();
     }
 }

@@ -15,15 +15,15 @@ import java.nio.file.Paths;
 
 public class DataHandler {
 
-    Gson gson;
-    PermissionHandler permh;
-    Path permFile;
+    private Gson gson;
+    private PermissionHandler permh;
+    private Path permFile;
 
     public DataHandler() {
 
         gson = new GsonBuilder()
                 .registerTypeAdapter(PermissionContext.class, new PermissionContextSerializer())
-                .registerTypeAdapter(PermissionHandler.class, new PermissionSerializer(this))
+                .registerTypeAdapter(PermissionHandler.class, new PermissionSerializer())
                 .create();
 
         permFile = Paths.get("data/perms.json");
@@ -32,10 +32,10 @@ public class DataHandler {
             if(!json.isEmpty())
                 permh = gson.fromJson(json, PermissionHandler.class);
             else
-                permh = new PermissionHandler(this);
+                permh = new PermissionHandler();
         }
         else
-            permh = new PermissionHandler(this);
+            permh = new PermissionHandler();
         savePerms();
     }
 
