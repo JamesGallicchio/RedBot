@@ -97,7 +97,10 @@ public class PermissionContext {
     }
 
     private String getName() {
-        if(obj == null) return perm.toString();
+        if(obj == null)
+            return perm == null ?
+                    isEveryone ? "EVERYONE" : "NOBODY"
+                    : perm.toString();
         if(obj instanceof IUser) return ((IUser) obj).getName();
         if(obj instanceof IRole) return ((IRole) obj).getName();
         if(obj instanceof IChannel) return ((IChannel) obj).getName();

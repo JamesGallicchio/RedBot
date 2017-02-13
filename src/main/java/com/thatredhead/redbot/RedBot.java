@@ -14,7 +14,7 @@ import java.util.Properties;
 
 public class RedBot {
 
-    public static final String INVITE = "https://discordapp.com/oauth2/authorize?client_id=270057017966723083&scope=bot&permissions=68672";
+    public static final String INVITE = "https://goo.gl/WcN0QK";
 
     private static IDiscordClient client;
     private static DataHandler datah;
