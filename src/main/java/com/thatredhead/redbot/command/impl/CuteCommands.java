@@ -59,19 +59,17 @@ public class CuteCommands extends CommandGroup {
         public PermissionContext getDefaultPermissions() {
             return PermissionContext.getNobodyContext();
         }
+
         @Override
         public void invoke(MessageParser msgp) {
             if (!safeties.containsKey(msgp.getChannel().toString()))
                 safeties.put(msgp.getChannel().getID(), "safe");
-
+            cuteSearch(msgp.getContentAfter(0), msgp.getChannel());
         }
 
         private void cuteSearch(String msg, IChannel channel) {
-
             StringBuilder message = new StringBuilder(msg.toUpperCase());
             String safe = safeties.get(channel.getID());
-            if (safe == null || safe.isEmpty())
-                safe = "high";
             String type;
             if (message.toString().endsWith("GIF")) {
                 type = "&fileType=gif";
