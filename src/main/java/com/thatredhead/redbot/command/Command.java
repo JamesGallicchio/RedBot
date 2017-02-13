@@ -8,7 +8,7 @@ public abstract class Command {
     protected String keyword;
     protected String description;
     protected String usage;
-    protected boolean usesPrefix;
+    protected boolean noPrefix;
     protected String permission;
 
     public String getKeyword() {
@@ -24,7 +24,7 @@ public abstract class Command {
     }
 
     public boolean usesPrefix() {
-        return usesPrefix;
+        return !noPrefix;
     }
 
     public String getPermission() {
