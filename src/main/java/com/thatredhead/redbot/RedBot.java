@@ -82,7 +82,7 @@ public class RedBot {
     public static String getUptime() {
         if(ready) {
             int seconds = (int) ((System.currentTimeMillis() - startup)/1000);
-            return String.format("%02d:%02d:%02d",
+            return String.format("%d:%02d:%02d",
                     seconds/3600,
                     seconds/60%60,
                     seconds%60);
