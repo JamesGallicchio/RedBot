@@ -29,10 +29,10 @@ public class DiscordUtils {
 
     private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     public static void sendTemporaryMessage(String msg, IChannel channel, int milliDelay) {
-        IMessage message = sendMessage(msg + "\n\n*This message may be deleted.*", channel).get();
+        RequestBuffer.RequestFuture<IMessage> message = sendMessage(msg + "\n\n*This message may be deleted.*", channel);
         scheduler.schedule(() -> RequestBuffer.request(() -> {
                     try {
-                        message.delete();
+                        message.get().delete();
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
