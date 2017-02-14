@@ -96,6 +96,17 @@ public class PermissionContext {
                         .stream().anyMatch(it -> it.equals(obj));
     }
 
+    private String getMention() {
+        if(obj == null)
+            return perm == null ?
+                    isEveryone ? "EVERYONE" : "NOBODY"
+                    : perm.toString();
+        if(obj instanceof IUser) return ((IUser) obj).mention();
+        if(obj instanceof IRole) return ((IRole) obj).mention();
+        if(obj instanceof IChannel) return ((IChannel) obj).mention();
+        return "";
+    }
+
     private String getName() {
         if(obj == null)
             return perm == null ?
@@ -114,14 +125,22 @@ public class PermissionContext {
 
     public String toString() {
         StringBuilder result = new StringBuilder();
-        result.append(getName());
+        result.append(getMention());
         if(list != null) {
+            result.append("\n\tAND ").append(
+                    operation.equals(Operation.AND) ?
+                        negate ? "NOT ALL" : "ALL" :
+                        negate ? "NONE" : "ONE")
+                    .append(" OF THESE:");
             for (PermissionContext pc : list) {
-                result.append('\n');
-                result.append(pc.toString());
+                result.append("\n");
+                result.append(indent(pc.toString()));
             }
-            if(result.charAt(0) == '\n') result.setCharAt(0, '\t');
         }
-        return result.toString().replaceAll("\n", "\n\t");
+        return result.toString();
+    }
+
+    private static String indent(String s) {
+        return "\t" + s.replace("\n", "\n\t");
     }
 }

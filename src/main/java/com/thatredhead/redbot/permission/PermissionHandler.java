@@ -106,15 +106,21 @@ public class PermissionHandler {
 
     public String toStringForGuild(IGuild g) {
         StringBuilder sb = new StringBuilder();
+
         sb.append("Permissions for this guild: ```");
-        for(Map.Entry<String, PermissionContext> p : this.getOrAdd(g).entrySet()) {
-            sb.append("\n");
-            sb.append(p.getKey());
-            sb.append("\n");
-            sb.append(p.getValue().toString());
+
+        // For each permission in the guild
+        for(Map.Entry<String, PermissionContext> p : get(g).entrySet()) {
+            // Append \nPERM\n\tCONTEXT
+            sb.append('\n').append(p.getKey()).append('\n');
+            sb.append(indent(p.getValue().toString()));
         }
         sb.append("```");
         return sb.toString();
+    }
+
+    private static String indent(String s) {
+        return "\t" + s.replace("\n", "\n\t");
     }
 
     public void save() {
