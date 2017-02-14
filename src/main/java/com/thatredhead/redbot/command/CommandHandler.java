@@ -40,8 +40,8 @@ public class CommandHandler {
 
         List<Command> standaloneCommands = new ArrayList<>();
         standaloneCommands.addAll(Arrays.asList(
-                new HelpCommand(commandGroups, standaloneCommands),
-                new PermsCommand()
+                new HelpCommand(commandGroups, standaloneCommands)//,
+                //new PermsCommand()
         ));
 
         commands = commandGroups.stream().flatMap(group -> group.getCommands().stream()).collect(Collectors.toList());
@@ -60,10 +60,11 @@ public class CommandHandler {
 
             for (Command c : commands) {
                 if (c.usesPrefix() && c.getKeyword().equals(msgp.getArg(0))) {
-                    if (perms.hasPermission(c.getPermission(), msg, c.getDefaultPermissions()))
+                    invoke(c, msgp);
+                    /*if (perms.hasPermission(c.getPermission(), msg, c.getDefaultPermissions()))
                         invoke(c, msgp);
                     else
-                        DiscordUtils.sendTemporaryMessage("You don't have permission to perform this command.", msg.getChannel());
+                        DiscordUtils.sendTemporaryMessage("You don't have permission to perform this command.", msg.getChannel());*/
                     success = true;
                 }
             }

@@ -15,8 +15,8 @@ public class PermsCommand extends Command {
     public PermsCommand() {
         this.perms = RedBot.getPermHandler();
         keyword = permission = "perms";
-        description = "Sets permissions- currently not working";
-        usage = "will finish eventually";
+        description = "Sets permissions data for this guild";
+        usage = "perms [ <set | add | remove | copy> <ID> [ID2 [ID3 ...]] <mention or perm enum>]";
     }
 
     @Override
@@ -28,13 +28,9 @@ public class PermsCommand extends Command {
     @Override
     public void invoke(MessageParser msgp) {
 
-        if(msgp.getArgCount() > 2)
-            if("add".equals(msgp.getArg(1)))
-                perms.getOrAdd(msgp.getGuild(),
-                        msgp.getArg(2)).addSub(new PermissionContext(msgp.getGuild().getEveryoneRole()));
-            else if("remove".equals(msgp.getArg(1)))
-                perms.remove(msgp.getGuild(),
-                        msgp.getArg(2));
+        if(msgp.getArgCount() > 1)
+            if(msgp.getArgCount() > 2)
+                
 
         DiscordUtils.sendMessage(perms.toStringForGuild(msgp.getGuild()), msgp.getChannel());
     }
