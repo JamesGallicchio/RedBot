@@ -34,7 +34,7 @@ public class DnDCommands extends CommandGroup {
 
     public static class Roll extends Command {
 
-        private static final String pattern = "([+-])?(?:(?:(\\d+)?[dD](\\d+))|(\\d+)(?![dD]))";
+        private static final String pattern = "(?:\\s+)?([+-])?(?:\\s+)?(?:(?:(\\d+)?[dD](\\d+))|(\\d+)(?![dD]))";
 
         public Roll() {
             keyword = permission = "roll";
