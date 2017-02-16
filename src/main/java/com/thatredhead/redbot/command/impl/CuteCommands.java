@@ -36,7 +36,9 @@ public class CuteCommands extends CommandGroup {
 
         this.datah = RedBot.getDataHandler();
         safeties = datah.get("cutesafety", new TypeToken<HashMap<String, String>>(){}.getType(), new HashMap<>());
-        engines = new ArrayList<>(Arrays.asList(""));
+        engines = new ArrayList<>();
+        engines.add(new Pair<>("014731838518875835789%3Atp7hgh9vtu8", "AIzaSyCdY1epFL_Sru0pE98LZENyK9yYIgPXY4A"));
+        engines.add(new Pair<>("014731838518875835789%3Aco91bck4x3g", "AIzaSyCQgTImPvq7DIsZjh1djWoeqUdpLIBnPhs"));
         commands = Arrays.asList(new CuteCommand());
     }
 
