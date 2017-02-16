@@ -3,7 +3,10 @@ package com.thatredhead.redbot.command;
 import com.google.gson.reflect.TypeToken;
 import com.thatredhead.redbot.DiscordUtils;
 import com.thatredhead.redbot.RedBot;
-import com.thatredhead.redbot.command.impl.*;
+import com.thatredhead.redbot.command.impl.CuteCommands;
+import com.thatredhead.redbot.command.impl.DnDCommands;
+import com.thatredhead.redbot.command.impl.HelpCommand;
+import com.thatredhead.redbot.command.impl.SystemCommands;
 import com.thatredhead.redbot.data.DataHandler;
 import com.thatredhead.redbot.permission.PermissionHandler;
 import sx.blah.discord.api.events.EventSubscriber;
@@ -28,10 +31,9 @@ public class CommandHandler {
 
     public CommandHandler() {
         RedBot.getClient().getDispatcher().registerListener(this);
-        this.datah = RedBot.getDataHandler();
-        this.perms = datah.getPermHandler();
+        this.perms = RedBot.getPermHandler();
 
-        prefixes = datah.get("guildprefixes", new TypeToken<HashMap<IGuild, String>>(){}.getType(), new HashMap<IGuild, String>());
+        prefixes = RedBot.getDataHandler().get("guildprefixes", new TypeToken<HashMap<IGuild, String>>(){}.getType(), new HashMap<IGuild, String>());
 
         List<CommandGroup> commandGroups = Arrays.asList(
                 new SystemCommands(),

@@ -1,8 +1,8 @@
 package com.thatredhead.redbot.command.impl;
 
 import com.thatredhead.redbot.DiscordUtils;
-import com.thatredhead.redbot.command.CommandException;
 import com.thatredhead.redbot.command.Command;
+import com.thatredhead.redbot.command.CommandException;
 import com.thatredhead.redbot.command.CommandGroup;
 import com.thatredhead.redbot.command.MessageParser;
 import com.thatredhead.redbot.permission.PermissionContext;

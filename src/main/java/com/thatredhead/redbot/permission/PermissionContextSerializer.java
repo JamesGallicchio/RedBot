@@ -2,10 +2,7 @@ package com.thatredhead.redbot.permission;
 
 import com.google.gson.*;
 import com.thatredhead.redbot.RedBot;
-import sx.blah.discord.handle.obj.IChannel;
-import sx.blah.discord.handle.obj.IDiscordObject;
-import sx.blah.discord.handle.obj.IRole;
-import sx.blah.discord.handle.obj.IUser;
+import sx.blah.discord.handle.obj.*;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -15,7 +12,11 @@ public class PermissionContextSerializer implements JsonSerializer<PermissionCon
     @Override
     public JsonElement serialize(PermissionContext permissionContext, Type type, JsonSerializationContext jsonSerializationContext) {
         JsonObject o = new JsonObject();
-        o.addProperty("id", permissionContext.obj == null ? "" : permissionContext.obj.getID());
+
+        // add this context's properties
+        o.addProperty("id", permissionContext.obj == null ? null : permissionContext.obj.getID());
+        o.addProperty("perm", permissionContext.perm == null ? null : permissionContext.perm.ordinal());
+        o.addProperty("everyone", permissionContext.isEveryone);
         o.addProperty("type", getType(permissionContext.obj));
         o.addProperty("negate", permissionContext.negate);
         o.addProperty("op", permissionContext.operation == PermissionContext.Operation.AND);
@@ -31,19 +32,23 @@ public class PermissionContextSerializer implements JsonSerializer<PermissionCon
 
     @Override
     public PermissionContext deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
-        PermissionContext perm = new PermissionContext();
+        PermissionContext pc = new PermissionContext();
         JsonObject o = jsonElement.getAsJsonObject();
 
-        String id = o.get("id").getAsString();
-        perm.obj = "".equals(id) ? null : getObject(id, o.get("type").getAsInt());
-        perm.negate = o.get("negate").getAsBoolean();
-        perm.operation = o.get("op").getAsBoolean() ? PermissionContext.Operation.AND : PermissionContext.Operation.OR;
+        JsonElement id = o.get("id");
+        JsonElement perms = o.get("perm");
+        pc.obj = id.isJsonNull() ? null : getObject(id.getAsString(), o.get("type").getAsInt());
+        pc.perm = perms.isJsonNull() ? null : Permissions.valueOf(perms.getAsString());
+        pc.isEveryone = o.get("everyone").getAsBoolean();
+        pc.negate = o.get("negate").getAsBoolean();
+        pc.operation = o.get("op").getAsBoolean() ? PermissionContext.Operation.AND : PermissionContext.Operation.OR;
 
         ArrayList<PermissionContext> list = new ArrayList<>();
         for(JsonElement e : o.getAsJsonArray("list"))
             list.add(deserialize(e, type, jsonDeserializationContext));
-        perm.list = list;
-        return perm;
+        pc.list = list;
+
+        return pc;
     }
 
     private static int getType(IDiscordObject o) {
