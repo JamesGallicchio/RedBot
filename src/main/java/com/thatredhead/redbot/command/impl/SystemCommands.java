@@ -8,26 +8,16 @@ import com.thatredhead.redbot.command.CommandGroup;
 import com.thatredhead.redbot.command.MessageParser;
 import com.thatredhead.redbot.permission.PermissionContext;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
 
 public class SystemCommands extends CommandGroup {
-
-    private List<Command> commands;
 
     public SystemCommands() {
         name = "System Commands";
         description = "Commands pertinent to RedBot's system";
         permission = "system";
 
-        commands = new ArrayList<>();
-        commands.add(new InfoCommand());
-        commands.add(new InviteCommand());
-    }
-
-    @Override
-    public List<Command> getCommands() {
-        return commands;
+        commands = Arrays.asList(new InfoCommand(), new InviteCommand());
     }
 
     public class InfoCommand extends Command {

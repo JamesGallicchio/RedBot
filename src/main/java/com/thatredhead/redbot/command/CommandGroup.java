@@ -7,6 +7,7 @@ public abstract class CommandGroup {
     protected String name;
     protected String description;
     protected String permission;
+    protected List<Command> commands;
 
     public String getName() {
         return name;
@@ -20,5 +21,7 @@ public abstract class CommandGroup {
         return permission;
     }
 
-    public abstract List<Command> getCommands();
+    public  List<Command> getCommands() {
+        return commands;
+    }
 }

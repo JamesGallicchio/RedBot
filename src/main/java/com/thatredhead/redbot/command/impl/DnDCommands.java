@@ -7,28 +7,18 @@ import com.thatredhead.redbot.command.CommandGroup;
 import com.thatredhead.redbot.command.MessageParser;
 import com.thatredhead.redbot.permission.PermissionContext;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class DnDCommands extends CommandGroup {
-
-    private List<Command> commands;
 
     public DnDCommands() {
         name = "DnD Commands";
         description = "Collection of useful commands for RPGs";
         permission = "dnd";
 
-        commands = new ArrayList<>();
-
-        commands.add(new Roll());
-    }
-
-    @Override
-    public List<Command> getCommands() {
-        return commands;
+        commands = Arrays.asList(new Roll());
     }
 
 
