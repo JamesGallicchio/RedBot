@@ -14,12 +14,12 @@ public class PermissionContextSerializer implements JsonSerializer<PermissionCon
         JsonObject o = new JsonObject();
 
         // add this context's properties
-        o.addProperty("id", permissionContext.obj == null ? null : permissionContext.obj.getID());
-        o.addProperty("perm", permissionContext.perm == null ? null : permissionContext.perm.ordinal());
-        o.addProperty("everyone", permissionContext.isEveryone);
-        o.addProperty("type", getType(permissionContext.obj));
-        o.addProperty("negate", permissionContext.negate);
-        o.addProperty("op", permissionContext.operation == PermissionContext.Operation.AND);
+        o.addProperty("i", permissionContext.obj == null ? null : permissionContext.obj.getID());
+        o.addProperty("p", permissionContext.perm == null ? null : permissionContext.perm.ordinal());
+        o.addProperty("e", permissionContext.isEveryone);
+        o.addProperty("t", getType(permissionContext.obj));
+        o.addProperty("n", permissionContext.negate);
+        o.addProperty("o", permissionContext.operation == PermissionContext.Operation.AND);
 
         JsonArray sub = new JsonArray();
         if(permissionContext.list != null)
@@ -35,17 +35,23 @@ public class PermissionContextSerializer implements JsonSerializer<PermissionCon
         PermissionContext pc = new PermissionContext();
         JsonObject o = jsonElement.getAsJsonObject();
 
-        JsonElement id = o.get("id");
-        JsonElement perms = o.get("perm");
-        pc.obj = id.isJsonNull() ? null : getObject(id.getAsString(), o.get("type").getAsInt());
-        pc.perm = perms.isJsonNull() ? null : Permissions.valueOf(perms.getAsString());
-        pc.isEveryone = o.get("everyone").getAsBoolean();
-        pc.negate = o.get("negate").getAsBoolean();
-        pc.operation = o.get("op").getAsBoolean() ? PermissionContext.Operation.AND : PermissionContext.Operation.OR;
+        JsonElement id = o.get("i");
+        JsonElement perms = o.get("p");
+        JsonElement everyone = o.get("e");
+        JsonElement negate = o.get("n");
+        JsonElement operation = o.get("o");
+        pc.obj = id == null || id.isJsonNull() ? null : getObject(id.getAsString(), o.get("type").getAsInt());
+        pc.perm = perms == null || perms.isJsonNull() ? null : Permissions.valueOf(perms.getAsString());
+        pc.isEveryone = !(everyone == null || everyone.isJsonNull()) && everyone.getAsBoolean();
+        pc.negate = !(negate == null || negate.isJsonNull()) && negate.getAsBoolean();
+        pc.operation = !(operation == null || operation.isJsonNull()) && operation.getAsBoolean() ? PermissionContext.Operation.AND : PermissionContext.Operation.OR;
 
         ArrayList<PermissionContext> list = new ArrayList<>();
-        for(JsonElement e : o.getAsJsonArray("list"))
-            list.add(deserialize(e, type, jsonDeserializationContext));
+        JsonArray jsonList = o.getAsJsonArray("list");
+        if(jsonList != null && !jsonList.isJsonNull())
+            for(JsonElement e : o.getAsJsonArray("list"))
+                list.add(deserialize(e, type, jsonDeserializationContext));
+
         pc.list = list;
 
         return pc;
