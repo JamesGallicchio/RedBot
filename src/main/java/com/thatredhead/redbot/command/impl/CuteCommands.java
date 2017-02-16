@@ -62,8 +62,10 @@ public class CuteCommands extends CommandGroup {
 
         @Override
         public void invoke(MessageParser msgp) {
-            if (!safeties.containsKey(msgp.getChannel().toString()))
-                safeties.put(msgp.getChannel().getID(), "safe");
+            if (!safeties.containsKey(msgp.getChannel().toString())) {
+                safeties.put(msgp.getChannel().getID(), "high");
+                datah.save(safeties, "cutesafety");
+            }
             cuteSearch(msgp.getContentAfter(0), msgp.getChannel());
         }
 
@@ -128,6 +130,8 @@ public class CuteCommands extends CommandGroup {
                     }
                     break;
                 } catch (IOException maxDailyLimit) {
+
+                    maxDailyLimit.printStackTrace();
 
                     if (startEng != nextEng())
                         continue;

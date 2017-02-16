@@ -7,7 +7,6 @@ import com.thatredhead.redbot.command.impl.CuteCommands;
 import com.thatredhead.redbot.command.impl.DnDCommands;
 import com.thatredhead.redbot.command.impl.HelpCommand;
 import com.thatredhead.redbot.command.impl.SystemCommands;
-import com.thatredhead.redbot.data.DataHandler;
 import com.thatredhead.redbot.permission.PermissionHandler;
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
@@ -23,7 +22,6 @@ import java.util.stream.Collectors;
 public class CommandHandler {
 
     private PermissionHandler perms;
-    private DataHandler datah;
 
     private List<Command> commands;
 
@@ -96,8 +94,10 @@ public class CommandHandler {
     }
 
     private String getPrefix(IGuild guild) {
-        if(!prefixes.containsKey(guild))
+        if(!prefixes.containsKey(guild)) {
             prefixes.put(guild, "%");
+            RedBot.getDataHandler().save(prefixes, "guildprefixes");
+        }
         return prefixes.get(guild);
     }
 }
