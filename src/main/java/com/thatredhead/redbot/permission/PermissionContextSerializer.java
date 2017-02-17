@@ -21,31 +21,39 @@ public class PermissionContextSerializer implements JsonSerializer<PermissionCon
         o.addProperty("n", permissionContext.negate);
         o.addProperty("o", permissionContext.operation == PermissionContext.Operation.AND);
 
+        // Add the subarray as a list
         JsonArray sub = new JsonArray();
         if(permissionContext.list != null)
             for(PermissionContext p : permissionContext.list)
+                // serialize the permission context and add it
                 sub.add(serialize(p, type, jsonSerializationContext));
 
+        // add the sublist to the json
         o.add("list", sub);
         return o;
     }
 
     @Override
     public PermissionContext deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
+
         PermissionContext pc = new PermissionContext();
         JsonObject o = jsonElement.getAsJsonObject();
 
+        // Get json properties
         JsonElement id = o.get("i");
         JsonElement perms = o.get("p");
         JsonElement everyone = o.get("e");
         JsonElement negate = o.get("n");
         JsonElement operation = o.get("o");
+
+        // Add the properties to the permissioncontext (with null check)
         pc.obj = id == null || id.isJsonNull() ? null : getObject(id.getAsString(), o.get("type").getAsInt());
         pc.perm = perms == null || perms.isJsonNull() ? null : Permissions.valueOf(perms.getAsString());
         pc.isEveryone = !(everyone == null || everyone.isJsonNull()) && everyone.getAsBoolean();
         pc.negate = !(negate == null || negate.isJsonNull()) && negate.getAsBoolean();
         pc.operation = !(operation == null || operation.isJsonNull()) && operation.getAsBoolean() ? PermissionContext.Operation.AND : PermissionContext.Operation.OR;
 
+        // Get the list of subperms and add it to this permission
         ArrayList<PermissionContext> list = new ArrayList<>();
         JsonArray jsonList = o.getAsJsonArray("list");
         if(jsonList != null && !jsonList.isJsonNull())
@@ -65,6 +73,7 @@ public class PermissionContextSerializer implements JsonSerializer<PermissionCon
     }
 
     private static IDiscordObject getObject(String id, int type) {
+        // 0 -> user; 1 -> role; 2 -> channel
         switch(type) {
             case 0:
                 return RedBot.getClient().getUserByID(id);
