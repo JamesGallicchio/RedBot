@@ -3,10 +3,7 @@ package com.thatredhead.redbot.command;
 import com.google.gson.reflect.TypeToken;
 import com.thatredhead.redbot.DiscordUtils;
 import com.thatredhead.redbot.RedBot;
-import com.thatredhead.redbot.command.impl.CuteCommands;
-import com.thatredhead.redbot.command.impl.DnDCommands;
-import com.thatredhead.redbot.command.impl.HelpCommand;
-import com.thatredhead.redbot.command.impl.SystemCommands;
+import com.thatredhead.redbot.command.impl.*;
 import com.thatredhead.redbot.permission.PermissionHandler;
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
@@ -36,7 +33,8 @@ public class CommandHandler {
         List<CommandGroup> commandGroups = Arrays.asList(
                 new SystemCommands(),
                 new DnDCommands(),
-                new CuteCommands()
+                new CuteCommands(),
+                new SubscriberCommands()
         );
 
         List<Command> standaloneCommands = new ArrayList<>();
@@ -60,7 +58,7 @@ public class CommandHandler {
             boolean success = false;
 
             for (Command c : commands) {
-                if (c.usesPrefix() && c.getKeyword().equals(msgp.getArg(0))) {
+                if (c.usesPrefix() && c.getKeyword().equalsIgnoreCase(msgp.getArg(0))) {
                     invoke(c, msgp);
                     /*if (perms.hasPermission(c.getPermission(), msg, c.getDefaultPermissions()))
                         invoke(c, msgp);
