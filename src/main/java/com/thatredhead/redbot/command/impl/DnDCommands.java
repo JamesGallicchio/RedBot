@@ -43,12 +43,19 @@ public class DnDCommands extends CommandGroup {
                 StringBuilder matched = new StringBuilder();
                 Matcher m = Pattern.compile(pattern).matcher(msgp.getContentAfter(1));
                 int total = 0;
+                boolean first = true;
                 while (m.find()) {
                     String sign = m.group(1);
                     String rolls = m.group(2);
                     String size = m.group(3);
                     String mod = m.group(4);
-                    if(sign == null) sign = "+";
+                    if(sign == null) {
+                        if(first) {
+                            sign = "+";
+                            first = false;
+                        } else
+                            throw new CommandException();
+                    }
                     if(rolls == null) rolls = "1";
 
                     matched.append(sign).append(" ");

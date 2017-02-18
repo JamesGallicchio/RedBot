@@ -1,5 +1,6 @@
 package com.thatredhead.redbot.permission;
 
+import com.thatredhead.redbot.RedBot;
 import sx.blah.discord.handle.obj.*;
 
 import java.util.ArrayList;
@@ -56,6 +57,10 @@ public class PermissionContext {
 
     public static PermissionContext getNobodyContext() {
         return new PermissionContext();
+    }
+
+    public static PermissionContext getOwnerContext() {
+        return new PermissionContext(RedBot.getClient().getUserByID("135553137699192832"));
     }
 
     /**

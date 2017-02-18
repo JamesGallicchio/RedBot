@@ -8,8 +8,10 @@ import sx.blah.discord.api.ClientBuilder;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.handle.impl.events.ReadyEvent;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Properties;
 
 /**
@@ -18,6 +20,7 @@ import java.util.Properties;
 public class RedBot {
 
     public static final String INVITE = "https://goo.gl/WcN0QK";
+    public static final String OWNER_ID = "135553137699192832";
 
     private static IDiscordClient client;
     private static DataHandler datah;
@@ -121,4 +124,15 @@ public class RedBot {
      * Exception thrown when getters are called before the RedBot client is ready
      */
     public static class NotReadyException extends RuntimeException {}
+
+    /**
+     * Reports an error to both console log and PM to owner
+     * @param e exception to report
+     */
+    public static void reportError(Exception e) {
+        e.printStackTrace();
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        e.printStackTrace(new PrintWriter(bos));
+        DiscordUtils.sendPrivateMessage(bos.toString(), getClient().getUserByID(OWNER_ID));
+    }
 }

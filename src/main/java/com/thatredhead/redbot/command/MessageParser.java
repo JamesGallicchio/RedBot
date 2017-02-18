@@ -1,5 +1,6 @@
 package com.thatredhead.redbot.command;
 
+import com.thatredhead.redbot.DiscordUtils;
 import sx.blah.discord.handle.obj.*;
 
 import java.util.regex.Matcher;
@@ -50,7 +51,11 @@ public class MessageParser {
     }
 
     public String getArg(int i) {
-        return args[i];
+        try {
+            return args[i];
+        } catch (IndexOutOfBoundsException e) {
+            throw new CommandException();
+        }
     }
 
     public String getContentAfter(int i) {
@@ -82,5 +87,9 @@ public class MessageParser {
         if(m.find())
             return msg.getClient().getRoleByID(m.group(1));
         return null;
+    }
+
+    public void reply(String response) {
+        DiscordUtils.sendMessage(response, msg.getChannel());
     }
 }

@@ -22,13 +22,13 @@ public class CommandHandler {
 
     private List<Command> commands;
 
-    private HashMap<IGuild, String> prefixes;
+    private HashMap<String, String> prefixes;
 
     public CommandHandler() {
         RedBot.getClient().getDispatcher().registerListener(this);
         this.perms = RedBot.getPermHandler();
 
-        prefixes = RedBot.getDataHandler().get("guildprefixes", new TypeToken<HashMap<IGuild, String>>(){}.getType(), new HashMap<IGuild, String>());
+        prefixes = RedBot.getDataHandler().get("guildprefixes", new TypeToken<HashMap<String, String>>(){}.getType(), new HashMap<String, String>());
 
         List<CommandGroup> commandGroups = Arrays.asList(
                 new SystemCommands(),
@@ -71,7 +71,7 @@ public class CommandHandler {
                 DiscordUtils.sendTemporaryMessage("Unknown command! Use help command for a list of commands.", msg.getChannel());
         } else
             for (Command c : commands) {
-                if (!c.usesPrefix() && c.getKeyword().equals(msgp.getArg(0))) {
+                if (!c.usesPrefix() && c.getKeyword().equalsIgnoreCase(msgp.getArg(0))) {
                     //if (perms.hasPermission(c.getPermission(), msg, c.getDefaultPermissions()))
                         invoke(c, msgp);
                     //else
@@ -92,10 +92,10 @@ public class CommandHandler {
     }
 
     private String getPrefix(IGuild guild) {
-        if(!prefixes.containsKey(guild)) {
-            prefixes.put(guild, "%");
+        if(!prefixes.containsKey(guild.getID())) {
+            prefixes.put(guild.getID(), "%");
             RedBot.getDataHandler().save(prefixes, "guildprefixes");
         }
-        return prefixes.get(guild);
+        return prefixes.get(guild.getID());
     }
 }

@@ -2,6 +2,7 @@ package com.thatredhead.redbot.data;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.thatredhead.redbot.RedBot;
 import com.thatredhead.redbot.permission.PermissionContext;
 import com.thatredhead.redbot.permission.PermissionContextSerializer;
 import com.thatredhead.redbot.permission.PermissionHandler;
@@ -10,6 +11,7 @@ import com.thatredhead.redbot.permission.PermissionSerializer;
 import java.io.*;
 import java.lang.reflect.Type;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -28,7 +30,12 @@ public class DataHandler {
 
         permFile = Paths.get("data/perms.json");
         if(Files.exists(permFile)) {
-            String json = readFromFile(permFile);
+            String json = "";
+            try {
+                json = readFromFile(permFile);
+            } catch (FileNotFoundException e) {
+                RedBot.reportError(e);
+            }
             if(!json.isEmpty())
                 permh = gson.fromJson(json, PermissionHandler.class);
             else
@@ -47,9 +54,9 @@ public class DataHandler {
         writeToFile(permFile, gson.toJson(permh));
     }
 
-    public Object save(Object o, String name) {
-        writeToFile(new File("data/" + name + ".json"), gson.toJson(o));
-        return o;
+    public <T> T save(T obj, String name) {
+        writeToFile(new File("data/" + name + ".json"), gson.toJson(obj));
+        return obj;
     }
 
     public <T> T get(String name, Class<T> classOfT) throws FileNotFoundException {
@@ -65,7 +72,8 @@ public class DataHandler {
             T obj = get(name, classOfT);
             return obj == null ? def : obj;
         } catch (FileNotFoundException e) {
-            return (T) save(def, name);
+            RedBot.reportError(e);
+            return save(def, name);
         }
     }
 
@@ -74,19 +82,22 @@ public class DataHandler {
             T obj = get(name, T);
             return obj == null ? def : obj;
         } catch (FileNotFoundException e) {
-            return (T) save(def, name);
+            RedBot.reportError(e);
+            return save(def, name);
         }
     }
 
-    private static String readFromFile(String s) {
+    private static String readFromFile(String s) throws FileNotFoundException {
         return readFromFile(Paths.get(s));
     }
 
-    private static String readFromFile(Path p) {
+    private static String readFromFile(Path p) throws FileNotFoundException {
         try {
             return new String(Files.readAllBytes(p));
+        } catch (NoSuchFileException e) {
+            throw new FileNotFoundException();
         } catch (IOException e) {
-            e.printStackTrace();
+            RedBot.reportError(e);
         }
         return null;
     }
@@ -103,13 +114,13 @@ public class DataHandler {
             bw = new BufferedWriter(fw);
             bw.write(s);
         } catch (IOException e) {
-            e.printStackTrace();
+            RedBot.reportError(e);
         } finally {
             try {
                 if(bw != null) bw.close();
                 if (fw != null) fw.close();
             } catch (IOException e) {
-                e.printStackTrace();
+                RedBot.reportError(e);
             }
         }
     }
