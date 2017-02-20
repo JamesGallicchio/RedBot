@@ -28,6 +28,7 @@ public class DataHandler {
                 .registerTypeAdapter(PermissionHandler.class, new PermissionSerializer())
                 .create();
 
+        // Load perms
         permFile = Paths.get("data/perms.json");
         if(Files.exists(permFile)) {
             String json = "";
@@ -46,14 +47,27 @@ public class DataHandler {
         savePerms();
     }
 
+    /**
+     * Gets the permission handler from this datahandler
+     * @return PermissionHandler instance
+     */
     public PermissionHandler getPermHandler() {
         return permh;
     }
 
+    /**
+     * Saves the permissions in memory to file
+     */
     public void savePerms() {
         writeToFile(permFile, gson.toJson(permh));
     }
 
+    /**
+     *
+     * @param o
+     * @param name
+     * @return
+     */
     public <T> T save(T obj, String name) {
         writeToFile(new File("data/" + name + ".json"), gson.toJson(obj));
         return obj;
