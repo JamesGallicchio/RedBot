@@ -12,6 +12,7 @@ import com.thatredhead.redbot.command.*;
 import com.thatredhead.redbot.permission.PermissionContext;
 import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.Permissions;
+import sx.blah.discord.util.EmbedBuilder;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -38,10 +39,24 @@ public class SubscriberCommands extends CommandGroup {
         subscriptions = RedBot.getDataHandler().get("subscriptions", new TypeToken<List<Subscription>>(){}.getType(), new ArrayList<>());
 
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
+            System.out.println("Polling subscriptions...");
             for(Subscription sub : subscriptions) {
                 List<SyndEntry> entries = sub.getNewEntries();
-                for(SyndEntry entry : entries)
-                    DiscordUtils.sendMessage(entry.toString(), sub.getChannel());
+                if(entries != null) {
+                    EmbedBuilder embed = new EmbedBuilder()
+                            .withAuthorName(sub.feed.getTitle())
+                            .withThumbnail(sub.feed.getImage().getUrl())
+                            .withTimestamp(sub.lastUpdate);
+
+                    if(entries.size() > 1)
+                        for (SyndEntry entry : entries)
+                            embed.appendField(entry.getTitle(), entry.getDescription().getValue(), false);
+                    else
+                        embed.withTitle(entries.get(0).getTitle())
+                                .withDesc(entries.get(0).getDescription().getValue());
+
+                    DiscordUtils.sendEmbed(embed.build(), sub.getChannel());
+                }
             }
         }, 0, 5, TimeUnit.MINUTES);
     }
@@ -60,14 +75,20 @@ public class SubscriberCommands extends CommandGroup {
 
         @Override
         public void invoke(MessageParser msgp) {
-            Subscription sub = new Subscription(msgp.getArg(1), msgp.getChannel());
+            Subscription sub;
+            try {
+                sub = new Subscription(msgp.getArg(1), msgp.getChannel());
+            } catch (RuntimeException e) {
+                msgp.reply("Invalid URL: " + msgp.getArg(1));
+                return;
+            }
 
             if(subscriptions.contains(sub))
                 throw new CommandException("This channel is already subscribed to that URL!");
 
             subscriptions.add(sub);
 
-            RedBot.getDataHandler().save(subscriptions, "subscriptions");
+            save();
 
             msgp.reply("Added subscription to " + sub.feed.getTitle());
         }
@@ -87,20 +108,19 @@ public class SubscriberCommands extends CommandGroup {
 
         @Override
         public void invoke(MessageParser msgp) {
-            if(subscriptions.isEmpty())
-                msgp.reply("There are no subscriptions in this channel!");
-            else {
-                StringBuilder sb = new StringBuilder("```md\n");
+            StringBuilder sb = new StringBuilder("```md\n");
 
-                String id = msgp.getChannel().getID();
+            String id = msgp.getChannel().getID();
 
-                int count = 0;
-                for (Subscription sub : subscriptions)
-                    if (id.equals(sub.channelId))
-                        sb.append("[").append(count).append("]: ").append(sub.feed.getTitle()).append("\n");
+            int count = 0;
+            boolean has = false;
+            for (Subscription sub : subscriptions)
+                if (id.equals(sub.channelId)) {
+                    has = true;
+                    sb.append("[").append(count++).append("]: ").append(sub.getFeed().getTitle()).append("\n");
+                }
 
-                msgp.reply(sb.append("```").toString());
-            }
+            msgp.reply(has ? sb.append("```").toString() : "There are no subscriptions in this channel.");
         }
     }
 
@@ -109,7 +129,7 @@ public class SubscriberCommands extends CommandGroup {
         public UnsubscribeCommand() {
             keyword = permission = "unsubscribe";
             description = "Unsubscribes this channel to a subscription";
-            usage = "unsubscribe <id (see subscriptions)>";
+            usage = "unsubscribe <id (see subscriptions command)>";
         }
 
         @Override
@@ -139,6 +159,8 @@ public class SubscriberCommands extends CommandGroup {
 
             Subscription sub = subscriptions.remove(idx);
 
+            save();
+
             msgp.reply("Removed subscription to " + sub.feed.getTitle());
         }
     }
@@ -156,6 +178,7 @@ public class SubscriberCommands extends CommandGroup {
 
         public Subscription(String url, IChannel channel) {
             channelId = channel.getID();
+            this.channel = channel;
             subscriptionUrl = url;
             checkFeed();
         }
@@ -165,6 +188,13 @@ public class SubscriberCommands extends CommandGroup {
                 channel = RedBot.getClient().getChannelByID(channelId);
 
             return channel;
+        }
+
+        public SyndFeed getFeed() {
+            if(feed == null)
+                checkFeed();
+
+            return feed;
         }
 
         public List<SyndEntry> getNewEntries() {
@@ -208,5 +238,13 @@ public class SubscriberCommands extends CommandGroup {
         boolean equals(Subscription sub) {
             return channelId.equals(sub.channelId) && subscriptionUrl.equals(sub.subscriptionUrl);
         }
+    }
+
+    private void save() {
+        RedBot.getDataHandler().save(subscriptions, "subscriptions");
+    }
+
+    private String link(String display, String link) {
+        return "[" + display + "](" + link  + ')';
     }
 }

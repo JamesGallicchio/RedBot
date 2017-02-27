@@ -1,8 +1,11 @@
 package com.thatredhead.redbot;
 
+import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.handle.obj.IUser;
+import sx.blah.discord.util.DiscordException;
+import sx.blah.discord.util.MissingPermissionsException;
 import sx.blah.discord.util.RequestBuffer;
 
 import java.util.concurrent.Executors;
@@ -52,6 +55,18 @@ public class DiscordUtils {
     }
 
     /**
+     * Sends an embed to a channel
+     * @param embed the embed to send
+     * @param channel the channel to send the embed to
+     * @return a future for the message
+     */
+    public static RequestBuffer.RequestFuture<IMessage> sendEmbed(EmbedObject embed, IChannel channel) {
+        return RequestBuffer.request(() -> {
+            return channel.sendMessage(embed);
+        });
+    }
+
+    /**
      * Sends a temporary message to a channel that lasts 30 seconds
      * @param msg message to send
      * @param channel channel to send msg to
@@ -73,8 +88,8 @@ public class DiscordUtils {
         scheduler.schedule(() -> RequestBuffer.request(() -> {
                     try {
                         message.get().delete();
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                    } catch (DiscordException | MissingPermissionsException e) {
+                        RedBot.reportError(e);
                     }
                 }), milliDelay, TimeUnit.MILLISECONDS);
     }
