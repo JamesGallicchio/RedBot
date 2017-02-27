@@ -6,7 +6,7 @@
 
     <groupId>com.thatredhead.redbot</groupId>
     <artifactId>RedBot</artifactId>
-    <version>0.8.0</version>
+    <version>0.9.1</version>
 
     <repositories>
         <repository>
@@ -36,6 +36,11 @@
             <groupId>com.github.rometools</groupId>
             <artifactId>rome</artifactId>
             <version>1.7.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.reflections</groupId>
+            <artifactId>reflections</artifactId>
+            <version>0.9.10</version>
         </dependency>
     </dependencies>
 
