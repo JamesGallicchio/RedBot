@@ -3,17 +3,15 @@ package com.thatredhead.redbot.command;
 import com.google.gson.reflect.TypeToken;
 import com.thatredhead.redbot.DiscordUtils;
 import com.thatredhead.redbot.RedBot;
-import com.thatredhead.redbot.command.impl.*;
+import com.thatredhead.redbot.command.impl.HelpCommand;
 import com.thatredhead.redbot.permission.PermissionHandler;
+import org.reflections.Reflections;
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
 import sx.blah.discord.handle.obj.IGuild;
 import sx.blah.discord.handle.obj.IMessage;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class CommandHandler {
@@ -30,21 +28,31 @@ public class CommandHandler {
 
         prefixes = RedBot.getDataHandler().get("guildprefixes", new TypeToken<HashMap<String, String>>(){}.getType(), new HashMap<String, String>());
 
-        List<CommandGroup> commandGroups = Arrays.asList(
-                new SystemCommands(),
-                new DnDCommands(),
-                new CuteCommands(),
-                new SubscriberCommands()
-        );
+        Reflections r = new Reflections("com.thatredhead.redbot.command.impl");
 
-        List<Command> standaloneCommands = new ArrayList<>();
-        standaloneCommands.addAll(Arrays.asList(
-                new HelpCommand(commandGroups, standaloneCommands)//,
-                //new PermsCommand()
-        ));
+        List<CommandGroup> commandGroups = r.getSubTypesOf(CommandGroup.class).stream().map(clazz -> {
+            try {
+                return clazz.newInstance();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
+        }).filter(Objects::nonNull).collect(Collectors.toList());
+
+        List<Command> standaloneCommands = r.getSubTypesOf(Command.class).stream().map(clazz -> {
+            try {
+                if(clazz.getName().contains("$") || clazz.equals(HelpCommand.class))
+                    return null;
+                else return clazz.newInstance();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
+        }).filter(Objects::nonNull).collect(Collectors.toList());
 
         commands = commandGroups.stream().flatMap(group -> group.getCommands().stream()).collect(Collectors.toList());
         commands.addAll(standaloneCommands);
+        commands.add(new HelpCommand(commandGroups, standaloneCommands));
     }
 
     @EventSubscriber
