@@ -17,12 +17,11 @@ import sx.blah.discord.util.EmbedBuilder;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class SubscriberCommands extends CommandGroup {
 
@@ -39,24 +38,35 @@ public class SubscriberCommands extends CommandGroup {
         subscriptions = RedBot.getDataHandler().get("subscriptions", new TypeToken<List<Subscription>>(){}.getType(), new ArrayList<>());
 
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
-            System.out.println("Polling subscriptions...");
-            for(Subscription sub : subscriptions) {
-                List<SyndEntry> entries = sub.getNewEntries();
-                if(entries != null) {
-                    EmbedBuilder embed = new EmbedBuilder()
-                            .withAuthorName(sub.feed.getTitle())
-                            .withThumbnail(sub.feed.getImage().getUrl())
-                            .withTimestamp(sub.lastUpdate);
+            try {
+                System.out.println("Polling subscriptions...");
+                for (Subscription sub : subscriptions) {
+                    List<SyndEntry> entries = sub.getNewEntries();
+                    if (entries != null && !entries.isEmpty()) {
+                        System.out.println("New entries for " + sub.getFeed().getTitle());
+                        EmbedBuilder embed = new EmbedBuilder()
+                                .withAuthorName(sub.feed.getTitle())
+                                .withTimestamp(sub.lastUpdate);
+                        if(sub.feed.getImage() != null)
+                            embed.withThumbnail(sub.feed.getImage().getUrl());
 
-                    if(entries.size() > 1)
-                        for (SyndEntry entry : entries)
-                            embed.appendField(entry.getTitle(), entry.getDescription().getValue(), false);
-                    else
-                        embed.withTitle(entries.get(0).getTitle())
-                                .withDesc(entries.get(0).getDescription().getValue());
+                        if (entries.size() > 1)
+                            for (SyndEntry entry : entries)
+                                embed.appendField(entry.getTitle(), removeHtml(entry.getDescription().getValue()), false);
+                        else {
+                            String html = entries.get(0).getDescription().getValue();
+                            embed.withTitle(entries.get(0).getTitle())
+                                    .withDesc(removeHtml(html));
+                            List<String> imgs = getImages(html);
+                            if(!imgs.isEmpty())
+                                    embed.withImage(imgs.get(0));
+                        }
 
-                    DiscordUtils.sendEmbed(embed.build(), sub.getChannel());
+                        DiscordUtils.sendEmbed(embed.build(), sub.getChannel());
+                    }
                 }
+            } catch (Exception e) {
+                RedBot.reportError(e);
             }
         }, 0, 5, TimeUnit.MINUTES);
     }
@@ -210,13 +220,15 @@ public class SubscriberCommands extends CommandGroup {
             }
 
             lastEntries = feed.getEntries();
-            lastUpdate = feed.getPublishedDate().getTime();
+            lastUpdate = feed.getPublishedDate() == null ? 0 : feed.getPublishedDate().getTime();
 
             return newEntries;
         }
 
         public boolean hasUpdate() {
             checkFeed();
+            if(feed.getPublishedDate() == null)
+                return true;
             return feed.getPublishedDate().after(new Date(lastUpdate));
         }
 
@@ -226,7 +238,7 @@ public class SubscriberCommands extends CommandGroup {
             } catch (MalformedURLException e) {
                 throw new RuntimeException();
             } catch (IOException | FeedException e) {
-                e.printStackTrace();
+                RedBot.reportError(e);
             }
         }
 
@@ -246,5 +258,62 @@ public class SubscriberCommands extends CommandGroup {
 
     private String link(String display, String link) {
         return "[" + display + "](" + link  + ')';
+    }
+
+    private static final Pattern IMG_PATT = Pattern.compile("<[\\s]*img\\b.*src[\\s]*=[\\s]*\"(.+)\"");
+    private List<String> getImages(String html) {
+        if(html == null) return Collections.singletonList("");
+
+        Matcher m = IMG_PATT.matcher(html);
+
+        List<String> images = new ArrayList<>();
+        while(m.find()) {
+            images.add(m.group(1));
+        }
+
+        return images;
+    }
+
+    private static final Pattern HTML_PATT = Pattern.compile("<[\\s]*(\\w+?)(?:(.*))?(?:/[\\s]*>|>([\\s\\S]*?)<[\\s]*/[\\s]*\\1[\\s]*>)");
+    private static final Pattern LINK_PATT = Pattern.compile("[\\s]*href[\\s]*=[\\s]*\"(.+)\"");
+    private static final Pattern SRC_PATT = Pattern.compile("[\\s]*src[\\s]*=[\\s]*\"(.+)\"");
+    private String removeHtml(String html) {
+        if(html == null) return "";
+
+        StringBuilder sb = new StringBuilder();
+        Matcher m = HTML_PATT.matcher(html);
+
+        int idx = 0;
+        while(m.find(idx)) {
+            // Append everything from the last parsed area to the new start
+            sb.append(html.substring(idx, m.start()));
+
+            switch(m.group(1).toLowerCase()) {
+                case "br":
+                    sb.append('\n'); break;
+                case "img":
+                    Matcher src = SRC_PATT.matcher(m.group(2));
+                    if(src.find())
+                        sb.append(' ').append(src.group(1)).append(' ');
+                    break;
+                case "p":
+                    sb.append(removeHtml(m.group(3))).append("\n\n"); break;
+                case "b":
+                    sb.append("**").append(removeHtml(m.group(3))).append("**"); break;
+                case "u":
+                    sb.append("__").append(removeHtml(m.group(3))).append("__"); break;
+                case "i":
+                    sb.append("*").append(removeHtml(m.group(3))).append("*"); break;
+                case "a":
+                    Matcher link = LINK_PATT.matcher(m.group(2));
+                    if(link.find()) {
+                        sb.append('[').append(removeHtml(m.group(3))).append("](");
+                        sb.append(link.group(1)).append(')');
+                    } else sb.append(removeHtml(m.group(3)));
+            }
+            idx = m.end();
+        }
+
+        return sb.toString();
     }
 }
