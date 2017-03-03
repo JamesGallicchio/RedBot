@@ -23,7 +23,6 @@ public class CommandHandler {
     private HashMap<String, String> prefixes;
 
     public CommandHandler() {
-        RedBot.getClient().getDispatcher().registerListener(this);
         this.perms = RedBot.getPermHandler();
 
         prefixes = RedBot.getDataHandler().get("guildprefixes", new TypeToken<HashMap<String, String>>(){}.getType(), new HashMap<String, String>());

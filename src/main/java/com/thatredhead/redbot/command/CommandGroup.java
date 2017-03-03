@@ -21,7 +21,7 @@ public abstract class CommandGroup {
         return permission;
     }
 
-    public  List<Command> getCommands() {
+    public List<Command> getCommands() {
         return commands;
     }
 }

@@ -1,17 +1,20 @@
 package com.thatredhead.redbot;
 
-import com.thatredhead.redbot.command.CommandHandler;
 import com.thatredhead.redbot.data.DataHandler;
 import com.thatredhead.redbot.permission.PermissionHandler;
 import org.apache.commons.io.FileUtils;
+import org.reflections.Reflections;
+import org.reflections.scanners.MethodAnnotationsScanner;
 import sx.blah.discord.api.ClientBuilder;
 import sx.blah.discord.api.IDiscordClient;
+import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.impl.events.ReadyEvent;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Objects;
 import java.util.Properties;
 
 /**
@@ -64,7 +67,15 @@ public class RedBot {
             e.printStackTrace();
         }
 
-        new CommandHandler();
+        new Reflections("com.thatredhead.redbot", new MethodAnnotationsScanner()).getMethodsAnnotatedWith(EventSubscriber.class).stream()
+                .map(method -> {
+                    try {
+                        return method.getDeclaringClass().newInstance();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    return null;
+                }).filter(Objects::nonNull).distinct().forEach(client.getDispatcher()::registerListener);
     }
 
     /**
