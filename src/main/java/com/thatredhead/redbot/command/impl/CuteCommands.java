@@ -31,9 +31,8 @@ public class CuteCommands extends CommandGroup {
     private int engineNum;
 
     public CuteCommands() {
-        name = "Cute Commands";
-        description = "Collection of commands to do cute things";
-        permission = "cute";
+        super("Cute Commands", "Collection of commands to do cute things",
+                "cute", null);
         commands = Arrays.asList(new CuteCommand(), new CuteSafetyCommand());
 
         this.datah = RedBot.getDataHandler();
@@ -46,10 +45,8 @@ public class CuteCommands extends CommandGroup {
     public class CuteCommand extends Command {
 
         public CuteCommand() {
-            keyword = permission = "cute";
-            description = "Searches Google for cute images";
-            usage = "cute *search terms* <gif if you want a gif>";
-            noPrefix = true;
+            super("cute", "Searches Google for cute images",
+                    "cute *search terms* <gif if you want a gif>", "cute", false);
         }
 
         @Override
@@ -72,9 +69,7 @@ public class CuteCommands extends CommandGroup {
     public class CuteSafetyCommand extends Command {
 
         public CuteSafetyCommand() {
-            keyword = permission = "cutesafety";
-            description = "Sets search safety for the channel";
-            usage = "cutesafety < off | medium | high >";
+            super("cutesafety", "Sets search safety for the channel", "cutesafety < off | medium | high >");
         }
 
         @Override

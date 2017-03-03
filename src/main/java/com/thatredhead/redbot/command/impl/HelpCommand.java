@@ -17,10 +17,9 @@ public class HelpCommand extends Command {
     private List<Command> cmds;
 
     public HelpCommand(List<CommandGroup> cmdGroups, List<Command> cmds) {
+        super("help", "Get PM'd a list of commands you can use in this channel");
         this.cmdGroups = cmdGroups;
         this.cmds = cmds;
-        keyword = usage = permission = "help";
-        description = "Get PM'd a list of commands you can use in this channel";
     }
 
     @Override

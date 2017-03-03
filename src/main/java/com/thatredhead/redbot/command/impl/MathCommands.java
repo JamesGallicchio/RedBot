@@ -10,10 +10,15 @@ import java.util.Arrays;
 public class MathCommands extends CommandGroup {
 
     public MathCommands() {
-        commands = Arrays.asList(new EvalCommand());
+        super("Math Commands", "Commands to help with math related stuff", "math", Arrays.asList(new EvalCommand()));
     }
 
-    public class EvalCommand extends Command {
+    public static class EvalCommand extends Command {
+
+        public EvalCommand() {
+            super("", "");
+        }
+
         @Override
         public PermissionContext getDefaultPermissions() {
             return null;
@@ -21,7 +26,7 @@ public class MathCommands extends CommandGroup {
 
         @Override
         public void invoke(MessageParser msgp) {
-
+            msgp.reply("Not currently functional :(");
         }
     }
 }

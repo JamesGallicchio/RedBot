@@ -11,6 +11,22 @@ public abstract class Command {
     protected boolean noPrefix;
     protected String permission;
 
+    public Command(String keyword, String description) {
+        this(keyword, description, keyword, keyword, true);
+    }
+
+    public Command(String keyword, String description, String usage) {
+        this(keyword, description, usage, keyword, true);
+    }
+
+    public Command(String keyword, String description, String usage, String permission, boolean usesPrefix) {
+        this.keyword = keyword;
+        this.description = description;
+        this.usage = usage;
+        this.permission = permission;
+        this.noPrefix = !usesPrefix;
+    }
+
     public String getKeyword() {
         return keyword;
     }

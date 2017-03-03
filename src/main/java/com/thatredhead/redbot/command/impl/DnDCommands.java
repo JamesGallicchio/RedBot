@@ -14,11 +14,8 @@ import java.util.regex.Pattern;
 public class DnDCommands extends CommandGroup {
 
     public DnDCommands() {
-        name = "DnD Commands";
-        description = "Collection of useful commands for RPGs";
-        permission = "dnd";
-
-        commands = Arrays.asList(new Roll());
+        super("DnD Commands", "Collection of useful commands for RPGs",
+                "dnd", Arrays.asList(new Roll()));
     }
 
 
@@ -27,9 +24,8 @@ public class DnDCommands extends CommandGroup {
         private static final String pattern = "(?:\\s+)?([+-])?(?:\\s+)?(?:(?:(\\d+)?[dD](\\d+))|(\\d+)(?![dD]))";
 
         public Roll() {
-            keyword = permission = "roll";
-            description = "Rolls a die in D&D fashion";
-            usage = "<# of dice>d<size> +/- <more dice or modifiers>";
+            super("roll", "Rolls a die in TTRPG fashion",
+                    "<# of dice>d<size> +/- <more dice, or modifiers>");
         }
 
         @Override

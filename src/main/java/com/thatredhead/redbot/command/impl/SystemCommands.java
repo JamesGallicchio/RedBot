@@ -13,18 +13,13 @@ import java.util.Arrays;
 public class SystemCommands extends CommandGroup {
 
     public SystemCommands() {
-        name = "System Commands";
-        description = "Commands pertinent to RedBot's system";
-        permission = "system";
-
-        commands = Arrays.asList(new InfoCommand(), new InviteCommand());
+        super("System Commands", "Commands pertinent to RedBot's system", "system", Arrays.asList(new InfoCommand(), new InviteCommand()));
     }
 
-    public class InfoCommand extends Command {
+    public static class InfoCommand extends Command {
 
         public InfoCommand() {
-            keyword = usage = permission = "info";
-            description = "Gives information about the system";
+            super("info", "Gives information about the system");
         }
 
         public PermissionContext getDefaultPermissions() {
@@ -44,11 +39,10 @@ public class SystemCommands extends CommandGroup {
         }
     }
 
-    public class InviteCommand extends Command {
+    public static class InviteCommand extends Command {
 
         public InviteCommand() {
-            keyword = usage = permission = "invite";
-            description = "Gives a link to invite the bot to other servers";
+            super("invite", "Gives a link to invite the bot to other servers");
         }
 
         @Override

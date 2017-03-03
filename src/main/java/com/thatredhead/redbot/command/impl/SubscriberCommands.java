@@ -28,9 +28,8 @@ public class SubscriberCommands extends CommandGroup {
     List<Subscription> subscriptions;
 
     public SubscriberCommands() {
-        name = "Subscriber Commands";
-        description = "Commands for subscribing to RSS/Atom feeds";
-        permission = "subscriber";
+        super("Subscriber Commands", "Commands for subscribing to RSS/Atom feeds", "subscriber", null);
+
         commands = Arrays.asList(new SubscribeCommand(),
                                  new SubscriptionsCommand(),
                                  new UnsubscribeCommand());
@@ -74,8 +73,8 @@ public class SubscriberCommands extends CommandGroup {
     public class SubscribeCommand extends Command {
 
         public SubscribeCommand() {
-            keyword = usage = permission = "subscribe";
-            description = "Subscribes this channel to RSS/Atom feed updates";
+            super("subscribe", "Subscribes this channel to RSS/Atom feed updates",
+                    "subscribe", "subscribe", true);
         }
 
         @Override
@@ -107,8 +106,8 @@ public class SubscriberCommands extends CommandGroup {
     public class SubscriptionsCommand extends Command {
 
         public SubscriptionsCommand() {
-            keyword = usage = permission = "subscriptions";
-            description = "Lists the subscriptions for this channel";
+            super("subscriptions", "Lists the subscriptions for this channel",
+                    "subscriptions", "subscriptions", true);
         }
 
         @Override
@@ -137,9 +136,8 @@ public class SubscriberCommands extends CommandGroup {
     public class UnsubscribeCommand extends Command {
 
         public UnsubscribeCommand() {
-            keyword = permission = "unsubscribe";
-            description = "Unsubscribes this channel to a subscription";
-            usage = "unsubscribe <id (see subscriptions command)>";
+            super("unsubscribe", "Unsubscribes this channel to a subscription",
+                    "unsubscribe <id (see subscriptions command)>", "unsubscribe", true);
         }
 
         @Override
@@ -307,8 +305,7 @@ public class SubscriberCommands extends CommandGroup {
                 case "a":
                     Matcher link = LINK_PATT.matcher(m.group(2));
                     if(link.find()) {
-                        sb.append('[').append(removeHtml(m.group(3))).append("](");
-                        sb.append(link.group(1)).append(')');
+                        sb.append(link(removeHtml(m.group(3)), link.group(1)));
                     } else sb.append(removeHtml(m.group(3)));
             }
             idx = m.end();

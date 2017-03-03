@@ -13,10 +13,9 @@ public class PermsCommand extends Command {
     private PermissionHandler perms;
 
     public PermsCommand() {
+        super("perms", "Sets permissions data for this guild",
+                "perms [ <set | add | remove | copy> <ID> [ID2 [ID3 ...]] <mention or perm enum>");
         this.perms = RedBot.getPermHandler();
-        keyword = permission = "perms";
-        description = "Sets permissions data for this guild";
-        usage = "perms [ <set | add | remove | copy> <ID> [ID2 [ID3 ...]] <mention or perm enum>]";
     }
 
     @Override
