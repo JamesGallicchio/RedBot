@@ -11,7 +11,9 @@ import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedE
 import sx.blah.discord.handle.obj.IGuild;
 import sx.blah.discord.handle.obj.IMessage;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class CommandHandler {
