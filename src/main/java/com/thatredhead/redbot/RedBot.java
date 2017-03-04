@@ -3,17 +3,22 @@ package com.thatredhead.redbot;
 import com.thatredhead.redbot.data.DataHandler;
 import com.thatredhead.redbot.permission.PermissionHandler;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.reflections.Reflections;
 import org.reflections.scanners.MethodAnnotationsScanner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import sx.blah.discord.api.ClientBuilder;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.impl.events.ReadyEvent;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Objects;
 import java.util.Properties;
 
@@ -24,6 +29,34 @@ public class RedBot {
 
     public static final String INVITE = "https://goo.gl/WcN0QK";
     public static final String OWNER_ID = "135553137699192832";
+    public static final String ERROR_CHANNEL_ID = "287324375785537547";
+
+    public static final Logger LOGGER = LoggerFactory.getLogger(RedBot.class);
+    private static final long MILLI_LOG_PERSISTENCE = 1000L*60*60*24*7; // 7 days
+
+    static {
+        File latest = new File("logs/latest.log");
+
+        if(latest.exists()) latest.delete();
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            if (latest.exists()) {
+                try {
+                    Files.copy(latest.toPath(),
+                            Paths.get("logs/" +
+                                    new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(
+                                            new Date(latest.lastModified())) +
+                                    ".log"));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            latest.deleteOnExit();
+            for (File f : new File("logs").listFiles())
+                if (System.currentTimeMillis() - f.lastModified() > MILLI_LOG_PERSISTENCE)
+                    f.deleteOnExit();
+        }));
+    }
 
     private static IDiscordClient client;
     private static DataHandler datah;
@@ -140,10 +173,15 @@ public class RedBot {
      * Reports an error to both console log and PM to owner
      * @param e exception to report
      */
-    public static void reportError(Exception e) {
-        e.printStackTrace();
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        e.printStackTrace(new PrintWriter(bos));
-        DiscordUtils.sendPrivateMessage(bos.toString(), getClient().getUserByID(OWNER_ID));
+    public static void reportError(Throwable e) {
+        String stacktrace = ExceptionUtils.getStackTrace(e);
+        DiscordUtils.sendMessage(limit(stacktrace, 2000), getClient().getChannelByID(ERROR_CHANNEL_ID));
+        LOGGER.error(stacktrace);
+    }
+
+    private static String limit(String s, int chars) {
+        if(s.length() > chars)
+            return s.substring(0, chars);
+        return s;
     }
 }

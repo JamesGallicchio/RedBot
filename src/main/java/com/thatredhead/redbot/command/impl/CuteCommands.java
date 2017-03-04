@@ -38,8 +38,8 @@ public class CuteCommands extends CommandGroup {
         this.datah = RedBot.getDataHandler();
         safeties = datah.get("cutesafety", new TypeToken<HashMap<String, String>>(){}.getType(), new HashMap<>());
         engines = new ArrayList<>();
-        engines.add(new Pair<>("014731838518875835789%3Atp7hgh9vtu8", "AIzaSyCdY1epFL_Sru0pE98LZENyK9yYIgPXY4A"));
-        engines.add(new Pair<>("014731838518875835789%3Aco91bck4x3g", "AIzaSyCQgTImPvq7DIsZjh1djWoeqUdpLIBnPhs"));
+        engines.add(new Pair<>("014731838518875835789%3Atp7hgh9vtu8", "AIzaSyBbSBRLN55ZhsouwtFjOZNmCNoH1RgpwKE"));
+        engines.add(new Pair<>("014731838518875835789%3Aco91bck4x3g", "AIzaSyBbSBRLN55ZhsouwtFjOZNmCNoH1RgpwKE"));
     }
 
     public class CuteCommand extends Command {
@@ -56,7 +56,7 @@ public class CuteCommands extends CommandGroup {
 
         @Override
         public void invoke(MessageParser msgp) {
-            if (!safeties.containsKey(msgp.getChannel().toString())) {
+            if (!safeties.containsKey(msgp.getChannel().getID())) {
                 safeties.put(msgp.getChannel().getID(), "high");
                 datah.save(safeties, "cutesafety");
             }
@@ -147,11 +147,14 @@ public class CuteCommands extends CommandGroup {
                 if (matcher.find()) {
                     response.append("\n");
                     response.append(matcher.group(1));
+                } else {
+                    response.setLength(0);
+                    response.append("Your request turned up no results.");
                 }
                 break;
             } catch (IOException maxDailyLimit) {
 
-                maxDailyLimit.printStackTrace();
+                RedBot.LOGGER.error("IO Error encountered on request to Google's servers: ", maxDailyLimit);
 
                 if (startEng != nextEng())
                     continue;

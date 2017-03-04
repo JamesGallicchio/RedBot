@@ -38,11 +38,10 @@ public class SubscriberCommands extends CommandGroup {
 
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
             try {
-                System.out.println("Polling subscriptions...");
                 for (Subscription sub : subscriptions) {
                     List<SyndEntry> entries = sub.getNewEntries();
                     if (entries != null && !entries.isEmpty()) {
-                        System.out.println("New entries for " + sub.getFeed().getTitle());
+                        RedBot.LOGGER.debug("New entries for " + sub.getFeed().getTitle());
                         EmbedBuilder embed = new EmbedBuilder()
                                 .withAuthorName(sub.feed.getTitle())
                                 .withTimestamp(sub.lastUpdate);
