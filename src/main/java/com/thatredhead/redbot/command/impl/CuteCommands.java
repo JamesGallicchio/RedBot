@@ -12,7 +12,9 @@ import com.thatredhead.redbot.permission.PermissionContext;
 import javafx.util.Pair;
 import org.apache.commons.io.IOUtils;
 import sx.blah.discord.handle.obj.IChannel;
+import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.handle.obj.Permissions;
+import sx.blah.discord.util.MessageHistory;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -33,7 +35,7 @@ public class CuteCommands extends CommandGroup {
     public CuteCommands() {
         super("Cute Commands", "Collection of commands to do cute things",
                 "cute", null);
-        commands = Arrays.asList(new CuteCommand(), new CuteSafetyCommand());
+        commands = Arrays.asList(new CuteCommand(), new CuteSafetyCommand(), new CuteReportCommand());
 
         this.datah = RedBot.getDataHandler();
         safeties = datah.get("cutesafety", new TypeToken<HashMap<String, String>>(){}.getType(), new HashMap<>());
@@ -86,6 +88,44 @@ public class CuteCommands extends CommandGroup {
 
             safeties.put(msgp.getChannel().getID(), level);
             RedBot.getDataHandler().save(safeties, "cutesafety");
+        }
+    }
+
+    public class CuteReportCommand extends Command {
+
+        public CuteReportCommand() {
+            super("cutereport", "Deletes (and records) inappropriate cute images", "cutereport <ID>");
+        }
+
+        @Override
+        public PermissionContext getDefaultPermissions() {
+            return PermissionContext.getEveryoneContext();
+        }
+
+        @Override
+        public void invoke(MessageParser msgp) {
+
+            String id = msgp.getArg(1).toUpperCase();
+            boolean full = msgp.getArgCount() > 2 && msgp.getArg(2).equals("full");
+
+            IMessage reported = null;
+            MessageHistory history = msgp.getChannel().getMessageHistory(100);
+            for (IMessage msg : history) {
+                if (msg.getAuthor().equals(RedBot.getClient().getOurUser()) &&
+                        msg.getContent().contains(id))
+                    reported = msg;
+            }
+
+            if(reported == null) {
+                if (full)
+                    msgp.reply("None of my responses in this channel use that ID.");
+                else
+                    msgp.reply("None of the last 100 messages in this channel use that ID."); // Use `cutereport <ID> full` to go through the entire channel.");
+                return;
+            }
+
+            reported.delete();
+            msgp.reply("Removed image *" + id + "* successfully!");
         }
     }
 
@@ -160,6 +200,8 @@ public class CuteCommands extends CommandGroup {
                     continue;
 
                 response.setLength(0);
+                if(maxDailyLimit.getMessage().contains("50"))
+                    response.append("\nGoogle's servers are probably down. Try again in a minute.");
                 response.append("\nError occurred- Possibly reached daily request limit.");
                 break;
             }
