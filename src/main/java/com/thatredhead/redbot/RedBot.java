@@ -175,7 +175,7 @@ public class RedBot {
      */
     public static void reportError(Throwable e) {
         String stacktrace = ExceptionUtils.getStackTrace(e);
-        DiscordUtils.sendMessage(limit(stacktrace, 2000), getClient().getChannelByID(ERROR_CHANNEL_ID));
+        DiscordUtils.sendMessage("```\n" + limit(stacktrace, 1990) + "```", getClient().getChannelByID(ERROR_CHANNEL_ID));
         LOGGER.error(stacktrace);
     }
 
