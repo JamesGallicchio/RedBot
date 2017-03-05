@@ -9,7 +9,6 @@ import com.thatredhead.redbot.command.CommandGroup;
 import com.thatredhead.redbot.command.MessageParser;
 import com.thatredhead.redbot.data.DataHandler;
 import com.thatredhead.redbot.permission.PermissionContext;
-import javafx.util.Pair;
 import org.apache.commons.io.IOUtils;
 import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IMessage;
@@ -21,7 +20,10 @@ import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -29,8 +31,15 @@ public class CuteCommands extends CommandGroup {
 
     private DataHandler datah;
     private HashMap<String, String> safeties;
-    private List<Pair<String, String>> engines;
-    private int engineNum;
+
+    private static final String engine = "014731838518875835789:co91bck4x3g";
+    private List<String> keys = Arrays.asList(
+            "AIzaSyBbSBRLN55ZhsouwtFjOZNmCNoH1RgpwKE",
+            "AIzaSyA-o0KkorYgCx--Wkt6TtL4twh8r7d_7LQ",
+            "AIzaSyA4zOXxrwQEN7G-v-hH8sXupSRVzTxYcQE",
+            "AIzaSyAdTenA71JZZNTgC-YGBDgAPtjEm7SU7A8",
+            "AIzaSyAuRsKevOu2dTjeMkfjSsOUBuxY2rv0fZU");
+    private int keyNum;
 
     public CuteCommands() {
         super("Cute Commands", "Collection of commands to do cute things",
@@ -39,9 +48,6 @@ public class CuteCommands extends CommandGroup {
 
         this.datah = RedBot.getDataHandler();
         safeties = datah.get("cutesafety", new TypeToken<HashMap<String, String>>(){}.getType(), new HashMap<>());
-        engines = new ArrayList<>();
-        engines.add(new Pair<>("014731838518875835789%3Atp7hgh9vtu8", "AIzaSyBbSBRLN55ZhsouwtFjOZNmCNoH1RgpwKE"));
-        engines.add(new Pair<>("014731838518875835789%3Aco91bck4x3g", "AIzaSyBbSBRLN55ZhsouwtFjOZNmCNoH1RgpwKE"));
     }
 
     public class CuteCommand extends Command {
@@ -166,12 +172,12 @@ public class CuteCommands extends CommandGroup {
 
         int startAt = new Random().nextInt(100);
 
-        int startEng = engineNum;
+        int startEng = keyNum;
         while (true) {
             try {
                 String urlString = "https://www.googleapis.com/customsearch/v1?" +
                         "q=cute" + encoded +
-                        "&cx=" + engines.get(engineNum).getKey() +
+                        "&cx=" + engine +
                         type +
                         "&filter=1" +
                         "&num=1" +
@@ -179,7 +185,7 @@ public class CuteCommands extends CommandGroup {
                         "&searchType=image" +
                         "&start=" + startAt +
                         "&fields=items%2Flink" +
-                        "&key=" + engines.get(engineNum).getValue();
+                        "&key=" + keys.get(keyNum);
                 URL googleURL = new URL(urlString);
                 String jsonString = IOUtils.toString(new InputStreamReader(googleURL.openStream()));
                 Pattern pattern = Pattern.compile("\"link\": \"(.+)\"", Pattern.DOTALL);
@@ -192,26 +198,29 @@ public class CuteCommands extends CommandGroup {
                     response.append("Your request turned up no results.");
                 }
                 break;
-            } catch (IOException maxDailyLimit) {
+            } catch (IOException e) {
 
-                RedBot.LOGGER.error("IO Error encountered on request to Google's servers: ", maxDailyLimit);
-
-                if (startEng != nextEng())
+                if (startEng != nextKey())
                     continue;
 
                 response.setLength(0);
-                if(maxDailyLimit.getMessage().contains("50"))
+                if(e.getMessage().contains("50"))
                     response.append("\nGoogle's servers are probably down. Try again in a minute.");
-                response.append("\nError occurred- Possibly reached daily request limit.");
+                else if(e.getMessage().contains("40"))
+                    response.append("\nProbably reached daily request limit. :(");
+                else {
+                    response.append("\nError getting an image. Try again in a bit.");
+                    RedBot.reportError(e);
+                }
                 break;
             }
         }
         DiscordUtils.sendMessage(response.toString(), channel);
     }
 
-    private int nextEng() {
-        if(++engineNum >= engines.size())
-            engineNum = 0;
-        return engineNum;
+    private int nextKey() {
+        if(++keyNum >= keys.size())
+            keyNum = 0;
+        return keyNum;
     }
 }
