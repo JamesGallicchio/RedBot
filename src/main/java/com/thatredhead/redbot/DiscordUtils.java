@@ -36,10 +36,12 @@ public class DiscordUtils {
      * @param channel channel to send msg to
      * @return request future for the message sent
      */
-    public static IMessage sendMessageAsEdit(String msg, IChannel channel) {
+    public static RequestBuffer.RequestFuture<IMessage> sendMessageAsEdit(String msg, IChannel channel) {
         return RequestBuffer.request(() -> {
-            return channel.sendMessage("\u200B");
-        }).get().edit(msg);
+            return RequestBuffer.request(() -> {
+                return channel.sendMessage("\u200B");
+            }).get().edit(msg);
+        });
     }
 
     /**
@@ -92,5 +94,15 @@ public class DiscordUtils {
                         RedBot.reportError(e);
                     }
                 }), milliDelay, TimeUnit.MILLISECONDS);
+    }
+
+    public static RequestBuffer.RequestFuture<IMessage> edit(IMessage msg, String newContent) {
+        return RequestBuffer.request(() -> {
+            return msg.edit(newContent);
+        });
+    }
+
+    public static RequestBuffer.RequestFuture<IMessage> edit(String msgID, String newContent) {
+        return edit(RedBot.getClient().getMessageByID(msgID), newContent);
     }
 }

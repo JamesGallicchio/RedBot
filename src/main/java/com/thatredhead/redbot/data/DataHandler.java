@@ -79,10 +79,13 @@ public class DataHandler {
      * @param classOfT a class instance of T
      * @param <T> the type of the object to get
      * @return the object gotten from json
-     * @throws FileNotFoundException
      */
-    public <T> T get(String name, Class<T> classOfT) throws FileNotFoundException {
-        return gson.fromJson(readFromFile("data/" + name + ".json"), classOfT);
+    public <T> T get(String name, Class<T> classOfT) {
+        try {
+            return gson.fromJson(readFromFile("data/" + name + ".json"), classOfT);
+        } catch (FileNotFoundException ignored) {
+
+        } return null;
     }
 
     /**
@@ -91,10 +94,13 @@ public class DataHandler {
      * @param T the type of the object to get
      * @param <T> the type of the object to get
      * @return the object gotten from json
-     * @throws FileNotFoundException
      */
-    public <T> T get(String name, Type T) throws FileNotFoundException {
-        return gson.fromJson(readFromFile("data/" + name + ".json"), T);
+    public <T> T get(String name, Type T) {
+        try {
+            return gson.fromJson(readFromFile("data/" + name + ".json"), T);
+        } catch (FileNotFoundException ignored) {
+
+        } return null;
     }
 
     /**
@@ -106,13 +112,8 @@ public class DataHandler {
      * @return the object gotten from json, or default
      */
     public <T> T get(String name, Class<T> classOfT, T def) {
-        try {
-            T obj = get(name, classOfT);
-            return obj == null ? def : obj;
-        } catch (FileNotFoundException e) {
-            RedBot.reportError(e);
-            return save(def, name);
-        }
+        T obj = get(name, classOfT);
+        return obj == null ? save(def, name) : obj;
     }
 
     /**
@@ -124,13 +125,8 @@ public class DataHandler {
      * @return the object gotten from json, or default
      */
     public <T> T get(String name, Type T, T def) {
-        try {
-            T obj = get(name, T);
-            return obj == null ? def : obj;
-        } catch (FileNotFoundException e) {
-            RedBot.reportError(e);
-            return save(def, name);
-        }
+        T obj = get(name, T);
+        return obj == null ? save(def, name) : obj;
     }
     
     private static String readFromFile(String s) throws FileNotFoundException {

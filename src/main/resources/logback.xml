@@ -1,6 +1,9 @@
 <configuration>
 
     <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>DEBUG</level>
+        </filter>
         <filter class="com.thatredhead.redbot.LogHandler"/>
         <file>logs/latest.log</file>
         <encoder>

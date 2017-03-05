@@ -58,6 +58,10 @@ public class MessageParser {
         }
     }
 
+    public String[] getArgs() {
+        return args;
+    }
+
     public String getContentAfter(int i) {
         StringBuilder sb = new StringBuilder();
         for(; i < args.length; i++) {
@@ -83,7 +87,7 @@ public class MessageParser {
     }
 
     public IRole getRoleMention(int i) {
-        Matcher m = CHNLP.matcher(args[i]);
+        Matcher m = ROLEP.matcher(args[i]);
         if(m.find())
             return msg.getClient().getRoleByID(m.group(1));
         return null;
