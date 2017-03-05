@@ -31,10 +31,11 @@ public class SubscriberCommands extends CommandGroup {
         super("Subscriber Commands", "Commands for subscribing to RSS/Atom feeds", "subscriber", null);
 
         commands = Arrays.asList(new SubscribeCommand(),
-                                 new SubscriptionsCommand(),
-                                 new UnsubscribeCommand());
+                new SubscriptionsCommand(),
+                new UnsubscribeCommand());
 
-        subscriptions = RedBot.getDataHandler().get("subscriptions", new TypeToken<List<Subscription>>(){}.getType(), new ArrayList<>());
+        subscriptions = RedBot.getDataHandler().get("subscriptions", new TypeToken<List<Subscription>>() {
+        }.getType(), new ArrayList<>());
 
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
             try {
@@ -45,19 +46,22 @@ public class SubscriberCommands extends CommandGroup {
                         EmbedBuilder embed = new EmbedBuilder()
                                 .withAuthorName(sub.feed.getTitle())
                                 .withTimestamp(sub.lastUpdate);
-                        if(sub.feed.getImage() != null)
+                        if (sub.feed.getImage() != null)
                             embed.withThumbnail(sub.feed.getImage().getUrl());
 
                         if (entries.size() > 1)
                             for (SyndEntry entry : entries)
-                                embed.appendField(entry.getTitle(), removeHtml(entry.getDescription().getValue()), false);
+                                embed.appendField(
+                                        entry.getLink() != null && !entry.getLink().isEmpty() ? 
+                                                link(entry.getTitle(), entry.getLink()) : entry.getTitle(),
+                                        removeHtml(entry.getDescription().getValue()), false);
                         else {
                             String html = entries.get(0).getDescription().getValue();
                             embed.withTitle(entries.get(0).getTitle())
                                     .withDesc(removeHtml(html));
                             List<String> imgs = getImages(html);
-                            if(!imgs.isEmpty())
-                                    embed.withImage(imgs.get(0));
+                            if (!imgs.isEmpty())
+                                embed.withImage(imgs.get(0));
                         }
 
                         DiscordUtils.sendEmbed(embed.build(), sub.getChannel());
@@ -91,7 +95,7 @@ public class SubscriberCommands extends CommandGroup {
                 return;
             }
 
-            if(subscriptions.contains(sub))
+            if (subscriptions.contains(sub))
                 throw new CommandException("This channel is already subscribed to that URL!");
 
             subscriptions.add(sub);
@@ -157,10 +161,10 @@ public class SubscriberCommands extends CommandGroup {
 
             int count = -1;
             int idx = 0;
-            for(; idx < subscriptions.size(); idx++) {
+            for (; idx < subscriptions.size(); idx++) {
                 if (id.equals(subscriptions.get(0).channelId))
                     count++;
-                if(count == target)
+                if (count == target)
                     break;
             }
 
@@ -191,14 +195,14 @@ public class SubscriberCommands extends CommandGroup {
         }
 
         public IChannel getChannel() {
-            if(channel == null)
+            if (channel == null)
                 channel = RedBot.getClient().getChannelByID(channelId);
 
             return channel;
         }
 
         public SyndFeed getFeed() {
-            if(feed == null)
+            if (feed == null)
                 checkFeed();
 
             return feed;
@@ -206,13 +210,13 @@ public class SubscriberCommands extends CommandGroup {
 
         public List<SyndEntry> getNewEntries() {
 
-            if(!hasUpdate()) return new ArrayList<>();
+            if (!hasUpdate()) return new ArrayList<>();
 
             List<SyndEntry> newEntries = new ArrayList<>();
 
-            if(lastEntries != null) {
+            if (lastEntries != null) {
                 for (SyndEntry entry : feed.getEntries())
-                    if (!lastEntries.contains(entry))
+                    if (!feedHas(lastEntries, entry))
                         newEntries.add(entry);
             }
 
@@ -224,7 +228,7 @@ public class SubscriberCommands extends CommandGroup {
 
         public boolean hasUpdate() {
             checkFeed();
-            if(feed.getPublishedDate() == null)
+            if (feed.getPublishedDate() == null)
                 return true;
             return feed.getPublishedDate().after(new Date(lastUpdate));
         }
@@ -247,6 +251,25 @@ public class SubscriberCommands extends CommandGroup {
         boolean equals(Subscription sub) {
             return channelId.equals(sub.channelId) && subscriptionUrl.equals(sub.subscriptionUrl);
         }
+
+        private boolean feedHas(List<SyndEntry> old, SyndEntry entry) {
+            for (SyndEntry oldEntry : old) if (entriesSame(oldEntry, entry)) return true;
+            return false;
+        }
+
+        private boolean entriesSame(SyndEntry entry1, SyndEntry entry2) {
+            String link1 = entry1.getLink();
+            String link2 = entry2.getLink();
+            if (link1 != null && link2 != null && link1.equals(link2))
+                return true;
+
+            String title1 = entry1.getTitle();
+            String title2 = entry2.getTitle();
+            if (title1 != null && title2 != null && title1.equals(title2))
+                return true;
+
+            return false;
+        }
     }
 
     private void save() {
@@ -254,17 +277,18 @@ public class SubscriberCommands extends CommandGroup {
     }
 
     private String link(String display, String link) {
-        return "[" + display + "](" + link  + ')';
+        return "[" + display + "](" + link + ')';
     }
 
     private static final Pattern IMG_PATT = Pattern.compile("<[\\s]*img\\b.*src[\\s]*=[\\s]*\"(.+)\"");
+
     private List<String> getImages(String html) {
-        if(html == null) return Collections.singletonList("");
+        if (html == null) return Collections.singletonList("");
 
         Matcher m = IMG_PATT.matcher(html);
 
         List<String> images = new ArrayList<>();
-        while(m.find()) {
+        while (m.find()) {
             images.add(m.group(1));
         }
 
@@ -274,36 +298,42 @@ public class SubscriberCommands extends CommandGroup {
     private static final Pattern HTML_PATT = Pattern.compile("<[\\s]*(\\w+?)(?:(.*))?(?:/[\\s]*>|>([\\s\\S]*?)<[\\s]*/[\\s]*\\1[\\s]*>)");
     private static final Pattern LINK_PATT = Pattern.compile("[\\s]*href[\\s]*=[\\s]*\"(.+)\"");
     private static final Pattern SRC_PATT = Pattern.compile("[\\s]*src[\\s]*=[\\s]*\"(.+)\"");
+
     private String removeHtml(String html) {
-        if(html == null) return "";
+        if (html == null) return "";
 
         StringBuilder sb = new StringBuilder();
         Matcher m = HTML_PATT.matcher(html);
 
         int idx = 0;
-        while(m.find(idx)) {
+        while (m.find(idx)) {
             // Append everything from the last parsed area to the new start
             sb.append(html.substring(idx, m.start()));
 
-            switch(m.group(1).toLowerCase()) {
+            switch (m.group(1).toLowerCase()) {
                 case "br":
-                    sb.append('\n'); break;
+                    sb.append('\n');
+                    break;
                 case "img":
                     Matcher src = SRC_PATT.matcher(m.group(2));
-                    if(src.find())
+                    if (src.find())
                         sb.append(' ').append(src.group(1)).append(' ');
                     break;
                 case "p":
-                    sb.append(removeHtml(m.group(3))).append("\n\n"); break;
+                    sb.append(removeHtml(m.group(3))).append("\n\n");
+                    break;
                 case "b":
-                    sb.append("**").append(removeHtml(m.group(3))).append("**"); break;
+                    sb.append("**").append(removeHtml(m.group(3))).append("**");
+                    break;
                 case "u":
-                    sb.append("__").append(removeHtml(m.group(3))).append("__"); break;
+                    sb.append("__").append(removeHtml(m.group(3))).append("__");
+                    break;
                 case "i":
-                    sb.append("*").append(removeHtml(m.group(3))).append("*"); break;
+                    sb.append("*").append(removeHtml(m.group(3))).append("*");
+                    break;
                 case "a":
                     Matcher link = LINK_PATT.matcher(m.group(2));
-                    if(link.find()) {
+                    if (link.find()) {
                         sb.append(link(removeHtml(m.group(3)), link.group(1)));
                     } else sb.append(removeHtml(m.group(3)));
             }
