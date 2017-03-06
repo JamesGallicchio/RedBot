@@ -52,9 +52,10 @@ public class SubscriberCommands extends CommandGroup {
                         if (entries.size() > 1)
                             for (SyndEntry entry : entries)
                                 embed.appendField(
-                                        entry.getLink() != null && !entry.getLink().isEmpty() ? 
-                                                link(entry.getTitle(), entry.getLink()) : entry.getTitle(),
-                                        removeHtml(entry.getDescription().getValue()), false);
+                                        entry.getTitle(),
+                                        entry.getLink() != null && !entry.getLink().isEmpty() ?
+                                                link(removeHtml(entry.getDescription().getValue()), entry.getLink()) :
+                                                removeHtml(entry.getDescription().getValue()), false);
                         else {
                             String html = entries.get(0).getDescription().getValue();
                             embed.withTitle(entries.get(0).getTitle())
