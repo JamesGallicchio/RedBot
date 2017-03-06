@@ -128,11 +128,23 @@ public class DataHandler {
         T obj = get(name, T);
         return obj == null ? save(def, name) : obj;
     }
-    
+
+    /**
+     * Reads a file into a string
+     * @param s name of the file to get
+     * @return contents of the file in a String
+     * @throws FileNotFoundException if the file can't be found
+     */
     private static String readFromFile(String s) throws FileNotFoundException {
         return readFromFile(Paths.get(s));
     }
 
+    /**
+     * Reads a file into a String
+     * @param p the Path to the file
+     * @return the contents of the file as a String
+     * @throws FileNotFoundException if the file can't be found
+     */
     private static String readFromFile(Path p) throws FileNotFoundException {
         try {
             return new String(Files.readAllBytes(p));
@@ -144,10 +156,20 @@ public class DataHandler {
         return null;
     }
 
+    /**
+     * Write a String to a file
+     * @param f the Path to the file to write the string to
+     * @param s the String to write to the file
+     */
     private static void writeToFile(Path f, String s) {
         writeToFile(f.toFile(), s);
     }
 
+    /**
+     * Write a String to a file
+     * @param f the file to write the string to
+     * @param s the string to write to the file
+     */
     private static void writeToFile(File f, String s) {
         FileWriter fw = null;
         BufferedWriter bw = null;
