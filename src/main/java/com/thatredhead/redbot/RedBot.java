@@ -31,6 +31,8 @@ public class RedBot {
     public static final String OWNER_ID = "135553137699192832";
     public static final String ERROR_CHANNEL_ID = "287324375785537547";
 
+    public static final String DEFAULT_PREFIX = "%";
+
     public static final Logger LOGGER = LoggerFactory.getLogger(RedBot.class);
     private static final long MILLI_LOG_PERSISTENCE = 1000L*60*60*24*7; // 7 days
 

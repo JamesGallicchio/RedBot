@@ -9,7 +9,6 @@ import org.reflections.Reflections;
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
 import sx.blah.discord.handle.obj.IGuild;
-import sx.blah.discord.handle.obj.IMessage;
 
 import java.util.HashMap;
 import java.util.List;
@@ -58,12 +57,11 @@ public class CommandHandler {
 
     @EventSubscriber
     public void onMessageReceive(MessageReceivedEvent e) {
-        IMessage msg = e.getMessage();
 
-        String prefix = getPrefix(msg.getGuild());
-        MessageParser msgp = new MessageParser(msg, prefix);
+        MessageParser msgp = new MessageParser(e.getMessage());
+        String prefix = getPrefix(msgp.getGuild());
 
-        if(msgp.construct()) {
+        if(msgp.construct(prefix)) {
             boolean success = false;
 
             for (Command c : commands) {
@@ -77,7 +75,7 @@ public class CommandHandler {
                 }
             }
             if (!success)
-                DiscordUtils.sendTemporaryMessage("Unknown command! Use help command for a list of commands.", msg.getChannel());
+                DiscordUtils.sendTemporaryMessage("Unknown command! Use help command for a list of commands.", msgp.getChannel());
         } else
             for (Command c : commands) {
                 if (!c.usesPrefix() && c.getKeyword().equalsIgnoreCase(msgp.getArg(0))) {
@@ -101,10 +99,8 @@ public class CommandHandler {
     }
 
     private String getPrefix(IGuild guild) {
-        if(!prefixes.containsKey(guild.getID())) {
-            prefixes.put(guild.getID(), "%");
-            RedBot.getDataHandler().save(prefixes, "guildprefixes");
-        }
-        return prefixes.get(guild.getID());
+        if(guild != null && prefixes.containsKey(guild.getID()))
+            return prefixes.get(guild.getID());
+        return RedBot.DEFAULT_PREFIX;
     }
 }

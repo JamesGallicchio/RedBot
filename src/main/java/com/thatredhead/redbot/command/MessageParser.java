@@ -13,15 +13,14 @@ public class MessageParser {
     private static final Pattern ROLEP = Pattern.compile("<@&(\\d+)>");
 
     private IMessage msg;
-    private String prefix;
     private String[] args;
 
-    public MessageParser(IMessage msg, String prefix) {
+    public MessageParser(IMessage msg) {
         this.msg = msg;
-        this.prefix = prefix;
     }
 
-    public boolean construct() {
+    public boolean construct(String prefix) {
+
         if(msg.getContent().startsWith(prefix)) {
             args = msg.getContent().substring(prefix.length()).split(" ");
             return true;
@@ -44,6 +43,10 @@ public class MessageParser {
 
     public IGuild getGuild() {
         return msg.getGuild();
+    }
+
+    public boolean isPrivate() {
+        return getChannel().isPrivate();
     }
 
     public int getArgCount() {
