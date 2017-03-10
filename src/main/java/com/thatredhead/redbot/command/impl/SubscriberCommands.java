@@ -277,13 +277,13 @@ public class SubscriberCommands extends CommandGroup {
         RedBot.getDataHandler().save(subscriptions, "subscriptions");
     }
 
-    private String link(String display, String link) {
+    private static String link(String display, String link) {
         return "[" + display + "](" + link + ')';
     }
 
     private static final Pattern IMG_PATT = Pattern.compile("<[\\s]*img\\b.*src[\\s]*=[\\s]*\"(.+)\"");
 
-    private List<String> getImages(String html) {
+    private static List<String> getImages(String html) {
         if (html == null) return Collections.singletonList("");
 
         Matcher m = IMG_PATT.matcher(html);
@@ -296,11 +296,11 @@ public class SubscriberCommands extends CommandGroup {
         return images;
     }
 
-    private static final Pattern HTML_PATT = Pattern.compile("<[\\s]*(\\w+?)(?:(.*))?(?:/[\\s]*>|>([\\s\\S]*?)<[\\s]*/[\\s]*\\1[\\s]*>)");
+    private static final Pattern HTML_PATT = Pattern.compile("<[\\s]*(\\w+)(?:(.*))?(?:/[\\s]*>|>([\\s\\S]*?)<[\\s]*/[\\s]*\\1[\\s]*>)");
     private static final Pattern LINK_PATT = Pattern.compile("[\\s]*href[\\s]*=[\\s]*\"(.+)\"");
     private static final Pattern SRC_PATT = Pattern.compile("[\\s]*src[\\s]*=[\\s]*\"(.+)\"");
 
-    private String removeHtml(String html) {
+    private static String removeHtml(String html) {
         if (html == null) return "";
 
         StringBuilder sb = new StringBuilder();
