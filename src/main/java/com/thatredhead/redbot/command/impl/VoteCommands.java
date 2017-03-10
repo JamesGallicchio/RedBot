@@ -38,8 +38,10 @@ public class VoteCommands extends CommandGroup {
 
         @Override
         public void invoke(MessageParser msgp) throws CommandException {
-            if (votes.containsKey(msgp.getChannel().getID()))
+            if (votes.containsKey(msgp.getChannel().getID())) {
                 votes.get(msgp.getChannel().getID()).castBallot(msgp);
+                RedBot.getDataHandler().save(votes, "saves");
+            }
             else
                 msgp.reply("There's no active vote in this channel.");
         }
@@ -63,6 +65,7 @@ public class VoteCommands extends CommandGroup {
                 msgp.reply("Please end the current vote first!");
             else {
                 votes.put(msgp.getChannel().getID(), new Vote(msgp));
+                RedBot.getDataHandler().save(votes, "saves");
             }
         }
     }
@@ -83,7 +86,10 @@ public class VoteCommands extends CommandGroup {
             Vote current = votes.get(msgp.getChannel().getID());
             if (current == null) msgp.reply("There is no vote in this channel to end.");
             else if (current.isDone()) msgp.reply("This channel's vote has already ended.");
-            else msgp.reply(current.end());
+            else {
+                msgp.reply(current.end());
+                RedBot.getDataHandler().save(votes, "saves");
+            }
         }
     }
 }
@@ -126,7 +132,7 @@ class Vote {
             return;
         }
         try {
-            Set<Integer> choices = new ListOrderedSet<Integer>();
+            Set<Integer> choices = new ListOrderedSet<>();
             String[] args = msgp.getArgs();
             for(int i = 1; i < args.length; i++) {
                 int choice = Integer.parseInt(args[i]);
