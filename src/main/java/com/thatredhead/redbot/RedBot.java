@@ -25,6 +25,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Main class of RedBot, creates instance of itself
@@ -79,7 +80,7 @@ public class RedBot {
     private static CommandHandler cmdh;
     private static long startup;
     private static String version;
-    private static boolean ready = false;
+    private static AtomicBoolean ready = new AtomicBoolean(false);
 
     private boolean valid;
 
@@ -95,7 +96,7 @@ public class RedBot {
 
             client.getDispatcher().waitFor(ReadyEvent.class);
 
-            ready = true;
+            ready.set(true);
         } catch (Exception e) {
             System.out.println("Failed login:");
             e.printStackTrace();
@@ -132,16 +133,16 @@ public class RedBot {
 
     @EventSubscriber
     public static void onSuccessfulReconnect(ReconnectSuccessEvent event) {
-        ready = true;
+        ready.set(true);
     }
 
     @EventSubscriber
     public static void onDisconnect(DisconnectedEvent event) {
-        ready = false;
+        ready.set(false);
     }
 
     public static boolean isReady() {
-        return ready;
+        return ready.get();
     }
 
     /**
@@ -149,7 +150,7 @@ public class RedBot {
      * @return DataHandler instance for this object
      */
     public static DataHandler getDataHandler() {
-        if(ready)
+        if(ready.get())
             return datah;
         throw new NotReadyException();
     }
@@ -159,7 +160,7 @@ public class RedBot {
      * @return DataHandler instance for this object
      */
     public static IDiscordClient getClient() {
-        if(ready)
+        if(ready.get())
             return client;
         throw new NotReadyException();
     }
@@ -169,13 +170,13 @@ public class RedBot {
      * @return PermissionHandler instance for this object
      */
     public static PermissionHandler getPermHandler() {
-        if(ready)
+        if(ready.get())
             return permh;
         throw new NotReadyException();
     }
 
     public static CommandHandler getCommandHandler() {
-        if(ready)
+        if(ready.get())
             return cmdh;
         throw new NotReadyException();
     }
@@ -185,7 +186,7 @@ public class RedBot {
      * @return uptime in H..H:MM:SS format
      */
     public static String getUptime() {
-        if(ready) {
+        if(ready.get()) {
             int seconds = (int) ((System.currentTimeMillis() - startup)/1000);
             return String.format("%d:%02d:%02d",
                     seconds/3600,
