@@ -283,7 +283,7 @@ public class SubscriberCommands extends CommandGroup {
 
     private static final Pattern HTML_PATT = Pattern.compile("<[\\s]*(\\w+)(?:(.*))?(?:/[\\s]*>|>([\\s\\S]*?)<[\\s]*/[\\s]*\\1[\\s]*>)");
     private static final Pattern LINK_PATT = Pattern.compile("[\\s]*href[\\s]*=[\\s]*\"(.+)\"");
-    private static final Pattern SRC_PATT = Pattern.compile("[\\s]*src[\\s]*=[\\s]*\"(.+)\"");
+    private static final Pattern SRC_PATT = Pattern.compile("src[\\s]*=[\\s]*\"([^\"]+)\"");
 
     private static String removeHtml(String html) {
         if (html == null) return "";
@@ -294,7 +294,7 @@ public class SubscriberCommands extends CommandGroup {
         int idx = 0;
         while (m.find(idx)) {
             // Append everything from the last parsed area to the new start
-            sb.append(html.substring(idx, m.start()));
+            sb.append(html.substring(idx, m.start()).trim());
 
             switch (m.group(1).toLowerCase()) {
                 case "br":
@@ -326,6 +326,12 @@ public class SubscriberCommands extends CommandGroup {
             idx = m.end();
         }
 
-        return sb.toString();
+        return sb.append(html.substring(idx).trim()).toString();
+    }
+
+    public static void main(String[] args) {
+        String html = "hi <img src=\"sourcyimg\" tag=\"taginner\" /> yes yes yes";
+
+        System.out.println(removeHtml(html));
     }
 }
