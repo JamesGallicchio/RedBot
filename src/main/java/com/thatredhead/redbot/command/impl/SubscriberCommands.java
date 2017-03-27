@@ -328,11 +328,4 @@ public class SubscriberCommands extends CommandGroup {
 
         return sb.append(html.substring(idx).trim()).toString();
     }
-
-    public static void main(String[] args) {
-        String html = "hi <img src=\"sourcyimg\" tag=\"taginner\" tag2=\"inner\"/> yes yes yes";
-
-        System.out.println(removeHtml(html));
-        System.out.println(getImages(html));
-    }
 }
