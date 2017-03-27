@@ -1,15 +1,17 @@
 package com.thatredhead.redbot.command;
 
 import com.google.gson.reflect.TypeToken;
-import com.thatredhead.redbot.DiscordUtils;
+import com.thatredhead.redbot.helpers4d4j.DiscordUtils;
 import com.thatredhead.redbot.RedBot;
-import com.thatredhead.redbot.command.impl.HelpCommand;
+import com.thatredhead.redbot.helpers4d4j.MessageParser;
+import com.thatredhead.redbot.permission.PermissionContext;
 import com.thatredhead.redbot.permission.PermissionHandler;
 import org.reflections.Reflections;
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
 import sx.blah.discord.handle.obj.IGuild;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
@@ -18,6 +20,10 @@ import java.util.stream.Collectors;
 public class CommandHandler {
 
     private PermissionHandler perms;
+
+    private List<CommandGroup> commandGroups;
+
+    private List<Command> standaloneCommands;
 
     private List<Command> commands;
 
@@ -30,7 +36,7 @@ public class CommandHandler {
 
         Reflections r = new Reflections("com.thatredhead.redbot.command.impl");
 
-        List<CommandGroup> commandGroups = r.getSubTypesOf(CommandGroup.class).stream().map(clazz -> {
+        commandGroups = r.getSubTypesOf(CommandGroup.class).stream().map(clazz -> {
             try {
                 return clazz.newInstance();
             } catch (Exception e) {
@@ -39,9 +45,9 @@ public class CommandHandler {
             return null;
         }).filter(Objects::nonNull).collect(Collectors.toList());
 
-        List<Command> standaloneCommands = r.getSubTypesOf(Command.class).stream().map(clazz -> {
+        standaloneCommands = r.getSubTypesOf(Command.class).stream().map(clazz -> {
             try {
-                if(clazz.getName().contains("$") || clazz.equals(HelpCommand.class))
+                if(clazz.getName().contains("$"))
                     return null;
                 else return clazz.newInstance();
             } catch (Exception e) {
@@ -52,7 +58,33 @@ public class CommandHandler {
 
         commands = commandGroups.stream().flatMap(group -> group.getCommands().stream()).collect(Collectors.toList());
         commands.addAll(standaloneCommands);
-        commands.add(new HelpCommand(commandGroups, standaloneCommands));
+
+
+        commands.add(Command.of("test", "Command to test stuff out", "test", "test", true, true, PermissionContext.BOT_OWNER, msgp -> {
+            msgp.reply("hi");
+        }));
+
+
+    }
+
+    public List<Command> getCommands() {
+        return new ArrayList<>(commands);
+    }
+
+    public Command getCommand(String keyword) {
+        return commands.stream().filter(it -> it.getKeyword().equalsIgnoreCase(keyword)).findFirst().orElse(null);
+    }
+
+    public List<CommandGroup> getCommandGroups() {
+        return new ArrayList<>(commandGroups);
+    }
+
+    public CommandGroup getCommandGroup(String name) {
+        return commandGroups.stream().filter(it -> it.getName().equalsIgnoreCase(name)).findFirst().orElse(null);
+    }
+
+    public List<Command> getStandaloneCommands() {
+        return new ArrayList<>(standaloneCommands);
     }
 
     @EventSubscriber

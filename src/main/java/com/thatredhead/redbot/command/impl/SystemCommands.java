@@ -1,11 +1,11 @@
 package com.thatredhead.redbot.command.impl;
 
-import com.thatredhead.redbot.DiscordUtils;
+import com.thatredhead.redbot.helpers4d4j.DiscordUtils;
 import com.thatredhead.redbot.RedBot;
 import com.thatredhead.redbot.command.Command;
 import com.thatredhead.redbot.command.CommandException;
 import com.thatredhead.redbot.command.CommandGroup;
-import com.thatredhead.redbot.command.MessageParser;
+import com.thatredhead.redbot.helpers4d4j.MessageParser;
 import com.thatredhead.redbot.permission.PermissionContext;
 
 import java.util.Arrays;
@@ -19,11 +19,7 @@ public class SystemCommands extends CommandGroup {
     public static class InfoCommand extends Command {
 
         public InfoCommand() {
-            super("info", "Gives information about the system");
-        }
-
-        public PermissionContext getDefaultPermissions() {
-            return PermissionContext.getEveryoneContext();
+            super("info", "Gives information about the system", PermissionContext.BOT_OWNER);
         }
 
         public void invoke(MessageParser msgp) throws CommandException {
@@ -42,12 +38,7 @@ public class SystemCommands extends CommandGroup {
     public static class InviteCommand extends Command {
 
         public InviteCommand() {
-            super("invite", "Gives a link to invite the bot to other servers");
-        }
-
-        @Override
-        public PermissionContext getDefaultPermissions() {
-            return PermissionContext.getEveryoneContext();
+            super("invite", "Gives a link to invite the bot to other servers", PermissionContext.EVERYONE);
         }
 
         @Override

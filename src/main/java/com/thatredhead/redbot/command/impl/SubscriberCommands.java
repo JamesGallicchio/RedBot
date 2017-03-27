@@ -6,12 +6,12 @@ import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.io.FeedException;
 import com.rometools.rome.io.SyndFeedInput;
 import com.rometools.rome.io.XmlReader;
-import com.thatredhead.redbot.DiscordUtils;
+import com.thatredhead.redbot.helpers4d4j.DiscordUtils;
 import com.thatredhead.redbot.RedBot;
 import com.thatredhead.redbot.command.*;
+import com.thatredhead.redbot.helpers4d4j.MessageParser;
 import com.thatredhead.redbot.permission.PermissionContext;
 import sx.blah.discord.handle.obj.IChannel;
-import sx.blah.discord.handle.obj.Permissions;
 import sx.blah.discord.util.EmbedBuilder;
 
 import java.io.IOException;
@@ -78,16 +78,12 @@ public class SubscriberCommands extends CommandGroup {
 
         public SubscribeCommand() {
             super("subscribe", "Subscribes this channel to RSS/Atom feed updates",
-                    "subscribe", "subscribe", true);
-        }
-
-        @Override
-        public PermissionContext getDefaultPermissions() {
-            return new PermissionContext(Permissions.ADMINISTRATOR);
+                    "subscribe <feed url>", PermissionContext.MOD);
         }
 
         @Override
         public void invoke(MessageParser msgp) {
+
             Subscription sub;
             try {
                 sub = new Subscription(msgp.getArg(1), msgp.getChannel());
@@ -110,13 +106,7 @@ public class SubscriberCommands extends CommandGroup {
     public class SubscriptionsCommand extends Command {
 
         public SubscriptionsCommand() {
-            super("subscriptions", "Lists the subscriptions for this channel",
-                    "subscriptions", "subscriptions", true);
-        }
-
-        @Override
-        public PermissionContext getDefaultPermissions() {
-            return PermissionContext.getEveryoneContext();
+            super("subscriptions", "Lists the subscriptions for this channel", PermissionContext.EVERYONE);
         }
 
         @Override
@@ -141,12 +131,7 @@ public class SubscriberCommands extends CommandGroup {
 
         public UnsubscribeCommand() {
             super("unsubscribe", "Unsubscribes this channel to a subscription",
-                    "unsubscribe <id (see subscriptions command)>", "unsubscribe", true);
-        }
-
-        @Override
-        public PermissionContext getDefaultPermissions() {
-            return new PermissionContext(Permissions.ADMINISTRATOR);
+                    "unsubscribe <id (see subscriptions command)>", PermissionContext.MOD);
         }
 
         @Override

@@ -1,10 +1,10 @@
 package com.thatredhead.redbot.command.impl;
 
-import com.thatredhead.redbot.DiscordUtils;
+import com.thatredhead.redbot.helpers4d4j.DiscordUtils;
 import com.thatredhead.redbot.command.Command;
 import com.thatredhead.redbot.command.CommandException;
 import com.thatredhead.redbot.command.CommandGroup;
-import com.thatredhead.redbot.command.MessageParser;
+import com.thatredhead.redbot.helpers4d4j.MessageParser;
 import com.thatredhead.redbot.permission.PermissionContext;
 
 import java.util.Arrays;
@@ -25,12 +25,7 @@ public class DnDCommands extends CommandGroup {
 
         public Roll() {
             super("roll", "Rolls a die in TTRPG fashion",
-                    "<# of dice>d<size> +/- <more dice, or modifiers>");
-        }
-
-        @Override
-        public PermissionContext getDefaultPermissions() {
-            return PermissionContext.getNobodyContext();
+                    "<# of dice>d<size> +/- <more dice, or modifiers>", PermissionContext.EVERYONE);
         }
 
         @Override
@@ -38,7 +33,10 @@ public class DnDCommands extends CommandGroup {
             try {
                 StringBuilder matched = new StringBuilder();
                 Matcher m = Pattern.compile(pattern).matcher(msgp.getContentAfter(1));
+
                 int total = 0;
+                StringBuilder result = new StringBuilder();
+
                 boolean first = true;
                 while (m.find()) {
                     String sign = m.group(1);
@@ -61,8 +59,11 @@ public class DnDCommands extends CommandGroup {
                         int rollInt = inRange(Integer.parseInt(rolls));
                         int sizeInt = inRange(Integer.parseInt(size));
 
-                        for(int i = 0; i < rollInt; i++)
-                            sum += (int) (Math.random()*sizeInt+1);
+                        for(int i = 0; i < rollInt; i++) {
+                            int roll = (int) (Math.random() * sizeInt + 1);
+                            sum += roll;
+                            result.append(" + ").append(roll);
+                        }
 
                         matched.append(rolls).append("d").append(size);
                     } else {
@@ -76,7 +77,9 @@ public class DnDCommands extends CommandGroup {
                     if("+".equals(sign)) total += sum;
                     else total -= sum;
                 }
-                DiscordUtils.sendMessage("Result for `" + matched.delete(0, 2).toString().trim() + "`: **" + total + "**", msgp.getChannel());
+                DiscordUtils.sendMessage("`" + matched.delete(0, 2).toString().trim() + "`: *" +
+                        (result.length() < 100 && result.indexOf("+") > -1 ? result.delete(0, 3).toString() + "* = **" + total + "**" : "*" + total + "**"),
+                        msgp.getChannel());
             } catch (NumberFormatException e) {
                 throw new CommandException("Error parsing dice roll! Use help for proper format.");
             }

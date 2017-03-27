@@ -1,8 +1,9 @@
 package com.thatredhead.redbot.command.impl;
 
+import com.thatredhead.jmath.interp.MathInterpreter;
 import com.thatredhead.redbot.command.Command;
 import com.thatredhead.redbot.command.CommandGroup;
-import com.thatredhead.redbot.command.MessageParser;
+import com.thatredhead.redbot.helpers4d4j.MessageParser;
 import com.thatredhead.redbot.permission.PermissionContext;
 
 import java.util.Arrays;
@@ -16,17 +17,25 @@ public class MathCommands extends CommandGroup {
     public static class EvalCommand extends Command {
 
         public EvalCommand() {
-            super("", "");
-        }
-
-        @Override
-        public PermissionContext getDefaultPermissions() {
-            return null;
+            super("eval", "Evaluates a math expression", "eval <expression>", PermissionContext.BOT_OWNER);
         }
 
         @Override
         public void invoke(MessageParser msgp) {
-            msgp.reply("Not currently functional :(");
+
+            try {
+                String math = msgp.getContentAfter(1);
+
+                if("red/0".equalsIgnoreCase(math))
+                    msgp.reply("**Result:** God");
+                else {
+                    String result = new MathInterpreter(math).interpret().simplify().toString();
+
+                    msgp.reply("**Result:** `" + result + "`");
+                }
+            } catch (IllegalArgumentException e) {
+                msgp.reply("That's currently not supported. :frowning:");
+            }
         }
     }
 }

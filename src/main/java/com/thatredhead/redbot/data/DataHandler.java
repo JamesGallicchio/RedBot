@@ -3,10 +3,7 @@ package com.thatredhead.redbot.data;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.thatredhead.redbot.RedBot;
-import com.thatredhead.redbot.permission.PermissionContext;
-import com.thatredhead.redbot.permission.PermissionContextSerializer;
 import com.thatredhead.redbot.permission.PermissionHandler;
-import com.thatredhead.redbot.permission.PermissionSerializer;
 
 import java.io.*;
 import java.lang.reflect.Type;
@@ -24,8 +21,7 @@ public class DataHandler {
     public DataHandler() {
 
         gson = new GsonBuilder()
-                .registerTypeAdapter(PermissionContext.class, new PermissionContextSerializer())
-                .registerTypeAdapter(PermissionHandler.class, new PermissionSerializer())
+                .enableComplexMapKeySerialization()
                 .create();
 
         // Load perms
@@ -59,7 +55,7 @@ public class DataHandler {
      * Saves the permissions in memory to file
      */
     public void savePerms() {
-        writeToFile(permFile, gson.toJson(permh));
+        writeToFile(permFile, gson.toJson(permh, PermissionHandler.class));
     }
 
     /**

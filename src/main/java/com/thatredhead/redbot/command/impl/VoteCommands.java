@@ -1,9 +1,10 @@
 package com.thatredhead.redbot.command.impl;
 
 import com.google.gson.reflect.TypeToken;
-import com.thatredhead.redbot.DiscordUtils;
+import com.thatredhead.redbot.helpers4d4j.DiscordUtils;
 import com.thatredhead.redbot.RedBot;
 import com.thatredhead.redbot.command.*;
+import com.thatredhead.redbot.helpers4d4j.MessageParser;
 import com.thatredhead.redbot.permission.PermissionContext;
 import org.apache.commons.collections4.set.ListOrderedSet;
 import sx.blah.discord.handle.obj.IUser;
@@ -28,12 +29,7 @@ public class VoteCommands extends CommandGroup {
     public class VoteCommand extends Command {
 
         public VoteCommand() {
-            super("vote", "Enters a ballot for the ongoing vote in this channel.", "vote <first pick [second pick [third...]]>");
-        }
-
-        @Override
-        public PermissionContext getDefaultPermissions() {
-            return PermissionContext.getNobodyContext();
+            super("vote", "Enters a ballot for the ongoing vote in this channel.", "vote <first pick [second pick [third...]]>", PermissionContext.EVERYONE);
         }
 
         @Override
@@ -50,12 +46,7 @@ public class VoteCommands extends CommandGroup {
     public class NewVoteCommand extends Command {
 
         public NewVoteCommand() {
-            super("newvote", "Creates a new vote", "newvote <description> {<option 1>, <option 2>, ...}");
-        }
-
-        @Override
-        public PermissionContext getDefaultPermissions() {
-            return PermissionContext.getNobodyContext();
+            super("newvote", "Creates a new vote", "newvote <description> {<option 1>, <option 2>, ...}", PermissionContext.EVERYONE);
         }
 
         @Override
@@ -73,12 +64,7 @@ public class VoteCommands extends CommandGroup {
     public class EndVoteCommand extends Command {
 
         public EndVoteCommand() {
-            super("endvote", "Ends the current vote in this channel.");
-        }
-
-        @Override
-        public PermissionContext getDefaultPermissions() {
-            return PermissionContext.getNobodyContext();
+            super("endvote", "Ends the current vote in this channel.", PermissionContext.EVERYONE);
         }
 
         @Override

@@ -1,18 +1,17 @@
 package com.thatredhead.redbot.command.impl;
 
 import com.google.gson.reflect.TypeToken;
-import com.thatredhead.redbot.DiscordUtils;
+import com.thatredhead.redbot.helpers4d4j.DiscordUtils;
 import com.thatredhead.redbot.RedBot;
 import com.thatredhead.redbot.command.Command;
 import com.thatredhead.redbot.command.CommandArgumentException;
 import com.thatredhead.redbot.command.CommandGroup;
-import com.thatredhead.redbot.command.MessageParser;
+import com.thatredhead.redbot.helpers4d4j.MessageParser;
 import com.thatredhead.redbot.data.DataHandler;
 import com.thatredhead.redbot.permission.PermissionContext;
 import org.apache.commons.io.IOUtils;
 import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IMessage;
-import sx.blah.discord.handle.obj.Permissions;
 import sx.blah.discord.util.MessageHistory;
 
 import java.io.IOException;
@@ -54,12 +53,7 @@ public class CuteCommands extends CommandGroup {
 
         public CuteCommand() {
             super("cute", "Searches Google for cute images",
-                    "cute *search terms* <gif if you want a gif>", "cute", false);
-        }
-
-        @Override
-        public PermissionContext getDefaultPermissions() {
-            return PermissionContext.getNobodyContext();
+                    "cute *search terms* <gif if you want a gif>", "cute", false, false, PermissionContext.EVERYONE);
         }
 
         @Override
@@ -77,12 +71,8 @@ public class CuteCommands extends CommandGroup {
     public class CuteSafetyCommand extends Command {
 
         public CuteSafetyCommand() {
-            super("cutesafety", "Sets search safety for the channel", "cutesafety < off | medium | high >");
-        }
-
-        @Override
-        public PermissionContext getDefaultPermissions() {
-            return new PermissionContext(Permissions.ADMINISTRATOR);
+            super("cutesafety", "Sets search safety for the channel",
+                    "cutesafety < off | medium | high >", PermissionContext.ADMIN);
         }
 
         @Override
@@ -100,12 +90,8 @@ public class CuteCommands extends CommandGroup {
     public class CuteReportCommand extends Command {
 
         public CuteReportCommand() {
-            super("cutereport", "Deletes (and records) inappropriate cute images", "cutereport <ID>");
-        }
-
-        @Override
-        public PermissionContext getDefaultPermissions() {
-            return PermissionContext.getEveryoneContext();
+            super("cutereport", "Deletes (and records) inappropriate cute images",
+                    "cutereport <ID>", PermissionContext.EVERYONE);
         }
 
         @Override

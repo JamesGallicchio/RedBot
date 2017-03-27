@@ -7,7 +7,7 @@
         <filter class="com.thatredhead.redbot.LogHandler"/>
         <file>logs/latest.log</file>
         <encoder>
-            <pattern>%d{MM.dd HH:mm:ss} [%t] %-5level %msg%n</pattern>
+            <pattern>%d{MM-dd HH:mm:ss} [%t] %-5level %msg%n</pattern>
         </encoder>
     </appender>
 
@@ -16,7 +16,7 @@
             <level>INFO</level>
         </filter>
         <encoder>
-            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <pattern>%d{HH:mm:ss.SS} [%thread] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
 

@@ -1,6 +1,8 @@
 package com.thatredhead.redbot;
 
+import com.thatredhead.redbot.command.CommandHandler;
 import com.thatredhead.redbot.data.DataHandler;
+import com.thatredhead.redbot.helpers4d4j.DiscordUtils;
 import com.thatredhead.redbot.permission.PermissionHandler;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -12,6 +14,8 @@ import sx.blah.discord.api.ClientBuilder;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.impl.events.ReadyEvent;
+import sx.blah.discord.handle.impl.events.shard.DisconnectedEvent;
+import sx.blah.discord.handle.impl.events.shard.ReconnectSuccessEvent;
 
 import java.io.File;
 import java.io.IOException;
@@ -60,13 +64,6 @@ public class RedBot {
         }));
     }
 
-    private static IDiscordClient client;
-    private static DataHandler datah;
-    private static PermissionHandler permh;
-    private static long startup;
-    private static String version;
-    private static boolean ready = false;
-
     public static void main(String[] args) {
 
         try {
@@ -74,6 +71,20 @@ public class RedBot {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private static IDiscordClient client;
+    private static DataHandler datah;
+    private static PermissionHandler permh;
+    private static CommandHandler cmdh;
+    private static long startup;
+    private static String version;
+    private static boolean ready = false;
+
+    private boolean valid;
+
+    public RedBot() {
+        valid = false;
     }
 
     public RedBot(String token) {
@@ -94,6 +105,8 @@ public class RedBot {
         datah = new DataHandler();
         permh = datah.getPermHandler();
         startup = System.currentTimeMillis();
+        valid = true;
+
         try {
             Properties p = new Properties();
             p.load(getClass().getClassLoader().getResourceAsStream("version.properties"));
@@ -105,12 +118,30 @@ public class RedBot {
         new Reflections("com.thatredhead.redbot", new MethodAnnotationsScanner()).getMethodsAnnotatedWith(EventSubscriber.class).stream()
                 .map(method -> {
                     try {
-                        return method.getDeclaringClass().newInstance();
+                        if(method.getDeclaringClass().equals(CommandHandler.class)) {
+                            return (cmdh = (CommandHandler) method.getDeclaringClass().newInstance());
+                        }
+                        else
+                            return method.getDeclaringClass().newInstance();
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                     return null;
                 }).filter(Objects::nonNull).distinct().forEach(client.getDispatcher()::registerListener);
+    }
+
+    @EventSubscriber
+    public static void onSuccessfulReconnect(ReconnectSuccessEvent event) {
+        ready = true;
+    }
+
+    @EventSubscriber
+    public static void onDisconnect(DisconnectedEvent event) {
+        ready = false;
+    }
+
+    public static boolean isReady() {
+        return ready;
     }
 
     /**
@@ -140,6 +171,12 @@ public class RedBot {
     public static PermissionHandler getPermHandler() {
         if(ready)
             return permh;
+        throw new NotReadyException();
+    }
+
+    public static CommandHandler getCommandHandler() {
+        if(ready)
+            return cmdh;
         throw new NotReadyException();
     }
 

@@ -1,37 +1,35 @@
 package com.thatredhead.redbot.permission;
 
 import com.thatredhead.redbot.RedBot;
+import com.thatredhead.redbot.command.Command;
 import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IGuild;
 import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.handle.obj.IUser;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 public class PermissionHandler {
 
-    HashMap<String, HashMap<String, PermissionContext>> perms;
+    // Permission -> (GuildID/ChannelID -> Permission)
+    private Map<String, Map<GuildOrChannel, PermissionContext>> perms;
 
     public PermissionHandler() {
         this(new HashMap<>());
     }
 
-    public PermissionHandler(HashMap<String, HashMap<String, PermissionContext>> perms) {
+    public PermissionHandler(Map<String, Map<GuildOrChannel, PermissionContext>> perms) {
         this.perms = perms;
     }
 
-    /**
-     * Check if a user has a certain permission in a specified channel
-     * @param perm permission to check for
-     * @param user user to check if has permission
-     * @param channel channel in which to check if user has permission
-     * @return true if user has permission, false otherwise
-     */
-    public boolean hasPermission(String perm, IUser user, IChannel channel) {
-        return hasPermission(perm, user, channel, null);
+    public boolean hasPermission(Command cmd, IMessage message) {
+        return hasPermission(cmd, message.getAuthor(), message.getChannel());
+    }
+
+    public boolean hasPermission(Command cmd, IUser user, IChannel channel) {
+        return hasPermission(cmd.getPermission(), user, channel, cmd.isEnabledByDefault(), cmd.getDefaultPermissions());
     }
 
     /**
@@ -42,143 +40,122 @@ public class PermissionHandler {
      * @param defaultPerms PermissionContext to put if that perm is not specified
      * @return true if user has permission, false otherwise
      */
-    public boolean hasPermission(String perm, IUser user, IChannel channel, PermissionContext defaultPerms) {
-        // If perms doesn't contain this guild, put a new hashmap in
-        if(!perms.containsKey(channel.getGuild().getID()))
-            perms.put(channel.getGuild().getID(), new HashMap<>());
-
-        // Get the guild's permissions map
-        HashMap<String, PermissionContext> guildperms = perms.get(channel.getGuild().getID());
+    public boolean hasPermission(String perm, IUser user, IChannel channel, boolean enabledByDefault, PermissionContext defaultPerms) {
 
         // If the perm is an empty string that always equates to true
-        if("".equals(perm)) return true;
+        if ("".equals(perm)) return true;
 
-        // Split the perm based on . because if user has
-        // PERM while PERM.example isn't specified, then PERM.example will still return true
-        String[] permStructure = perm.split("\\.");
-
-        // Iterate backwards from the entire perm to perm without the last term .. etc
-        for(int i = permStructure.length; i > 0; i--) {
-            // Collect perm array as first.second.third to i
-            String check = Arrays.stream(permStructure).limit(i).collect(Collectors.joining("."));
-            // If this guild has this perm, return true, otherwise continue
-            if(guildperms.containsKey(check))
-                return guildperms.get(check).hasPermission(user, channel);
+        // If perms doesn't contain this perm, put a new hashmap in
+        if (!perms.containsKey(perm)) {
+            perms.put(perm, new HashMap<>());
+            save();
         }
 
-        // If defaultPerms is null return false
-        if(defaultPerms != null) {
-            // Add defaultPerms to guild perm list and check if user has permission in this default perm
-            perms.get(channel.getGuild().getID()).put(perm, defaultPerms);
-            return defaultPerms.hasPermission(user, channel);
+        // Get the perm's permissions map
+        Map<GuildOrChannel, PermissionContext> permissions = perms.get(perm);
+
+        // Return if the channel's perm applies
+        PermissionContext channelPerm = permissions.get(channel);
+        if (channelPerm != null)
+            return channelPerm.applies(user, channel);
+
+
+        // Return if the guild's perm applies
+        PermissionContext guildPerm = permissions.get(channel.getGuild());
+        if (guildPerm == PermissionContext.NULL)
+            return defaultPerms.applies(user, channel);
+
+        // If enabled by default, add it/return if it applies
+        if(enabledByDefault) {
+            permissions.put(new GuildOrChannel(channel.getGuild()), defaultPerms);
+            save();
+            return defaultPerms.applies(user, channel);
         }
+
+        if(perm.contains(".")) {
+            Map<GuildOrChannel, PermissionContext> groupPerms = perms.get(perm.split(".")[0]);
+
+            // Return if the channel's group perm applies
+            PermissionContext channelGroupPerm = groupPerms.get(channel);
+            if (channelGroupPerm != null)
+                return channelGroupPerm.applies(user, channel);
+
+
+            // Return if the guild's group perm applies
+            PermissionContext guildGroupPerm = groupPerms.get(channel.getGuild());
+            if (guildGroupPerm == PermissionContext.NULL)
+                return defaultPerms.applies(user, channel);
+        }
+
         return false;
     }
 
-    /**
-     * Check if the message's author has perm in the message's channel
-     * @param perm the perm to check
-     * @param message the message to check for perm
-     * @return whether or not the user has perm
-     */
-    public boolean hasPermission(String perm, IMessage message) {
-        return hasPermission(perm, message, null);
+    public boolean isEnabledFor(String perm, IChannel c) {
+
+        Map<GuildOrChannel, PermissionContext> list = perms.get(perm);
+
+        return list != null && list.get(c) != null || isEnabledFor(perm, c.getGuild());
     }
 
-    /**
-     * Check if the message's author has perm in the message's channel, or use the default
-     * @param perm the perm to check
-     * @param message the message to check for perm
-     * @param defaultPerms the default perm to check if the perm isn't specified
-     * @return whether or not the user has perm
-     */
-    public boolean hasPermission(String perm, IMessage message, PermissionContext defaultPerms) {
-        return hasPermission(perm, message.getAuthor(), message.getChannel(), defaultPerms);
+    public boolean isEnabledFor(String perm, IGuild g) {
+
+        Map<GuildOrChannel, PermissionContext> list = perms.get(perm);
+
+        return list != null && list.get(g) != null;
     }
 
-    /**
-     * Add guild to the guild list if it isn't already in there
-     * @param g the guild to add
-     */
-    public void add(IGuild g) {
-        if(!perms.containsKey(g.getID()))
-            perms.put(g.getID(), new HashMap<>());
-    }
+    public Map<String, PermissionContext> getPermissionsFor(IChannel c) {
+        Map<String, PermissionContext> channelPerms = new HashMap<>();
 
-    /**
-     * Add permission in guild
-     * @param g guild to add perm to
-     * @param perm the perm to add
-     */
-    public void add(IGuild g, String perm) {
-        get(g).put(perm, PermissionContext.getNobodyContext());
-    }
+        for(Map.Entry<String, Map<GuildOrChannel, PermissionContext>> entry : perms.entrySet()) {
+            Map<GuildOrChannel, PermissionContext> map = entry.getValue();
 
-    /**
-     * Get the permissions for the guild or add the guild if it hasn't been added yet
-     * @param g the guild to get or add permissions for
-     * @return the map of permissions for the specified guild
-     */
-    public HashMap<String, PermissionContext> get(IGuild g) {
-        HashMap<String, PermissionContext> guildPerms = perms.get(g.getID());
-        if(guildPerms == null)
-            return perms.put(g.getID(), new HashMap<>());
-        else
-            return guildPerms;
-    }
-
-    /**
-     * Gets a permission or adds an empty one
-     * @param g the guild to get the permission for
-     * @param perm the perm to get from that guild
-     * @return the PermissionContext for specified perm
-     */
-    public PermissionContext get(IGuild g, String perm) {
-        // Get the perms for that guild
-        HashMap<String, PermissionContext> guildPerms = perms.get(g.getID());
-
-        // If the guild contains the perm get it, otherwise add a new one
-        if(guildPerms.containsKey(perm))
-            return guildPerms.get(perm);
-        else {
-            PermissionContext blank = PermissionContext.getNobodyContext();
-            guildPerms.put(perm, blank);
-            return blank;
+            PermissionContext perm = map.get(c);
+            if(perm != null)
+                channelPerms.put(entry.getKey(), perm);
+            else {
+                perm = map.get(c.getGuild());
+                if(perm != null)
+                    channelPerms.put(entry.getKey(), perm);
+            }
         }
+
+        return channelPerms;
     }
 
-    /**
-     * Removes the specified perm from the specified guild
-     * @param g the guild to remove the perm from
-     * @param perm the perm to remove
-     * @return the perm that was removed
-     */
-    public PermissionContext remove(IGuild g, String perm) {
-        return get(g).remove(perm);
+    public Map<String, PermissionContext> getPermissionsFor(IGuild g) {
+        return perms.entrySet().stream()
+                .filter(it -> it.getValue().containsKey(g))
+                .collect(Collectors.toMap(Map.Entry::getKey, it -> it.getValue().get(g)));
     }
 
-    /**
-     * Makes a string version of the permissions for a specified guild
-     * @param g the guild to get permissions for
-     * @return a string representation of the permissions for a specified guild
-     */
-    public String toStringForGuild(IGuild g) {
-        StringBuilder sb = new StringBuilder();
+    public boolean add(String perm, IGuild g, PermissionContext context) {
+        return add(perm, new GuildOrChannel(g), context);
+    }
 
-        sb.append("Permissions for this guild: ```");
+    public boolean add(String perm, IChannel c, PermissionContext context) {
+        return add(perm, new GuildOrChannel(c), context);
+    }
 
-        // For each permission in the guild
-        for(Map.Entry<String, PermissionContext> p : get(g).entrySet()) {
-            // Append \nPERM\n\tCONTEXT
-            sb.append('\n').append(p.getKey()).append('\n');
-            sb.append(indent(p.getValue().toString()));
+    public boolean add(String perm, GuildOrChannel obj, PermissionContext context) {
+        perms.putIfAbsent(perm, new HashMap<>());
+
+        if (context == null)
+            context = PermissionContext.NULL;
+
+        Map<GuildOrChannel, PermissionContext> map = perms.get(perm);
+        if(map.containsKey(obj)) {
+            map.put(obj, context);
+            save();
+            return true;
         }
-        sb.append("```");
-        return sb.toString();
+        map.put(obj, context);
+        save();
+        return false;
     }
 
-    private static String indent(String s) {
-        return "\t" + s.replace("\n", "\n\t");
+    public Map<String, Map<GuildOrChannel, PermissionContext>> getPermissions() {
+        return perms;
     }
 
     /**
@@ -188,3 +165,4 @@ public class PermissionHandler {
         RedBot.getDataHandler().savePerms();
     }
 }
+
