@@ -1,0 +1,1 @@
+java -jar target\RedBot-jar-with-dependencies.jar
