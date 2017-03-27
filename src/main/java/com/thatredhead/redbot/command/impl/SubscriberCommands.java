@@ -266,7 +266,7 @@ public class SubscriberCommands extends CommandGroup {
         return "[" + display + "](" + link + ')';
     }
 
-    private static final Pattern IMG_PATT = Pattern.compile("<[\\s]*img\\b.*src[\\s]*=[\\s]*\"(.+)\"");
+    private static final Pattern IMG_PATT = Pattern.compile("<[\\s]*img\\b.*src[\\s]*=[\\s]*\"([^\"]+)\"");
 
     private static List<String> getImages(String html) {
         if (html == null) return Collections.singletonList("");
@@ -330,8 +330,9 @@ public class SubscriberCommands extends CommandGroup {
     }
 
     public static void main(String[] args) {
-        String html = "hi <img src=\"sourcyimg\" tag=\"taginner\" /> yes yes yes";
+        String html = "hi <img src=\"sourcyimg\" tag=\"taginner\" tag2=\"inner\"/> yes yes yes";
 
         System.out.println(removeHtml(html));
+        System.out.println(getImages(html));
     }
 }
