@@ -20,10 +20,6 @@ import sx.blah.discord.handle.impl.events.shard.ReconnectSuccessEvent;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -40,31 +36,6 @@ public class RedBot {
     public static final String DEFAULT_PREFIX = "%";
 
     public static final Logger LOGGER = LoggerFactory.getLogger(RedBot.class);
-    private static final long MILLI_LOG_PERSISTENCE = 1000L*60*60*24*7; // 7 days
-
-    static {
-        File latest = new File("logs/latest.log");
-
-        if(latest.exists()) latest.delete();
-
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            if (latest.exists()) {
-                try {
-                    Files.copy(latest.toPath(),
-                            Paths.get("logs/" +
-                                    new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(
-                                            new Date(latest.lastModified())) +
-                                    ".log"));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            latest.deleteOnExit();
-            for (File f : new File("logs").listFiles())
-                if (System.currentTimeMillis() - f.lastModified() > MILLI_LOG_PERSISTENCE)
-                    f.deleteOnExit();
-        }));
-    }
 
     public static void main(String[] args) {
 
@@ -76,10 +47,12 @@ public class RedBot {
     }
 
     private static IDiscordClient client;
+
     private static DataHandler datah;
     private static PermissionHandler permh;
     private static CommandHandler cmdh;
     private static Economy econ;
+
     private static long startup;
     private static String version;
     private static AtomicBoolean ready = new AtomicBoolean(false);
