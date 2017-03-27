@@ -3,6 +3,7 @@ package com.thatredhead.redbot.data;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.thatredhead.redbot.RedBot;
+import com.thatredhead.redbot.econ.Economy;
 import com.thatredhead.redbot.permission.PermissionHandler;
 
 import java.io.*;
@@ -14,33 +15,49 @@ import java.nio.file.Paths;
 
 public class DataHandler {
 
-    private Gson gson;
+    public final static Path PERM_FILE = Paths.get("data/perms.json");
+    public final static Path ECON_FILE = Paths.get("data/econ.json");
+
+    private Gson gson = new GsonBuilder()
+                            .enableComplexMapKeySerialization()
+                            .create();
     private PermissionHandler permh;
-    private Path permFile;
+    private Economy econ;
 
     public DataHandler() {
 
-        gson = new GsonBuilder()
-                .enableComplexMapKeySerialization()
-                .create();
-
         // Load perms
-        permFile = Paths.get("data/perms.json");
-        if(Files.exists(permFile)) {
-            String json = "";
+        if(Files.exists(PERM_FILE)) {
+            String json = null;
             try {
-                json = readFromFile(permFile);
+                json = readFromFile(PERM_FILE);
             } catch (FileNotFoundException e) {
                 RedBot.reportError(e);
             }
-            if(!json.isEmpty())
+            if(json != null && !json.isEmpty())
                 permh = gson.fromJson(json, PermissionHandler.class);
             else
                 permh = new PermissionHandler();
         }
         else
             permh = new PermissionHandler();
-        savePerms();
+        save(permh, PERM_FILE);
+
+        if(Files.exists(ECON_FILE)) {
+            String json = null;
+            try {
+                json = readFromFile(ECON_FILE);
+            } catch (FileNotFoundException e) {
+                RedBot.reportError(e);
+            }
+            if(json != null && !json.isEmpty())
+                econ = gson.fromJson(json, Economy.class);
+            else
+                econ = new Economy();
+        }
+        else
+            econ = new Economy();
+        save(econ, ECON_FILE);
     }
 
     /**
@@ -51,11 +68,8 @@ public class DataHandler {
         return permh;
     }
 
-    /**
-     * Saves the permissions in memory to file
-     */
-    public void savePerms() {
-        writeToFile(permFile, gson.toJson(permh, PermissionHandler.class));
+    public Economy getEconomy() {
+        return econ;
     }
 
     /**
@@ -65,7 +79,17 @@ public class DataHandler {
      * @return o, for chaining methods
      */
     public <T> T save(T obj, String name) {
-        writeToFile(new File("data/" + name + ".json"), gson.toJson(obj));
+        return save(obj, Paths.get("data/" + name + ".json"));
+    }
+
+    /**
+     * Saves an object in json form
+     * @param obj the object to save
+     * @param path the name to save it under
+     * @return o, for chaining methods
+     */
+    public <T> T save(T obj, Path path) {
+        writeToFile(path, gson.toJson(obj));
         return obj;
     }
 

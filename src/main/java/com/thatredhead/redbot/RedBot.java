@@ -2,6 +2,7 @@ package com.thatredhead.redbot;
 
 import com.thatredhead.redbot.command.CommandHandler;
 import com.thatredhead.redbot.data.DataHandler;
+import com.thatredhead.redbot.econ.Economy;
 import com.thatredhead.redbot.helpers4d4j.DiscordUtils;
 import com.thatredhead.redbot.permission.PermissionHandler;
 import org.apache.commons.io.FileUtils;
@@ -78,6 +79,7 @@ public class RedBot {
     private static DataHandler datah;
     private static PermissionHandler permh;
     private static CommandHandler cmdh;
+    private static Economy econ;
     private static long startup;
     private static String version;
     private static AtomicBoolean ready = new AtomicBoolean(false);
@@ -105,6 +107,7 @@ public class RedBot {
 
         datah = new DataHandler();
         permh = datah.getPermHandler();
+        econ = datah.getEconomy();
         startup = System.currentTimeMillis();
         valid = true;
 
@@ -178,6 +181,16 @@ public class RedBot {
     public static CommandHandler getCommandHandler() {
         if(ready.get())
             return cmdh;
+        throw new NotReadyException();
+    }
+
+    /**
+     * Gets the Economy for this RedBot instance
+     * @return Economy instance for this object
+     */
+    public static Economy getEconomy() {
+        if(ready.get())
+            return econ;
         throw new NotReadyException();
     }
 
