@@ -3,8 +3,6 @@ package com.thatredhead.redbot.data;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.thatredhead.redbot.RedBot;
-import com.thatredhead.redbot.econ.Economy;
-import com.thatredhead.redbot.permission.PermissionHandler;
 
 import java.io.*;
 import java.lang.reflect.Type;
@@ -15,62 +13,9 @@ import java.nio.file.Paths;
 
 public class DataHandler {
 
-    public final static Path PERM_FILE = Paths.get("data/perms.json");
-    public final static Path ECON_FILE = Paths.get("data/econ.json");
-
     private Gson gson = new GsonBuilder()
                             .enableComplexMapKeySerialization()
                             .create();
-    private PermissionHandler permh;
-    private Economy econ;
-
-    public DataHandler() {
-
-        // Load perms
-        if(Files.exists(PERM_FILE)) {
-            String json = null;
-            try {
-                json = readFromFile(PERM_FILE);
-            } catch (FileNotFoundException e) {
-                RedBot.reportError(e);
-            }
-            if(json != null && !json.isEmpty())
-                permh = gson.fromJson(json, PermissionHandler.class);
-            else
-                permh = new PermissionHandler();
-        }
-        else
-            permh = new PermissionHandler();
-        save(permh, PERM_FILE);
-
-        if(Files.exists(ECON_FILE)) {
-            String json = null;
-            try {
-                json = readFromFile(ECON_FILE);
-            } catch (FileNotFoundException e) {
-                RedBot.reportError(e);
-            }
-            if(json != null && !json.isEmpty())
-                econ = gson.fromJson(json, Economy.class);
-            else
-                econ = new Economy();
-        }
-        else
-            econ = new Economy();
-        save(econ, ECON_FILE);
-    }
-
-    /**
-     * Gets the permission handler from this datahandler
-     * @return PermissionHandler instance
-     */
-    public PermissionHandler getPermHandler() {
-        return permh;
-    }
-
-    public Economy getEconomy() {
-        return econ;
-    }
 
     /**
      * Saves an object in json form

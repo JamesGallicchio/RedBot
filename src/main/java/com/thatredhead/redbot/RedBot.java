@@ -35,6 +35,10 @@ public class RedBot {
 
     public static final String DEFAULT_PREFIX = "%";
 
+    public static final String PERM_FILE_NAME = "perms";
+    public static final String ECON_FILE_NAME = "econ";
+
+
     public static final Logger LOGGER = LoggerFactory.getLogger(RedBot.class);
 
     public static void main(String[] args) {
@@ -57,10 +61,8 @@ public class RedBot {
     private static String version;
     private static AtomicBoolean ready = new AtomicBoolean(false);
 
-    private boolean valid;
-
     public RedBot() {
-        valid = false;
+
     }
 
     public RedBot(String token) {
@@ -79,10 +81,21 @@ public class RedBot {
         }
 
         datah = new DataHandler();
-        permh = datah.getPermHandler();
-        econ = datah.getEconomy();
+
+        permh = datah.get(PERM_FILE_NAME, PermissionHandler.class);
+        if(permh == null) {
+            permh = new PermissionHandler();
+            datah.save(permh, PERM_FILE_NAME);
+        }
+
+        econ = datah.get(ECON_FILE_NAME, Economy.class);
+        if(econ == null) {
+            econ = new Economy();
+            datah.save(econ, ECON_FILE_NAME);
+        }
+
+
         startup = System.currentTimeMillis();
-        valid = true;
 
         try {
             Properties p = new Properties();
