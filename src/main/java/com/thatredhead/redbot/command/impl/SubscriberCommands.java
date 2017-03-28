@@ -6,9 +6,12 @@ import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.io.FeedException;
 import com.rometools.rome.io.SyndFeedInput;
 import com.rometools.rome.io.XmlReader;
-import com.thatredhead.redbot.helpers4d4j.DiscordUtils;
 import com.thatredhead.redbot.RedBot;
-import com.thatredhead.redbot.command.*;
+import com.thatredhead.redbot.command.Command;
+import com.thatredhead.redbot.command.CommandArgumentException;
+import com.thatredhead.redbot.command.CommandException;
+import com.thatredhead.redbot.command.CommandGroup;
+import com.thatredhead.redbot.helpers4d4j.DiscordUtils;
 import com.thatredhead.redbot.helpers4d4j.MessageParser;
 import com.thatredhead.redbot.permission.PermissionContext;
 import sx.blah.discord.handle.obj.IChannel;
@@ -46,6 +49,7 @@ public class SubscriberCommands extends CommandGroup {
                         EmbedBuilder embed = new EmbedBuilder()
                                 .withAuthorName(sub.feed.getTitle())
                                 .withTimestamp(sub.lastUpdate);
+
                         if (sub.feed.getImage() != null)
                             embed.withThumbnail(sub.feed.getImage().getUrl());
 
@@ -266,7 +270,7 @@ public class SubscriberCommands extends CommandGroup {
         return "[" + display + "](" + link + ')';
     }
 
-    private static final Pattern IMG_PATT = Pattern.compile("<[\\s]*img\\b.*src[\\s]*=[\\s]*\"([^\"]+)\"");
+    private static final Pattern IMG_PATT = Pattern.compile("<[\\s]*img\\b.*src[\\s]*=[\\s]*\"([^\"]+)\"[^/]*/>");
 
     private static List<String> getImages(String html) {
         if (html == null) return Collections.singletonList("");
@@ -275,18 +279,23 @@ public class SubscriberCommands extends CommandGroup {
 
         List<String> images = new ArrayList<>();
         while (m.find()) {
+            if(m.group().contains("height=\"1\"") || m.group().contains("width=\"1\"")) continue;
             images.add(m.group(1));
         }
+
+        System.out.println(images);
 
         return images;
     }
 
     private static final Pattern HTML_PATT = Pattern.compile("<[\\s]*(\\w+)(?:(.*))?(?:/[\\s]*>|>([\\s\\S]*?)<[\\s]*/[\\s]*\\1[\\s]*>)");
-    private static final Pattern LINK_PATT = Pattern.compile("[\\s]*href[\\s]*=[\\s]*\"(.+)\"");
+    private static final Pattern LINK_PATT = Pattern.compile("[\\s]*href[\\s]*=[\\s]*\"([^\"]+)\"");
     private static final Pattern SRC_PATT = Pattern.compile("src[\\s]*=[\\s]*\"([^\"]+)\"");
 
     private static String removeHtml(String html) {
         if (html == null) return "";
+
+        System.out.println(html);
 
         StringBuilder sb = new StringBuilder();
         Matcher m = HTML_PATT.matcher(html);
@@ -299,11 +308,6 @@ public class SubscriberCommands extends CommandGroup {
             switch (m.group(1).toLowerCase()) {
                 case "br":
                     sb.append('\n');
-                    break;
-                case "img":
-                    Matcher src = SRC_PATT.matcher(m.group(2));
-                    if (src.find())
-                        sb.append(' ').append(src.group(1)).append(' ');
                     break;
                 case "p":
                     sb.append(removeHtml(m.group(3))).append("\n\n");
@@ -327,5 +331,13 @@ public class SubscriberCommands extends CommandGroup {
         }
 
         return sb.append(html.substring(idx).trim()).toString();
+    }
+
+    public static void main(String[] args) {
+        String html = "Rep. Adam Schiff, the top Democrat on the House Russia investigation, called on House Intelligence Chairman Devin Nunes to recuse himself from the investigation in a stunning split between the two top investigators.<div class=\"feedflare\">\n" +
+                "<a href=\"http://rss.cnn.com/~ff/rss/cnn_topstories?a=1sBPCHEdsNU:XVgcq72MMLg:yIl2AUoC8zA\"><img src=\"http://feeds.feedburner.com/~ff/rss/cnn_topstories?d=yIl2AUoC8zA\" border=\"0\"></img></a> <a href=\"http://rss.cnn.com/~ff/rss/cnn_topstories?a=1sBPCHEdsNU:XVgcq72MMLg:7Q72WNTAKBA\"><img src=\"http://feeds.feedburner.com/~ff/rss/cnn_topstories?d=7Q72WNTAKBA\" border=\"0\"></img></a> <a href=\"http://rss.cnn.com/~ff/rss/cnn_topstories?a=1sBPCHEdsNU:XVgcq72MMLg:V_sGLiPBpWU\"><img src=\"http://feeds.feedburner.com/~ff/rss/cnn_topstories?i=1sBPCHEdsNU:XVgcq72MMLg:V_sGLiPBpWU\" border=\"0\"></img></a> <a href=\"http://rss.cnn.com/~ff/rss/cnn_topstories?a=1sBPCHEdsNU:XVgcq72MMLg:qj6IDK7rITs\"><img src=\"http://feeds.feedburner.com/~ff/rss/cnn_topstories?d=qj6IDK7rITs\" border=\"0\"></img></a> <a href=\"http://rss.cnn.com/~ff/rss/cnn_topstories?a=1sBPCHEdsNU:XVgcq72MMLg:gIN9vFwOqvQ\"><img src=\"http://feeds.feedburner.com/~ff/rss/cnn_topstories?i=1sBPCHEdsNU:XVgcq72MMLg:gIN9vFwOqvQ\" border=\"0\"></img></a>\n" +
+                "</div><img src=\"http://feeds.feedburner.com/~r/rss/cnn_topstories/~4/1sBPCHEdsNU\" height=\"1\" width=\"1\" alt=\"\"/>";
+
+        System.out.println(removeHtml(html));
     }
 }
