@@ -1,24 +1,31 @@
 package com.thatredhead.redbot.econ;
 
+import com.thatredhead.redbot.RedBot;
 import sx.blah.discord.handle.obj.IUser;
 
 public class Account {
 
-    private IUser user;
+    private String userID;
     private double amount;
+
+    private transient IUser user;
 
     public Account(IUser user) {
         this.user = user;
-        amount = 0;
+        this.userID = user.getID();
+        this.amount = 0;
     }
 
     public Account(IUser user, double amount) {
         this.user = user;
+        this.userID = user.getID();
         this.amount = amount;
     }
 
     public IUser getOwner() {
-        return user;
+        return user == null ?
+                user = RedBot.getClient().getUserByID(userID) :
+                user;
     }
 
     public double getAmount() {
@@ -30,16 +37,18 @@ public class Account {
     }
 
     public void add(double addend) {
-        if(addend == Math.floor(addend))
-            amount += addend;
-        else
-            throw new IllegalArgumentException();
+        amount += addend;
     }
 
     public void subtract(double amount) {
-        if(amount == Math.floor(amount))
+        this.amount -= amount;
+    }
+
+    public void transferTo(Account recip, double amount) {
+        if(this.amount > amount) {
             this.amount -= amount;
-        else
+            recip.amount += amount;
+        } else
             throw new IllegalArgumentException();
     }
 }

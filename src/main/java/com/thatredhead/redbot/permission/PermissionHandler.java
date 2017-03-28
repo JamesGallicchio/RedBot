@@ -2,7 +2,6 @@ package com.thatredhead.redbot.permission;
 
 import com.thatredhead.redbot.RedBot;
 import com.thatredhead.redbot.command.Command;
-import com.thatredhead.redbot.data.DataHandler;
 import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IGuild;
 import sx.blah.discord.handle.obj.IMessage;
@@ -163,7 +162,7 @@ public class PermissionHandler {
      * Saves these perms to a file
      */
     public void save() {
-        RedBot.getDataHandler().save(this, DataHandler.PERM_FILE);
+        RedBot.getDataHandler().save(this, RedBot.PERM_FILE_NAME);
     }
 }
 
