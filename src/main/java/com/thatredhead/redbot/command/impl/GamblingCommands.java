@@ -23,7 +23,7 @@ public class GamblingCommands  extends CommandGroup {
     public static class SlotsCommand extends Command {
 
         public static final int ROWS = 3;
-        public static final int COLS = 3;
+        public static final int COLS = 5;
 
         public static final double CHARGE = 10.0;
 
@@ -161,13 +161,13 @@ public class GamblingCommands  extends CommandGroup {
 
             for(int r = 0; r < ROWS; r++) {
                 for(int c = 0; c < COLS; c++) {
-                    emojis[r*ROWS + c] = getRandomNotIn(emojis, NORMAL_EMOJIS, HIGH_EMOJIS, JACKPOT_EMOJIS);
+                    emojis[r*COLS + c] = getRandomNotIn(emojis, NORMAL_EMOJIS, HIGH_EMOJIS, JACKPOT_EMOJIS);
                 }
             }
 
             for(int r = 0; r < ROWS; r++) {
                 for(int c = 0; c < COLS; c++) {
-                    sb.append(emojis[r*ROWS + c]).append(" ");
+                    sb.append(emojis[r*COLS + c].getUnicode()).append(" ");
                 }
                 sb.append("\n");
             }
@@ -186,18 +186,18 @@ public class GamblingCommands  extends CommandGroup {
                 if(r == ROWS/2) {
                     Emoji winner = getRandomNotIn(emojis, NORMAL_EMOJIS);
                     for(int c = 0; c < COLS; c++) {
-                        emojis[r*ROWS + c] = winner;
+                        emojis[r*COLS + c] = winner;
                     }
                 } else {
                     for(int c = 0; c < COLS; c++) {
-                        emojis[r*ROWS + c] = getRandomNotIn(emojis, NORMAL_EMOJIS, HIGH_EMOJIS, JACKPOT_EMOJIS);
+                        emojis[r*COLS + c] = getRandomNotIn(emojis, NORMAL_EMOJIS, HIGH_EMOJIS, JACKPOT_EMOJIS);
                     }
                 }
             }
 
             for(int r = 0; r < ROWS; r++) {
                 for(int c = 0; c < COLS; c++) {
-                    sb.append(emojis[r*ROWS + c]).append(" ");
+                    sb.append(emojis[r*COLS + c].getUnicode()).append(" ");
                 }
                 sb.append("\n");
             }
@@ -216,18 +216,18 @@ public class GamblingCommands  extends CommandGroup {
                 if(r == ROWS/2) {
                     Emoji winner = getRandomNotIn(emojis, HIGH_EMOJIS);
                     for(int c = 0; c < COLS; c++) {
-                        emojis[r*ROWS + c] = winner;
+                        emojis[r*COLS + c] = winner;
                     }
                 } else {
                     for(int c = 0; c < COLS; c++) {
-                        emojis[r*ROWS + c] = getRandomNotIn(emojis, NORMAL_EMOJIS, HIGH_EMOJIS, JACKPOT_EMOJIS);
+                        emojis[r*COLS + c] = getRandomNotIn(emojis, NORMAL_EMOJIS, HIGH_EMOJIS, JACKPOT_EMOJIS);
                     }
                 }
             }
 
             for(int r = 0; r < ROWS; r++) {
                 for(int c = 0; c < COLS; c++) {
-                    sb.append(emojis[r*ROWS + c]).append(" ");
+                    sb.append(emojis[r*COLS + c].getUnicode()).append(" ");
                 }
                 sb.append("\n");
             }
@@ -246,18 +246,18 @@ public class GamblingCommands  extends CommandGroup {
                 if(r == ROWS/2) {
                     Emoji winner = getRandomNotIn(emojis, JACKPOT_EMOJIS);
                     for(int c = 0; c < COLS; c++) {
-                        emojis[r*ROWS + c] = winner;
+                        emojis[r*COLS + c] = winner;
                     }
                 } else {
                     for(int c = 0; c < COLS; c++) {
-                        emojis[r*ROWS + c] = getRandomNotIn(emojis, NORMAL_EMOJIS, HIGH_EMOJIS, JACKPOT_EMOJIS);
+                        emojis[r*COLS + c] = getRandomNotIn(emojis, NORMAL_EMOJIS, HIGH_EMOJIS, JACKPOT_EMOJIS);
                     }
                 }
             }
 
             for(int r = 0; r < ROWS; r++) {
                 for(int c = 0; c < COLS; c++) {
-                    sb.append(emojis[r*ROWS + c]).append(" ");
+                    sb.append(emojis[r*COLS + c].getUnicode()).append(" ");
                 }
                 sb.append("\n");
             }
@@ -275,7 +275,7 @@ public class GamblingCommands  extends CommandGroup {
                 contains = false;
 
                 for(T one: blacklist)
-                    if(one != null && one.equals(possibility)) {
+                    if(possibility.equals(one)) {
                         contains = true;
                         break;
                     }
