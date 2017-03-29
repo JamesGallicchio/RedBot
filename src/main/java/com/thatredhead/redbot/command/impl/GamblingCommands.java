@@ -25,14 +25,14 @@ public class GamblingCommands  extends CommandGroup {
         public static final int ROWS = 3;
         public static final int COLS = 5;
 
-        public static final double CHARGE = 10.0;
+        public static final double CHARGE = 50.0;
 
         public static final double REWARD_NORMAL = 100.0;
         public static final double REWARD_HIGH = 200.0;
         public static final double REWARD_JACKPOT = 1000.0;
 
-        public static final double CHANCE_NORMAL = 0.2;
-        public static final double CHANCE_HIGH = 0.05;
+        public static final double CHANCE_NORMAL = 0.25;
+        public static final double CHANCE_HIGH = 0.06;
         public static final double CHANCE_JACKPOT = 0.01;
 
         public static final Emoji[] NORMAL_EMOJIS = getEmojiList("clown",
