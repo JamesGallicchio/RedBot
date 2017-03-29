@@ -283,8 +283,6 @@ public class SubscriberCommands extends CommandGroup {
             images.add(m.group(1));
         }
 
-        System.out.println(images);
-
         return images;
     }
 
@@ -294,8 +292,6 @@ public class SubscriberCommands extends CommandGroup {
 
     private static String removeHtml(String html) {
         if (html == null) return "";
-
-        System.out.println(html);
 
         StringBuilder sb = new StringBuilder();
         Matcher m = HTML_PATT.matcher(html);
@@ -331,13 +327,5 @@ public class SubscriberCommands extends CommandGroup {
         }
 
         return sb.append(html.substring(idx).trim()).toString();
-    }
-
-    public static void main(String[] args) {
-        String html = "Rep. Adam Schiff, the top Democrat on the House Russia investigation, called on House Intelligence Chairman Devin Nunes to recuse himself from the investigation in a stunning split between the two top investigators.<div class=\"feedflare\">\n" +
-                "<a href=\"http://rss.cnn.com/~ff/rss/cnn_topstories?a=1sBPCHEdsNU:XVgcq72MMLg:yIl2AUoC8zA\"><img src=\"http://feeds.feedburner.com/~ff/rss/cnn_topstories?d=yIl2AUoC8zA\" border=\"0\"></img></a> <a href=\"http://rss.cnn.com/~ff/rss/cnn_topstories?a=1sBPCHEdsNU:XVgcq72MMLg:7Q72WNTAKBA\"><img src=\"http://feeds.feedburner.com/~ff/rss/cnn_topstories?d=7Q72WNTAKBA\" border=\"0\"></img></a> <a href=\"http://rss.cnn.com/~ff/rss/cnn_topstories?a=1sBPCHEdsNU:XVgcq72MMLg:V_sGLiPBpWU\"><img src=\"http://feeds.feedburner.com/~ff/rss/cnn_topstories?i=1sBPCHEdsNU:XVgcq72MMLg:V_sGLiPBpWU\" border=\"0\"></img></a> <a href=\"http://rss.cnn.com/~ff/rss/cnn_topstories?a=1sBPCHEdsNU:XVgcq72MMLg:qj6IDK7rITs\"><img src=\"http://feeds.feedburner.com/~ff/rss/cnn_topstories?d=qj6IDK7rITs\" border=\"0\"></img></a> <a href=\"http://rss.cnn.com/~ff/rss/cnn_topstories?a=1sBPCHEdsNU:XVgcq72MMLg:gIN9vFwOqvQ\"><img src=\"http://feeds.feedburner.com/~ff/rss/cnn_topstories?i=1sBPCHEdsNU:XVgcq72MMLg:gIN9vFwOqvQ\" border=\"0\"></img></a>\n" +
-                "</div><img src=\"http://feeds.feedburner.com/~r/rss/cnn_topstories/~4/1sBPCHEdsNU\" height=\"1\" width=\"1\" alt=\"\"/>";
-
-        System.out.println(removeHtml(html));
     }
 }
