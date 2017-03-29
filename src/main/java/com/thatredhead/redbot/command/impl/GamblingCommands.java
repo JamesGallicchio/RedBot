@@ -36,23 +36,23 @@ public class GamblingCommands  extends CommandGroup {
         public static final double CHANCE_JACKPOT = 0.01;
 
         public static final Emoji[] NORMAL_EMOJIS = getEmojiList("clown",
-                "japanese_goblin", //
+                "japanese_goblin",
                 "ghost",
-                "robot_face", //
+                "robot_face",
                 "alien",
                 "poop",
                 "cat",
                 "monkey",
                 "santa",
                 "motorcycle",
-                "muscle", //
-                "vulcan_salute", //
+                "muscle",
+                "vulcan_salute",
                 "eyes",
                 "heart",
                 "bomb",
                 "jeans",
                 "purse",
-                "athletic_shoe", //
+                "athletic_shoe",
                 "rooster",
                 "frog",
                 "turtle",
@@ -61,11 +61,11 @@ public class GamblingCommands  extends CommandGroup {
                 "octopus",
                 "shark",
                 "ant",
-                "spider_web", //
+                "spider_web",
                 "rose",
-                "deciduous_tree", //
+                "deciduous_tree",
                 "cactus",
-                "maple_leaf", //
+                "maple_leaf",
                 "grapes",
                 "watermelon",
                 "lemon",
@@ -76,44 +76,44 @@ public class GamblingCommands  extends CommandGroup {
                 "cherries",
                 "tomato",
                 "avocado",
-                "hot_pepper", //
+                "hot_pepper",
                 "mushroom",
-                "croissant", //
+                "croissant",
                 "cheese",
                 "bacon",
                 "pizza",
                 "cookie",
                 "anchor",
                 "airplane",
-                "crescent_moon", //
+                "crescent_moon",
                 "droplet",
                 "basketball",
-                "8ball", //
+                "8ball",
                 "bell",
-                "musical_note", //
-                "musical_keyboard", //
+                "musical_note",
+                "musical_keyboard",
                 "telephone",
                 "battery",
-                "floppy_disk", //
-                "film_frames", //
-                "clapper", //
-                "mag_right", //
-                "bulb", //
+                "floppy_disk",
+                "film_frames",
+                "clapper",
+                "mag_right",
+                "bulb",
                 "books",
                 "pencil",
                 "pushpin",
                 "scissors",
                 "key",
                 "hammer",
-                "bow_and_arrow", //
+                "bow_and_arrow",
                 "dagger",
                 "gear",
                 "coffin",
-                "crystal_ball", //
+                "crystal_ball",
                 "warning",
-                "no_entry", //
+                "no_entry",
                 "radioactive",
-                "question", //
+                "question",
                 "checkered_flag");
         public static final Emoji[] HIGH_EMOJIS = getEmojiList("crown",
                 "shamrock",
