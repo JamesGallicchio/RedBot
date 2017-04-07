@@ -28,28 +28,9 @@ public class LogHandler extends Filter<ILoggingEvent> {
     private static final File LOG_FILE = new File("logs/latest.log");
 
     static {
-
         if(LOG_FILE.exists()) {
             LOG_FILE.delete();
         }
-
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            if (LOG_FILE.exists()) {
-                try {
-                    Files.copy(LOG_FILE.toPath(),
-                            Paths.get("logs/" +
-                                    new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(
-                                            new Date(LOG_FILE.lastModified())) +
-                                    ".log"));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            LOG_FILE.deleteOnExit();
-            for (File f : new File("logs").listFiles())
-                if (System.currentTimeMillis() - f.lastModified() > MILLI_LOG_PERSISTENCE)
-                    f.deleteOnExit();
-        }));
     }
 
     @Override
@@ -79,5 +60,25 @@ public class LogHandler extends Filter<ILoggingEvent> {
         LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
         context.getLogger("org.eclipse.jetty.websocket").setLevel(Level.DEBUG);
         context.getLogger(Discord4J.class).setLevel(Level.DEBUG);
+    }
+
+    public static void saveLogFile() {
+        if (LOG_FILE.exists()) {
+            try {
+                Files.copy(LOG_FILE.toPath(),
+                        Paths.get("logs/" +
+                                new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(
+                                        new Date(LOG_FILE.lastModified())) +
+                                ".log"));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        LOG_FILE.deleteOnExit();
+
+        for (File f : new File("logs").listFiles())
+            if (System.currentTimeMillis() - f.lastModified() > MILLI_LOG_PERSISTENCE)
+                f.deleteOnExit();
     }
 }

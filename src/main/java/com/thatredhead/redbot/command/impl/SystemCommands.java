@@ -13,7 +13,7 @@ import java.util.Arrays;
 public class SystemCommands extends CommandGroup {
 
     public SystemCommands() {
-        super("System Commands", "Commands for administrative purposes (for ThatRedhead)", "system", Arrays.asList(new InfoCommand()));
+        super("System Commands", "Commands for administrative purposes (for ThatRedhead)", "system", Arrays.asList(new InfoCommand(), new RestartCommand()));
     }
 
     public static class InfoCommand extends Command {
@@ -33,6 +33,21 @@ public class SystemCommands extends CommandGroup {
             info.append("\nMemory usage (MB): ").append((total-free)/1024/1024).append("/").append(total/1024/1024);
             info.append("\nVersion: ").append(RedBot.getVersion());
             DiscordUtils.sendMessage(info.toString(), msgp.getChannel());
+        }
+    }
+
+    public static class RestartCommand extends Command {
+
+        public RestartCommand() {
+            super("restart", "Restarts RedBot", PermissionContext.BOT_OWNER);
+        }
+
+        public void invoke(MessageParser msgp) throws CommandException {
+            if(RedBot.OWNER_ID.equals(msgp.getAuthor().getID())) {
+                msgp.reply("Restarting RedBot!");
+                RedBot.restart(true);
+            } else
+                msgp.reply("Only Red can do that to me!");
         }
     }
 }

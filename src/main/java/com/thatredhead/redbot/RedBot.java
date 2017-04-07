@@ -20,6 +20,8 @@ import sx.blah.discord.handle.impl.events.shard.ReconnectSuccessEvent;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -38,8 +40,11 @@ public class RedBot {
     public static final String PERM_FILE_NAME = "perms";
     public static final String ECON_FILE_NAME = "econ";
 
-
     public static final Logger LOGGER = LoggerFactory.getLogger(RedBot.class);
+
+    public static final ProcessBuilder GIT = new ProcessBuilder("git", "pull");
+    public static final ProcessBuilder MVN = new ProcessBuilder("mvn", "clean", "compile");
+    public static final ProcessBuilder RUN_REDBOT = new ProcessBuilder("java", "-jar", "target\\RedBot-jar-with-dependencies.jar");
 
     public static void main(String[] args) {
 
@@ -99,7 +104,7 @@ public class RedBot {
 
         try {
             Properties p = new Properties();
-            p.load(getClass().getClassLoader().getResourceAsStream("version.properties"));
+            p.load(getClass().getClassLoader().getResourceAsStream("redbot.properties"));
             version = (String) p.get("version");
         } catch (IOException e) {
             e.printStackTrace();
@@ -222,5 +227,36 @@ public class RedBot {
         if(s.length() > chars)
             return s.substring(0, chars);
         return s;
+    }
+
+    public static void shutdown() {
+        client.logout();
+        LogHandler.saveLogFile();
+        System.exit(0);
+    }
+
+    public static void restart(boolean doUpdate) {
+        if(doUpdate) {
+            try {
+                if(GIT.start().waitFor() != 0)
+                    throw new IOException("RedBot could not pull changes to the repository!");
+
+                if(MVN.start().waitFor() != 0)
+                    throw new IOException("Maven failed to build RedBot!");
+
+            } catch (IOException | InterruptedException e) {
+                reportError(e);
+            }
+        }
+
+        client.logout();
+        LogHandler.saveLogFile();
+        try {
+            Process running = RUN_REDBOT.start();
+            client.logout();
+            System.exit(0);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
