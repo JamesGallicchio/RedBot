@@ -67,6 +67,15 @@ public class DiscordUtils {
         });
     }
 
+    public static RequestBuffer.RequestFuture<IMessage> sendPrivateMessage(EmbedObject embed, IUser user) {
+        if(user == null || embed == null)
+            throw new NullPointerException();
+        readyCheck();
+        return RequestBuffer.request(() -> {
+            return user.getOrCreatePMChannel().sendMessage(embed);
+        });
+    }
+
     /**
      * Sends an embed to a channel
      * @param embed the embed to send
