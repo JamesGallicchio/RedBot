@@ -53,11 +53,17 @@ public class CuteCommands extends CommandGroup {
 
         public CuteCommand() {
             super("cute", "Searches Google for cute images",
-                    "cute *search terms* <gif if you want a gif>", "cute", false, false, PermissionContext.EVERYONE);
+                    "cute *search terms* <gif if you want a gif>", PermissionContext.EVERYONE);
         }
 
         @Override
         public void invoke(MessageParser msgp) {
+            /*prank*/
+            if("271393757696491521".equals(msgp.getGuild().getID())) {
+                msgp.reply("You have displeased the gods of cute, and they have taken your power.");
+                return;
+            }
+
             if (!safeties.containsKey(msgp.getChannel().getID())) {
                 safeties.put(msgp.getChannel().getID(), "high");
                 datah.save(safeties, "cutesafety");

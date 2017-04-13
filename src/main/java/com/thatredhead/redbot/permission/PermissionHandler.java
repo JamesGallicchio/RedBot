@@ -62,8 +62,11 @@ public class PermissionHandler {
 
         // Return if the guild's perm applies
         PermissionContext guildPerm = permissions.get(channel.getGuild());
-        if (guildPerm == PermissionContext.NULL)
-            return defaultPerms.applies(user, channel);
+        if(guildPerm != null)
+            if (guildPerm == PermissionContext.NULL)
+                return defaultPerms.applies(user, channel);
+            else
+                return guildPerm.applies(user, channel);
 
         // If enabled by default, add it/return if it applies
         if(enabledByDefault) {

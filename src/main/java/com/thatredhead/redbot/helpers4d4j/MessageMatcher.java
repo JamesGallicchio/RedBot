@@ -142,4 +142,10 @@ public class MessageMatcher {
     public String[] get(int index) {
         return tokenWords.get(index);
     }
+
+    public static void main(String[] args) {
+        MessageMatcher m = new MessageMatcher(new String[]{"blah", "<#12345>"}, "T+C+?");
+
+        m.match();
+    }
 }

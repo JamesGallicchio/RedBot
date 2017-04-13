@@ -4,6 +4,7 @@ import com.thatredhead.redbot.RedBot;
 import com.thatredhead.redbot.command.Command;
 import com.thatredhead.redbot.command.CommandGroup;
 import com.thatredhead.redbot.econ.Account;
+import com.thatredhead.redbot.econ.Economy;
 import com.thatredhead.redbot.helpers4d4j.MessageParser;
 import com.thatredhead.redbot.permission.PermissionContext;
 import com.vdurmont.emoji.Emoji;
@@ -134,28 +135,28 @@ public class GamblingCommands  extends CommandGroup {
             Account act = RedBot.getEconomy().getAccountForUser(msgp.getAuthor());
             if(act.getAmount() >= CHARGE) {
 
-                act.subtract(CHARGE);
+                RedBot.getEconomy().gamblingCharge(act, CHARGE);
 
                 double rando = Math.random();
                 if(CHANCE_JACKPOT > rando) {
                     msgp.reply(getJackpotWin());
-                    act.add(REWARD_JACKPOT);
+                    RedBot.getEconomy().gamblingPayment(act, REWARD_JACKPOT);
                 } else if(CHANCE_JACKPOT + CHANCE_HIGH > rando) {
                     msgp.reply(getHighWin());
-                    act.add(REWARD_HIGH);
+                    RedBot.getEconomy().gamblingPayment(act, REWARD_HIGH);
                 } else if(CHANCE_JACKPOT + CHANCE_HIGH + CHANCE_NORMAL > rando) {
                     msgp.reply(getNormalWin());
-                    act.add(REWARD_NORMAL);
+                    RedBot.getEconomy().gamblingPayment(act, REWARD_NORMAL);
                 } else {
                     msgp.reply(getLose());
                 }
 
-            } else msgp.reply("You don't have enough money! (:diamonds:" + CHARGE +
-                    ")\nYour balance: " + act.getAmount());
+            } else msgp.reply("You don't have enough money! (" + Economy.format(CHARGE) +
+                    ")\nYour balance: " + Economy.MONEY_PREFIX + act.getAmount());
         }
 
         private static String getLose() {
-            StringBuilder sb = new StringBuilder("__Slot Machine__\n");
+            StringBuilder sb = new StringBuilder("**__Slot Machine__**\n");
 
             Emoji[] emojis = new Emoji[ROWS*COLS];
 
@@ -178,7 +179,7 @@ public class GamblingCommands  extends CommandGroup {
         }
 
         private static String getNormalWin() {
-            StringBuilder sb = new StringBuilder("__Slot Machine__\n");
+            StringBuilder sb = new StringBuilder("**__Slot Machine__**\n");
 
             Emoji[] emojis = new Emoji[ROWS*COLS];
 
@@ -202,13 +203,13 @@ public class GamblingCommands  extends CommandGroup {
                 sb.append("\n");
             }
 
-            sb.append("**You won :diamonds:" + REWARD_NORMAL + "!**");
+            sb.append("**You won " + Economy.format(REWARD_NORMAL) + "!**");
 
             return sb.toString();
         }
 
         private static String getHighWin() {
-            StringBuilder sb = new StringBuilder("__Slot Machine__\n");
+            StringBuilder sb = new StringBuilder("**__Slot Machine__**\n");
 
             Emoji[] emojis = new Emoji[ROWS*COLS];
 
@@ -232,13 +233,13 @@ public class GamblingCommands  extends CommandGroup {
                 sb.append("\n");
             }
 
-            sb.append("**You won :diamonds:" + REWARD_HIGH + "!**");
+            sb.append("**You won " + Economy.format(REWARD_HIGH) + "!**");
 
             return sb.toString();
         }
 
         private static String getJackpotWin() {
-            StringBuilder sb = new StringBuilder("__Slot Machine__\n");
+            StringBuilder sb = new StringBuilder("**__Slot Machine__**\n");
 
             Emoji[] emojis = new Emoji[ROWS*COLS];
 
@@ -262,7 +263,7 @@ public class GamblingCommands  extends CommandGroup {
                 sb.append("\n");
             }
 
-            sb.append("**You won the jackpot: :diamonds:" + REWARD_JACKPOT + "!**");
+            sb.append("**You won the jackpot: " + Economy.format(REWARD_JACKPOT) + "!**");
 
             return sb.toString();
         }

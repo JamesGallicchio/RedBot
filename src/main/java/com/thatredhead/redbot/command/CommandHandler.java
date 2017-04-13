@@ -98,11 +98,10 @@ public class CommandHandler {
 
             for (Command c : commands) {
                 if (c.usesPrefix() && c.getKeyword().equalsIgnoreCase(msgp.getArg(0))) {
-                    invoke(c, msgp);
-                    /*if (perms.hasPermission(c.getPermission(), msg, c.getDefaultPermissions()))
+                    if (perms.hasPermission(c, msgp.getMsg()))
                         invoke(c, msgp);
                     else
-                        DiscordUtils.sendTemporaryMessage("You don't have permission to perform this command.", msg.getChannel());*/
+                        DiscordUtils.sendTemporaryMessage("You don't have permission to perform this command.", msgp.getChannel());
                     success = true;
                 }
             }
@@ -111,10 +110,10 @@ public class CommandHandler {
         } else
             for (Command c : commands) {
                 if (!c.usesPrefix() && c.getKeyword().equalsIgnoreCase(msgp.getArg(0))) {
-                    //if (perms.hasPermission(c.getPermission(), msg, c.getDefaultPermissions()))
+                    if (perms.hasPermission(c, msgp.getMsg()))
                         invoke(c, msgp);
-                    //else
-                    //    DiscordUtils.sendTemporaryMessage("You don't have permission to perform this command.", msg.getChannel());
+                    else
+                        DiscordUtils.sendTemporaryMessage("You don't have permission to perform this command.", msgp.getChannel());
                 }
             }
     }

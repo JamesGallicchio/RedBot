@@ -18,8 +18,16 @@ public abstract class Command {
         this(keyword, description, keyword, keyword, true, false, defaultPerm);
     }
 
+    public Command(String keyword, String description, boolean enabledByDefault, PermissionContext defaultPerm) {
+        this(keyword, description, keyword, keyword, true, enabledByDefault, defaultPerm);
+    }
+
     public Command(String keyword, String description, String usage, PermissionContext defaultPerm) {
         this(keyword, description, usage, keyword, true, false, defaultPerm);
+    }
+
+    public Command(String keyword, String description, String usage, boolean enabledByDefault, PermissionContext defaultPerm) {
+        this(keyword, description, usage, keyword, true, enabledByDefault, defaultPerm);
     }
 
     public Command(String keyword, String description, String usage, String permission, boolean usesPrefix, boolean enabledByDefault, PermissionContext defaultPerm) {

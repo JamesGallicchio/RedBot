@@ -5,17 +5,25 @@ import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IGuild;
 
 public class GuildOrChannel {
+
     String id;
     boolean isChannel;
+
+    transient IChannel channel;
+    transient IGuild guild;
 
     public GuildOrChannel(IGuild g) {
         id = g.getID();
         isChannel = false;
+        guild = g;
+        channel = null;
     }
 
     public GuildOrChannel(IChannel c) {
         id = c.getID();
         isChannel = true;
+        guild = null;
+        channel = c;
     }
 
     public String getID() {
@@ -23,15 +31,19 @@ public class GuildOrChannel {
     }
 
     public IChannel getChannel() {
-        if(isChannel)
-            return RedBot.getClient().getChannelByID(id);
-        return null;
+        return isChannel?
+                channel == null?
+                        channel = RedBot.getClient().getChannelByID(id)
+                        : channel
+                : null;
     }
 
     public IGuild getGuild() {
-        if(isChannel)
-            return RedBot.getClient().getChannelByID(id).getGuild();
-        return RedBot.getClient().getGuildByID(id);
+        return isChannel?
+                getChannel() == null ? null : channel.getGuild()
+                : guild == null?
+                        guild = RedBot.getClient().getGuildByID(id)
+                        : guild;
     }
 
     @Override
@@ -49,6 +61,8 @@ public class GuildOrChannel {
 
     @Override
     public int hashCode() {
-        return (id + (isChannel ? "1" : "0")).hashCode();
+        return isChannel?
+                getChannel().hashCode()
+                : getGuild().hashCode();
     }
 }

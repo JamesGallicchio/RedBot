@@ -17,7 +17,7 @@ public class HelpCommand extends Command {
     private List<Command> cmds;
 
     public HelpCommand() {
-        super("help", "Get PM'd a list of commands you can use in this channel", PermissionContext.EVERYONE);
+        super("help", "Get PM'd a list of commands you can use in this channel", true, PermissionContext.EVERYONE);
     }
 
     @Override

@@ -18,6 +18,8 @@ public enum PermissionContext {
         switch(this) {
             case BOT_OWNER:
                 return RedBot.OWNER_ID.equals(user.getID());
+            case OWNER:
+                return user.getID().equals(channel.getGuild().getOwnerID());
             case ADMIN:
                 return channel.getModifiedPermissions(user).contains(Permissions.ADMINISTRATOR);
             case EVERYONE:

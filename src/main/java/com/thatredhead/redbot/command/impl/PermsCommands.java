@@ -38,7 +38,7 @@ public class PermsCommands extends CommandGroup {
 
         public PermsCommand() {
             super("perms", "Lists permissions for this guild the specified channel",
-                    "perms [channel mention]", PermissionContext.ADMIN);
+                    "perms [channel mention]", true, PermissionContext.ADMIN);
         }
 
         @Override
@@ -75,7 +75,7 @@ public class PermsCommands extends CommandGroup {
 
         public EnableCommand() {
             super("enable", "Enables a command or commandgroup in the guild or the specified channel(s)",
-                    "enable < all | {Command} | {CommandGroup} > [channel mention [channel mention...]]", PermissionContext.ADMIN);
+                    "enable < all | {Command} | {CommandGroup} > [channel mention [channel mention...]]", true, PermissionContext.ADMIN);
         }
 
         @Override
@@ -144,7 +144,7 @@ public class PermsCommands extends CommandGroup {
     public class DisableCommand extends Command {
 
         public DisableCommand() {
-            super("disable", "Disables a command or commandgroup in the guild or the specified channel(s)", PermissionContext.ADMIN);
+            super("disable", "Disables a command or commandgroup in the guild or the specified channel(s)", true, PermissionContext.ADMIN);
         }
 
         @Override
@@ -156,7 +156,7 @@ public class PermsCommands extends CommandGroup {
     public class CommandsCommand extends Command {
 
         public CommandsCommand() {
-            super("commands", "Lists available commands and command groups", PermissionContext.ADMIN);
+            super("commands", "Lists available commands and command groups", true, PermissionContext.ADMIN);
         }
 
         @Override

@@ -22,6 +22,10 @@ public class Account {
         this.amount = amount;
     }
 
+    public String getUserID() {
+        return userID;
+    }
+
     public IUser getOwner() {
         return user == null ?
                 user = RedBot.getClient().getUserByID(userID) :
@@ -50,5 +54,10 @@ public class Account {
             recip.amount += amount;
         } else
             throw new IllegalArgumentException();
+    }
+
+    @Override
+    public String toString() {
+        return "User: " + user.getName() + ". Balance: " + amount;
     }
 }
