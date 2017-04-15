@@ -20,8 +20,6 @@ import sx.blah.discord.handle.impl.events.shard.ReconnectSuccessEvent;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -42,9 +40,9 @@ public class RedBot {
 
     public static final Logger LOGGER = LoggerFactory.getLogger(RedBot.class);
 
-    public static final ProcessBuilder GIT = new ProcessBuilder("git", "pull");
-    public static final ProcessBuilder MVN = new ProcessBuilder("mvn", "clean", "compile");
-    public static final ProcessBuilder RUN_REDBOT = new ProcessBuilder("java", "-jar", "target\\RedBot-jar-with-dependencies.jar");
+    public static final ProcessBuilder GIT = new ProcessBuilder("update.bat");
+    public static final ProcessBuilder MVN = new ProcessBuilder("build.bat");
+    public static final ProcessBuilder RUN_REDBOT = new ProcessBuilder("run.bat");
 
     public static void main(String[] args) {
 
@@ -88,13 +86,13 @@ public class RedBot {
         datah = new DataHandler();
 
         permh = datah.get(PERM_FILE_NAME, PermissionHandler.class);
-        if(permh == null) {
+        if (permh == null) {
             permh = new PermissionHandler();
             datah.save(permh, PERM_FILE_NAME);
         }
 
         econ = datah.get(ECON_FILE_NAME, Economy.class);
-        if(econ == null) {
+        if (econ == null) {
             econ = new Economy();
             datah.save(econ, ECON_FILE_NAME);
         }
@@ -113,10 +111,9 @@ public class RedBot {
         new Reflections("com.thatredhead.redbot", new MethodAnnotationsScanner()).getMethodsAnnotatedWith(EventSubscriber.class).stream()
                 .map(method -> {
                     try {
-                        if(method.getDeclaringClass().equals(CommandHandler.class)) {
+                        if (method.getDeclaringClass().equals(CommandHandler.class)) {
                             return (cmdh = (CommandHandler) method.getDeclaringClass().newInstance());
-                        }
-                        else
+                        } else
                             return method.getDeclaringClass().newInstance();
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -141,67 +138,73 @@ public class RedBot {
 
     /**
      * Gets the DataHandler for this RedBot instance
+     *
      * @return DataHandler instance for this object
      */
     public static DataHandler getDataHandler() {
-        if(ready.get())
+        if (ready.get())
             return datah;
         throw new NotReadyException();
     }
 
     /**
      * Gets the IDiscordClient for this RedBot instance
+     *
      * @return DataHandler instance for this object
      */
     public static IDiscordClient getClient() {
-        if(ready.get())
+        if (ready.get())
             return client;
         throw new NotReadyException();
     }
 
     /**
      * Gets the PermissionHandler for this RedBot instance
+     *
      * @return PermissionHandler instance for this object
      */
     public static PermissionHandler getPermHandler() {
-        if(ready.get())
+        if (ready.get())
             return permh;
         throw new NotReadyException();
     }
 
     public static CommandHandler getCommandHandler() {
-        if(ready.get())
+        if (ready.get())
             return cmdh;
         throw new NotReadyException();
     }
 
     /**
      * Gets the Economy for this RedBot instance
+     *
      * @return Economy instance for this object
      */
     public static Economy getEconomy() {
-        if(ready.get())
+        if (ready.get())
             return econ;
         throw new NotReadyException();
     }
 
     /**
      * Gets the length of time this RedBot instance has been online
+     *
      * @return uptime in H..H:MM:SS format
      */
     public static String getUptime() {
-        if(ready.get()) {
-            int seconds = (int) ((System.currentTimeMillis() - startup)/1000);
+        if (ready.get()) {
+            int seconds = (int) ((System.currentTimeMillis() - startup) / 1000);
             return String.format("%d:%02d:%02d",
-                    seconds/3600,
-                    seconds/60%60,
-                    seconds%60);
+                    seconds / 3600,
+                    seconds / 60 % 60,
+                    seconds % 60);
         }
         throw new NotReadyException();
     }
 
     /**
      * Gets the maven version for this RedBot instance
+     *
      * @return version in Major.minor.revision format
      */
     public static String getVersion() {
@@ -211,10 +214,12 @@ public class RedBot {
     /**
      * Exception thrown when getters are called before the RedBot client is ready
      */
-    public static class NotReadyException extends RuntimeException {}
+    public static class NotReadyException extends RuntimeException {
+    }
 
     /**
      * Reports an error to both console log and PM to owner
+     *
      * @param e exception to report
      */
     public static void reportError(Throwable e) {
@@ -224,7 +229,7 @@ public class RedBot {
     }
 
     private static String limit(String s, int chars) {
-        if(s.length() > chars)
+        if (s.length() > chars)
             return s.substring(0, chars);
         return s;
     }
@@ -235,28 +240,38 @@ public class RedBot {
         System.exit(0);
     }
 
-    public static void restart(boolean doUpdate) {
-        if(doUpdate) {
-            try {
-                if(GIT.start().waitFor() != 0)
-                    throw new IOException("RedBot could not pull changes to the repository!");
-
-                if(MVN.start().waitFor() != 0)
-                    throw new IOException("Maven failed to build RedBot!");
-
-            } catch (IOException | InterruptedException e) {
-                reportError(e);
-            }
-        }
+    public static void restart() {
 
         client.logout();
         LogHandler.saveLogFile();
         try {
-            Process running = RUN_REDBOT.start();
-            client.logout();
-            System.exit(0);
+            RUN_REDBOT.start();
         } catch (IOException e) {
             e.printStackTrace();
+        }
+
+        System.exit(0);
+    }
+
+    public static void rebuild() {
+        try {
+            if (GIT.start().waitFor() != 0)
+                throw new IOException("RedBot could not pull changes to the repository!");
+            else
+                LOGGER.debug("Git pull successful");
+
+        } catch (IOException | InterruptedException e) {
+            reportError(e);
+        }
+
+        try {
+            if (MVN.start().waitFor() != 0)
+                throw new IOException("Maven failed to build RedBot!");
+            else
+                LOGGER.debug("Maven built successfully.");
+
+        } catch (IOException | InterruptedException e) {
+            reportError(e);
         }
     }
 }

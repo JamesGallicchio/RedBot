@@ -9,3 +9,5 @@ token.txt
 /target/
 
 *.json
+
+/temp/

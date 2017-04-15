@@ -15,7 +15,7 @@ import java.util.Arrays;
 public class SystemCommands extends CommandGroup {
 
     public SystemCommands() {
-        super("System Commands", "Commands for administrative purposes (for ThatRedhead)", "system", Arrays.asList(new InfoCommand(), new GetByIDCommand(), new AnnounceCommand()));
+        super("System Commands", "Commands for administrative purposes (for ThatRedhead)", "system", Arrays.asList(new RebuildCommand(), new RestartCommand(), new ShutdownCommand(), new InfoCommand(), new GetByIDCommand(), new AnnounceCommand()));
     }
 
     public static class InfoCommand extends Command {
