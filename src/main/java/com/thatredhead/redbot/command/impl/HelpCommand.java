@@ -41,16 +41,15 @@ public class HelpCommand extends Command {
             for(Command c : cg.getCommands().stream()
                     .filter(it -> RedBot.getPermHandler().hasPermission(it, msgp.getAuthor(), msgp.getChannel()))
                     .collect(Collectors.toList())) {
-                sb.append("**");
                 sb.append(c.getKeyword());
-                sb.append("** - ");
-                sb.append(c.getDescription());
                 sb.append(": *");
                 sb.append(c.getUsage());
-                sb.append("*\n");
+                sb.append("* - ");
+                sb.append(c.getDescription());
+                sb.append("\n");
             }
 
-            help.appendField(cg.getName(), sb.toString(), false);
+            help.appendField(cg.getName(), sb.toString(), true);
         }
 
         StringBuilder sb = new StringBuilder();
@@ -58,15 +57,14 @@ public class HelpCommand extends Command {
         for(Command c : cmds.stream()
                 .filter(it -> RedBot.getPermHandler().hasPermission(it, msgp.getAuthor(), msgp.getChannel()))
                 .collect(Collectors.toList())) {
-            sb.append("**");
             sb.append(c.getKeyword());
-            sb.append("** - ");
-            sb.append(c.getDescription());
             sb.append(": *");
             sb.append(c.getUsage());
-            sb.append("*\n");
+            sb.append("* - ");
+            sb.append(c.getDescription());
+            sb.append("\n");
         }
-        help.appendField("Miscellaneous", sb.toString(), false);
+        help.appendField("Miscellaneous", sb.toString(), true);
         DiscordUtils.sendPrivateMessage(help.build(), msgp.getAuthor());
         DiscordUtils.sendTemporaryMessage("Check your PMs!", msgp.getChannel());
     }
