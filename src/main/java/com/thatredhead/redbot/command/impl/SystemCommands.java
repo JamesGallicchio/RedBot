@@ -38,18 +38,45 @@ public class SystemCommands extends CommandGroup {
         }
     }
 
+    public static class RebuildCommand extends Command {
+
+        public RebuildCommand() {
+            super("rebuild", "Rebuilds RedBot", PermissionContext.BOT_OWNER);
+        }
+
+        public void invoke(MessageParser msgp) {
+            msgp.reply("Rebuilding RedBot!");
+            RedBot.rebuild();
+            msgp.reply("Done rebuilding!");
+        }
+    }
+
     public static class RestartCommand extends Command {
 
         public RestartCommand() {
             super("restart", "Restarts RedBot", PermissionContext.BOT_OWNER);
         }
 
-        public void invoke(MessageParser msgp) throws CommandException {
+        public void invoke(MessageParser msgp) {
             if(RedBot.OWNER_ID.equals(msgp.getAuthor().getID())) {
                 msgp.reply("Restarting RedBot!");
-                RedBot.restart(true);
+
+                RedBot.restart();
             } else
                 msgp.reply("Only Red can do that to me!");
+        }
+    }
+
+    public static class ShutdownCommand extends Command {
+
+        public ShutdownCommand() {
+            super("shutdown", "Shuts down RedBot", PermissionContext.BOT_OWNER);
+        }
+
+        public void invoke(MessageParser msgp) {
+            msgp.reply("Shutting down RedBot!");
+
+            RedBot.shutdown();
         }
     }
 
