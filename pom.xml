@@ -28,9 +28,9 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.github.austinv11</groupId>
+            <groupId>com.github.jamesgallicchio</groupId>
             <artifactId>Discord4J</artifactId>
-            <version>dev-SNAPSHOT</version>
+            <version>932d6c8</version>
         </dependency>
         <dependency>
             <groupId>com.google.code.gson</groupId>
