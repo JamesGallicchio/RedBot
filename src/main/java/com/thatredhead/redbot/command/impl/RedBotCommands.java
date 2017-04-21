@@ -4,8 +4,8 @@ import com.thatredhead.redbot.RedBot;
 import com.thatredhead.redbot.command.Command;
 import com.thatredhead.redbot.command.CommandException;
 import com.thatredhead.redbot.command.CommandGroup;
-import com.thatredhead.redbot.helpers4d4j.Utilities4D4J;
 import com.thatredhead.redbot.helpers4d4j.MessageParser;
+import com.thatredhead.redbot.helpers4d4j.Utilities4D4J;
 import com.thatredhead.redbot.permission.PermissionContext;
 
 import java.util.Arrays;

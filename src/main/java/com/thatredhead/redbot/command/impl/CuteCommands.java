@@ -1,13 +1,13 @@
 package com.thatredhead.redbot.command.impl;
 
 import com.google.gson.reflect.TypeToken;
-import com.thatredhead.redbot.helpers4d4j.Utilities4D4J;
 import com.thatredhead.redbot.RedBot;
 import com.thatredhead.redbot.command.Command;
 import com.thatredhead.redbot.command.CommandArgumentException;
 import com.thatredhead.redbot.command.CommandGroup;
-import com.thatredhead.redbot.helpers4d4j.MessageParser;
 import com.thatredhead.redbot.data.DataHandler;
+import com.thatredhead.redbot.helpers4d4j.MessageParser;
+import com.thatredhead.redbot.helpers4d4j.Utilities4D4J;
 import com.thatredhead.redbot.permission.PermissionContext;
 import org.apache.commons.io.IOUtils;
 import sx.blah.discord.handle.obj.IChannel;

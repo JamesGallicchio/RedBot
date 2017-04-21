@@ -25,11 +25,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class Utilities4D4J {
 
-    private static Map<Long, ReactionListener> reactions;
-
-    static {
-        
-    }
+    private static Map<Long, ReactionListener> reactions = new HashMap<>();
 
     /**
      * Sends a message to a channel through the request buffer
@@ -158,11 +154,24 @@ public class Utilities4D4J {
         default void onReactionToggle(IMessage msg, IUser user, Emoji emoji) {}
     }
 
-    public static void sendReactionUI(String msg, IChannel channel, ReactionListener listener, Emoji... emojis) {
-        reactions.put(
-                addReactions(sendMessage(msg, channel).get(), emojis).getLongID(),
+    public static IMessage sendReactionUI(String msg, IChannel channel, ReactionListener listener, Emoji... emojis) {
+        return addReactionUI(
+                addReactionsOrdered(sendMessage(msg, channel).get(), emojis),
                 listener
         );
+    }
+
+    public static IMessage sendReactionUI(EmbedObject msg, IChannel channel, ReactionListener listener, Emoji... emojis) {
+        return addReactionUI(
+                addReactionsOrdered(sendEmbed(msg, channel).get(), emojis),
+                listener
+        );
+    }
+
+    public static IMessage addReactionUI(IMessage msg, ReactionListener l) {
+        reactions.put(msg.getLongID(), l);
+
+        return msg;
     }
 
     public static boolean removeReactionUI(long messageID) {
@@ -191,8 +200,13 @@ public class Utilities4D4J {
         });
     }
 
-    public static RequestBuffer.RequestFuture<IMessage> edit(String msgID, String newContent) {
-        return edit(RedBot.getClient().getMessageByID(msgID), newContent);
+    public static RequestBuffer.RequestFuture<IMessage> edit(IMessage msg, EmbedObject newEmbed) {
+        if(newEmbed == null || msg == null)
+            throw new NullPointerException();
+        readyCheck();
+        return RequestBuffer.request(() -> {
+            return msg.edit(newEmbed);
+        });
     }
 
     private static void readyCheck() {
