@@ -1,7 +1,7 @@
 package com.thatredhead.redbot.command;
 
 import com.google.gson.reflect.TypeToken;
-import com.thatredhead.redbot.helpers4d4j.DiscordUtils;
+import com.thatredhead.redbot.helpers4d4j.Utilities4D4J;
 import com.thatredhead.redbot.RedBot;
 import com.thatredhead.redbot.helpers4d4j.MessageParser;
 import com.thatredhead.redbot.permission.PermissionContext;
@@ -101,19 +101,19 @@ public class CommandHandler {
                     if (perms.hasPermission(c, msgp.getMsg()))
                         invoke(c, msgp);
                     else
-                        DiscordUtils.sendTemporaryMessage("You don't have permission to perform this command.", msgp.getChannel());
+                        Utilities4D4J.sendTemporaryMessage("You don't have permission to perform this command.", msgp.getChannel());
                     success = true;
                 }
             }
             if (!success)
-                DiscordUtils.sendTemporaryMessage("Unknown command! Use help command for a list of commands.", msgp.getChannel());
+                Utilities4D4J.sendTemporaryMessage("Unknown command! Use help command for a list of commands.", msgp.getChannel());
         } else
             for (Command c : commands) {
                 if (!c.usesPrefix() && c.getKeyword().equalsIgnoreCase(msgp.getArg(0))) {
                     if (perms.hasPermission(c, msgp.getMsg()))
                         invoke(c, msgp);
                     else
-                        DiscordUtils.sendTemporaryMessage("You don't have permission to perform this command.", msgp.getChannel());
+                        Utilities4D4J.sendTemporaryMessage("You don't have permission to perform this command.", msgp.getChannel());
                 }
             }
     }
@@ -122,10 +122,10 @@ public class CommandHandler {
         try {
             c.invoke(msg);
         } catch (CommandArgumentException e) {
-            DiscordUtils.sendTemporaryMessage("Invalid argument #" + e.idx + " \"" + e.arg
+            Utilities4D4J.sendTemporaryMessage("Invalid argument #" + e.idx + " \"" + e.arg
                                               + "\"! Proper format:\n`" + e.correctFormat + "`", msg.getChannel());
         } catch (CommandException e) {
-            DiscordUtils.sendTemporaryMessage(e.getMessage(), msg.getChannel());
+            Utilities4D4J.sendTemporaryMessage(e.getMessage(), msg.getChannel());
         }
     }
 

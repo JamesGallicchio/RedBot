@@ -1,6 +1,6 @@
 package com.thatredhead.redbot.command.impl;
 
-import com.thatredhead.redbot.helpers4d4j.DiscordUtils;
+import com.thatredhead.redbot.helpers4d4j.Utilities4D4J;
 import com.thatredhead.redbot.command.Command;
 import com.thatredhead.redbot.command.CommandException;
 import com.thatredhead.redbot.command.CommandGroup;
@@ -77,7 +77,7 @@ public class DnDCommands extends CommandGroup {
                     if("+".equals(sign)) total += sum;
                     else total -= sum;
                 }
-                DiscordUtils.sendMessage("`" + matched.delete(0, 2).toString().trim() + "`: *" +
+                Utilities4D4J.sendMessage("`" + matched.delete(0, 2).toString().trim() + "`: *" +
                         (result.length() < 100 && result.indexOf("+") > -1 ? result.delete(0, 3).toString() + "* = **" + total + "**" : "*" + total + "**"),
                         msgp.getChannel());
             } catch (NumberFormatException e) {

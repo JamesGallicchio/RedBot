@@ -4,7 +4,7 @@ import com.thatredhead.redbot.RedBot;
 import com.thatredhead.redbot.command.Command;
 import com.thatredhead.redbot.command.CommandException;
 import com.thatredhead.redbot.command.CommandGroup;
-import com.thatredhead.redbot.helpers4d4j.DiscordUtils;
+import com.thatredhead.redbot.helpers4d4j.Utilities4D4J;
 import com.thatredhead.redbot.helpers4d4j.MessageMatcher;
 import com.thatredhead.redbot.helpers4d4j.MessageParser;
 import com.thatredhead.redbot.permission.PermissionContext;
@@ -45,9 +45,9 @@ public class PermsCommands extends CommandGroup {
         public void invoke(MessageParser msgp) {
 
             if (msgp.getArgCount() == 1)
-                DiscordUtils.sendEmbed(format(msgp.getGuild()), msgp.getChannel());
+                Utilities4D4J.sendEmbed(format(msgp.getGuild()), msgp.getChannel());
             else
-                DiscordUtils.sendEmbed(format(msgp.getChannelMention(1)), msgp.getChannel());
+                Utilities4D4J.sendEmbed(format(msgp.getChannelMention(1)), msgp.getChannel());
         }
 
         private EmbedObject format(IGuild g) {

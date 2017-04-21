@@ -103,10 +103,10 @@ public class MessageParser {
     }
 
     public void reply(String response) {
-        DiscordUtils.sendMessage(response, msg.getChannel());
+        Utilities4D4J.sendMessage(response, msg.getChannel());
     }
 
     public void reply(EmbedObject response) {
-        DiscordUtils.sendEmbed(response, msg.getChannel());
+        Utilities4D4J.sendEmbed(response, msg.getChannel());
     }
 }

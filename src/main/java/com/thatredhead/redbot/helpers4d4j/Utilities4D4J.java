@@ -1,8 +1,12 @@
 package com.thatredhead.redbot.helpers4d4j;
 
 import com.thatredhead.redbot.RedBot;
+import com.vdurmont.emoji.Emoji;
+import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.handle.impl.events.ReadyEvent;
+import sx.blah.discord.handle.impl.events.guild.channel.message.reaction.ReactionAddEvent;
+import sx.blah.discord.handle.impl.events.guild.channel.message.reaction.ReactionRemoveEvent;
 import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.handle.obj.IUser;
@@ -10,6 +14,8 @@ import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.MissingPermissionsException;
 import sx.blah.discord.util.RequestBuffer;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -17,7 +23,13 @@ import java.util.concurrent.TimeUnit;
 /**
  * Collection of useful D4J wrapper methods
  */
-public class DiscordUtils {
+public class Utilities4D4J {
+
+    private static Map<Long, ReactionListener> reactions;
+
+    static {
+        
+    }
 
     /**
      * Sends a message to a channel through the request buffer
@@ -120,6 +132,54 @@ public class DiscordUtils {
                         RedBot.reportError(e);
                     }
                 }), milliDelay, TimeUnit.MILLISECONDS);
+    }
+
+    public static IMessage addReactions(IMessage msg, Emoji... emojis) {
+        for(Emoji e: emojis)
+            RequestBuffer.request(() -> msg.addReaction(e));
+
+        return msg;
+    }
+
+    public static IMessage addReactionsOrdered(IMessage msg, Emoji... emojis) {
+        for(Emoji e: emojis)
+            RequestBuffer.request(() -> msg.addReaction(e)).get();
+
+        return msg;
+    }
+
+    public interface ReactionListener {
+        default void onReactionAdd(IMessage msg, IUser user, Emoji emoji) {
+            onReactionToggle(msg, user, emoji);
+        }
+        default void onReactionRemove(IMessage msg, IUser user, Emoji emoji) {
+            onReactionToggle(msg, user, emoji);
+        }
+        default void onReactionToggle(IMessage msg, IUser user, Emoji emoji) {}
+    }
+
+    public static void sendReactionUI(String msg, IChannel channel, ReactionListener listener, Emoji... emojis) {
+        reactions.put(
+                addReactions(sendMessage(msg, channel).get(), emojis).getLongID(),
+                listener
+        );
+    }
+
+    public static boolean removeReactionUI(long messageID) {
+        return reactions.remove(messageID) != null;
+    }
+
+    @EventSubscriber
+    public static void onReactionAdd(ReactionAddEvent e) {
+        ReactionListener l = reactions.get(e.getMessage().getLongID());
+        l.onReactionAdd(e.getMessage(), e.getUser(), e.getReaction().getUnicodeEmoji());
+    }
+
+    @EventSubscriber
+    public static void onReactionRemove(ReactionRemoveEvent e) {
+        ReactionListener l = reactions.get(e.getMessage().getLongID());
+        l.onReactionRemove(e.getMessage(), e.getUser(), e.getReaction().getUnicodeEmoji());
+        l.onReactionToggle(e.getMessage(), e.getUser(), e.getReaction().getUnicodeEmoji());
     }
 
     public static RequestBuffer.RequestFuture<IMessage> edit(IMessage msg, String newContent) {

@@ -1,7 +1,7 @@
 package com.thatredhead.redbot.command.impl;
 
 import com.google.gson.reflect.TypeToken;
-import com.thatredhead.redbot.helpers4d4j.DiscordUtils;
+import com.thatredhead.redbot.helpers4d4j.Utilities4D4J;
 import com.thatredhead.redbot.RedBot;
 import com.thatredhead.redbot.command.*;
 import com.thatredhead.redbot.helpers4d4j.MessageParser;
@@ -109,7 +109,7 @@ class Vote {
         ballots = new ArrayList<>();
         done = false;
 
-        messageId = DiscordUtils.sendMessage(toString(), msgp.getChannel()).get().getID();
+        messageId = Utilities4D4J.sendMessage(toString(), msgp.getChannel()).get().getID();
     }
 
     public void castBallot(MessageParser msgp) {
@@ -253,7 +253,7 @@ class Vote {
     }
 
     public void updateResult() {
-        DiscordUtils.edit(messageId, this.toString());
+        Utilities4D4J.edit(messageId, this.toString());
     }
 
     @Override

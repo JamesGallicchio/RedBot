@@ -1,7 +1,7 @@
 package com.thatredhead.redbot.command.impl;
 
 import com.google.gson.reflect.TypeToken;
-import com.thatredhead.redbot.helpers4d4j.DiscordUtils;
+import com.thatredhead.redbot.helpers4d4j.Utilities4D4J;
 import com.thatredhead.redbot.RedBot;
 import com.thatredhead.redbot.command.Command;
 import com.thatredhead.redbot.command.CommandArgumentException;
@@ -207,7 +207,7 @@ public class CuteCommands extends CommandGroup {
                 break;
             }
         }
-        DiscordUtils.sendMessage(response.toString(), channel);
+        Utilities4D4J.sendMessage(response.toString(), channel);
     }
 
     private int nextKey() {

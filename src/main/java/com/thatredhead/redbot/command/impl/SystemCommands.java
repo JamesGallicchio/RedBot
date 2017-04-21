@@ -4,7 +4,7 @@ import com.thatredhead.redbot.RedBot;
 import com.thatredhead.redbot.command.Command;
 import com.thatredhead.redbot.command.CommandException;
 import com.thatredhead.redbot.command.CommandGroup;
-import com.thatredhead.redbot.helpers4d4j.DiscordUtils;
+import com.thatredhead.redbot.helpers4d4j.Utilities4D4J;
 import com.thatredhead.redbot.helpers4d4j.MessageParser;
 import com.thatredhead.redbot.permission.PermissionContext;
 import sx.blah.discord.api.IDiscordClient;
@@ -34,7 +34,7 @@ public class SystemCommands extends CommandGroup {
             long free = Runtime.getRuntime().freeMemory();
             info.append("\nMemory usage (MB): ").append((total-free)/1024/1024).append("/").append(total/1024/1024);
             info.append("\nVersion: ").append(RedBot.getVersion());
-            DiscordUtils.sendMessage(info.toString(), msgp.getChannel());
+            Utilities4D4J.sendMessage(info.toString(), msgp.getChannel());
         }
     }
 
@@ -140,7 +140,7 @@ public class SystemCommands extends CommandGroup {
             String announcement = msgp.getContentAfter(1);
 
             for(IGuild g: RedBot.getClient().getGuilds())
-                DiscordUtils.sendMessage(announcement, g.getGeneralChannel());
+                Utilities4D4J.sendMessage(announcement, g.getGeneralChannel());
 
             msgp.reply("Announcement sent!");
         }

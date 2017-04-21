@@ -11,7 +11,7 @@ import com.thatredhead.redbot.command.Command;
 import com.thatredhead.redbot.command.CommandArgumentException;
 import com.thatredhead.redbot.command.CommandException;
 import com.thatredhead.redbot.command.CommandGroup;
-import com.thatredhead.redbot.helpers4d4j.DiscordUtils;
+import com.thatredhead.redbot.helpers4d4j.Utilities4D4J;
 import com.thatredhead.redbot.helpers4d4j.MessageParser;
 import com.thatredhead.redbot.permission.PermissionContext;
 import sx.blah.discord.handle.obj.IChannel;
@@ -69,7 +69,7 @@ public class SubscriberCommands extends CommandGroup {
                                 embed.withImage(imgs.get(0));
                         }
 
-                        DiscordUtils.sendEmbed(embed.build(), sub.getChannel());
+                        Utilities4D4J.sendEmbed(embed.build(), sub.getChannel());
                     }
                 }
             } catch (Exception e) {
