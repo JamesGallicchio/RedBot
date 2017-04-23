@@ -17,9 +17,9 @@ public enum PermissionContext {
     public boolean applies(IUser user, IChannel channel) {
         switch(this) {
             case BOT_OWNER:
-                return RedBot.OWNER_ID.equals(user.getID());
+                return RedBot.OWNER_ID == user.getLongID();
             case OWNER:
-                return user.getID().equals(channel.getGuild().getOwnerID());
+                return user.getLongID() == channel.getGuild().getOwnerLongID();
             case ADMIN:
                 return channel.getModifiedPermissions(user).contains(Permissions.ADMINISTRATOR);
             case EVERYONE:

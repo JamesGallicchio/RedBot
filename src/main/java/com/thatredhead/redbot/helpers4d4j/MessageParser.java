@@ -81,21 +81,21 @@ public class MessageParser {
     public IChannel getChannelMention(int i) {
         Matcher m = CHNLP.matcher(args[i]);
         if(m.find())
-            return msg.getClient().getChannelByID(m.group(1));
+            return msg.getClient().getChannelByID(Long.parseUnsignedLong(m.group(1)));
         return null;
     }
 
     public IUser getUserMention(int i) {
         Matcher m = USERP.matcher(args[i]);
         if(m.find())
-            return msg.getClient().getUserByID(m.group(1));
+            return msg.getClient().getUserByID(Long.parseUnsignedLong(m.group(1)));
         return null;
     }
 
     public IRole getRoleMention(int i) {
         Matcher m = ROLEP.matcher(args[i]);
         if(m.find())
-            return msg.getClient().getRoleByID(m.group(1));
+            return msg.getClient().getRoleByID(Long.parseUnsignedLong(m.group(1)));
         return null;
     }
     
@@ -103,8 +103,8 @@ public class MessageParser {
         return new MessageMatcher(Arrays.copyOfRange(args, 1, args.length), pattern);
     }
 
-    public void reply(String response) {
-        Utilities4D4J.sendMessage(response, msg.getChannel());
+    public RequestBuffer.RequestFuture<IMessage> reply(String response) {
+        return Utilities4D4J.sendMessage(response, msg.getChannel());
     }
 
     public void reply(EmbedObject response) {

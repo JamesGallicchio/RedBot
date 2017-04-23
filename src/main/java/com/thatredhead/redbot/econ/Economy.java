@@ -31,7 +31,7 @@ public class Economy {
     }
 
     public Account getAccountForUser(IUser user) {
-        return accounts.stream().filter(acc -> acc.getUserID().equals(user.getID())).findFirst().orElseGet(() -> {
+        return accounts.stream().filter(acc -> acc.getUserID() == user.getLongID()).findFirst().orElseGet(() -> {
             Account act = new Account(user, STARTER_AMOUNT);
             accounts.add(act);
             save();

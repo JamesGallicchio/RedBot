@@ -58,7 +58,7 @@ public class SystemCommands extends CommandGroup {
         }
 
         public void invoke(MessageParser msgp) {
-            if(RedBot.OWNER_ID.equals(msgp.getAuthor().getID())) {
+            if(RedBot.OWNER_ID == msgp.getAuthor().getLongID()) {
                 msgp.reply("Restarting RedBot!");
 
                 RedBot.restart();
@@ -89,38 +89,40 @@ public class SystemCommands extends CommandGroup {
         public void invoke(MessageParser msgp) {
             IDiscordClient client = RedBot.getClient();
 
-            IUser user = client.getUserByID(msgp.getArg(1));
+            long id = Long.parseUnsignedLong(msgp.getArg(1));
+
+            IUser user = client.getUserByID(id);
             if(user != null) {
                 msgp.reply("User: `" + user.getName() + "`");
                 return;
             }
 
-            IGuild guild = client.getGuildByID(msgp.getArg(1));
+            IGuild guild = client.getGuildByID(id);
             if(guild != null) {
-                msgp.reply("Guild: `" + guild.getName() + "` (Owned by `" + guild.getOwner().getID() + "`)");
+                msgp.reply("Guild: `" + guild.getName() + "` (Owned by `" + guild.getOwner().getStringID() + "`)");
                 return;
             }
 
-            IChannel channel = client.getChannelByID(msgp.getArg(1));
+            IChannel channel = client.getChannelByID(id);
             if(channel != null) {
                 if(channel.isPrivate()) {
                     IPrivateChannel priv = (IPrivateChannel) channel;
                     msgp.reply("Private channel: `" + priv.getRecipient().getName() + "`");
                 }
                 else
-                    msgp.reply("Channel: " + channel.mention() + " (Guild `" + channel.getGuild().getID() + "`)");
+                    msgp.reply("Channel: " + channel.mention() + " (Guild `" + channel.getGuild().getStringID() + "`)");
                 return;
             }
 
-            IRole role = client.getRoleByID(msgp.getArg(1));
+            IRole role = client.getRoleByID(id);
             if(role != null) {
-                msgp.reply("Role: `" + role.getName() + "` (Guild `" + role.getGuild().getID() + "`)");
+                msgp.reply("Role: `" + role.getName() + "` (Guild `" + role.getGuild().getStringID() + "`)");
                 return;
             }
 
-            IMessage message = DiscordUtils.getMessageByID(msgp.getArg(1));
+            IMessage message = Utilities4D4J.getMessageByID(id);
             if(message != null) {
-                msgp.reply("Message: `" + message.getContent() + "` (Channel `" + message.getChannel().getID() + "`)");
+                msgp.reply("Message: `" + message.getContent() + "` (Channel `" + message.getChannel().getStringID() + "`)");
                 return;
             }
 

@@ -4,8 +4,8 @@ import com.google.gson.reflect.TypeToken;
 import com.thatredhead.redbot.RedBot;
 import com.thatredhead.redbot.command.Command;
 import com.thatredhead.redbot.command.CommandGroup;
-import com.thatredhead.redbot.helpers4d4j.DiscordUtils;
 import com.thatredhead.redbot.helpers4d4j.MessageParser;
+import com.thatredhead.redbot.helpers4d4j.Utilities4D4J;
 import com.thatredhead.redbot.permission.PermissionContext;
 import com.vdurmont.emoji.Emoji;
 import com.vdurmont.emoji.EmojiManager;
@@ -26,7 +26,7 @@ public class CookieCommands extends CommandGroup {
     public static final Emoji AUTO_UPGRADE_EMOJI = EmojiManager.getByUnicode("\u2B06");
 
     private List<CookieClickerAccount> accounts;
-    private Map<String, DiscordUtils.SerializableMessage> messages; // UserID -> (ChannelID, MessageID)
+    private Map<Long, Utilities4D4J.SerializableMessage> messages; // UserID -> (ChannelID, MessageID)
 
     public CookieCommands() {
 
@@ -40,7 +40,7 @@ public class CookieCommands extends CommandGroup {
                 }.getType());
 
         messages = RedBot.getDataHandler().get("cookie_messages",
-                new TypeToken<Map<String, DiscordUtils.SerializableMessage>>() {
+                new TypeToken<Map<String, Utilities4D4J.SerializableMessage>>() {
                 }.getType());
 
         if (accounts == null)
@@ -59,16 +59,16 @@ public class CookieCommands extends CommandGroup {
         public void invoke(MessageParser msgp) {
             CookieClickerAccount user = getAccountForUser(msgp.getAuthor());
 
-            if (messages.containsKey(msgp.getAuthor().getID())) {
-                IMessage msg = messages.remove(msgp.getAuthor().getID()).get();
-                DiscordUtils.edit(msg, "**RedBot Cookie Clicker**\nSession expired. Use `cookies` command again to get a new one.");
+            if (messages.containsKey(msgp.getAuthor().getLongID())) {
+                IMessage msg = messages.remove(msgp.getAuthor().getLongID()).get();
+                Utilities4D4J.edit(msg, "**RedBot Cookie Clicker**\nSession expired. Use `cookies` command again to get a new one.");
             }
 
             IMessage msg = msgp.reply(user.toString()).get();
 
-            messages.put(msgp.getAuthor().getID(), new DiscordUtils.SerializableMessage(msg));
+            messages.put(msgp.getAuthor().getLongID(), new Utilities4D4J.SerializableMessage(msg));
 
-            DiscordUtils.addReactions(msg, CLICK_UPGRADE_EMOJI, COOKIE_EMOJI, AUTO_UPGRADE_EMOJI);
+            Utilities4D4J.addReactions(msg, CLICK_UPGRADE_EMOJI, COOKIE_EMOJI, AUTO_UPGRADE_EMOJI);
             save();
         }
     }
@@ -85,9 +85,9 @@ public class CookieCommands extends CommandGroup {
 
     public void handle(ReactionEvent event) {
 
-        DiscordUtils.SerializableMessage cache = messages.get(event.getUser().getID());
+        Utilities4D4J.SerializableMessage cache = messages.get(event.getUser().getLongID());
         if(cache != null &&
-                cache.getID().equals(event.getMessage().getID())) {
+                cache.getID() == event.getMessage().getLongID()) {
 
             CookieClickerAccount acc = getAccountForUser(event.getUser());
             Emoji emoji = event.getReaction().getUnicodeEmoji();
@@ -103,7 +103,7 @@ public class CookieCommands extends CommandGroup {
             else
                 return;
 
-            DiscordUtils.edit(event.getMessage(), acc.toString());
+            Utilities4D4J.edit(event.getMessage(), acc.toString());
             save();
         }
     }
@@ -128,7 +128,7 @@ public class CookieCommands extends CommandGroup {
 
 class CookieClickerAccount {
 
-    private String id;
+    private long id;
     private BigInteger cookies;
     private int clickUpgrades;
     private int autoUpgrades;
@@ -143,7 +143,7 @@ class CookieClickerAccount {
 
     public CookieClickerAccount(IUser user) {
         this.user = user;
-        this.id = user.getID();
+        this.id = user.getLongID();
         this.lastUpdate = System.nanoTime();
         this.cookies = BigInteger.ZERO;
     }

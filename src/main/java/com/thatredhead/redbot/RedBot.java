@@ -30,8 +30,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class RedBot {
 
     public static final String INVITE = "https://goo.gl/WcN0QK";
-    public static final String OWNER_ID = "135553137699192832";
-    public static final String ERROR_CHANNEL_ID = "287324375785537547";
+    public static final long OWNER_ID = 135553137699192832L;
+    public static final long ERROR_CHANNEL_ID = 287324375785537547L;
 
     public static final String DEFAULT_PREFIX = "%";
 
