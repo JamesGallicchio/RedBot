@@ -118,7 +118,7 @@ public class SystemCommands extends CommandGroup {
                 return;
             }
 
-            IMessage message = client.getMessageByID(msgp.getArg(1));
+            IMessage message = DiscordUtils.getMessageByID(msgp.getArg(1));
             if(message != null) {
                 msgp.reply("Message: `" + message.getContent() + "` (Channel `" + message.getChannel().getID() + "`)");
                 return;

@@ -4,18 +4,29 @@ import com.google.gson.reflect.TypeToken;
 import com.thatredhead.redbot.RedBot;
 import com.thatredhead.redbot.command.Command;
 import com.thatredhead.redbot.command.CommandGroup;
+import com.thatredhead.redbot.helpers4d4j.DiscordUtils;
 import com.thatredhead.redbot.helpers4d4j.MessageParser;
 import com.thatredhead.redbot.permission.PermissionContext;
+import com.vdurmont.emoji.Emoji;
+import com.vdurmont.emoji.EmojiManager;
+import sx.blah.discord.api.events.EventSubscriber;
+import sx.blah.discord.handle.impl.events.guild.channel.message.reaction.ReactionAddEvent;
+import sx.blah.discord.handle.impl.events.guild.channel.message.reaction.ReactionEvent;
+import sx.blah.discord.handle.impl.events.guild.channel.message.reaction.ReactionRemoveEvent;
+import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.handle.obj.IUser;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 public class CookieCommands extends CommandGroup {
 
-    private List<CookieClickerAccount> cookieAccounts;
+    public static final Emoji CLICK_UPGRADE_EMOJI = EmojiManager.getByUnicode("\uD83D\uDC46");
+    public static final Emoji COOKIE_EMOJI = EmojiManager.getByUnicode("\uD83C\uDF6A");
+    public static final Emoji AUTO_UPGRADE_EMOJI = EmojiManager.getByUnicode("\u2B06");
+
+    private List<CookieClickerAccount> accounts;
+    private Map<String, DiscordUtils.SerializableMessage> messages; // UserID -> (ChannelID, MessageID)
 
     public CookieCommands() {
 
@@ -24,12 +35,19 @@ public class CookieCommands extends CommandGroup {
 
         super.commands = Arrays.asList(new CookiesCommand());
 
-        cookieAccounts = RedBot.getDataHandler().get("cookies",
+        accounts = RedBot.getDataHandler().get("cookie_accounts",
                 new TypeToken<List<CookieClickerAccount>>() {
                 }.getType());
 
-        if (cookieAccounts == null)
-            cookieAccounts = new ArrayList<>();
+        messages = RedBot.getDataHandler().get("cookie_messages",
+                new TypeToken<Map<String, DiscordUtils.SerializableMessage>>() {
+                }.getType());
+
+        if (accounts == null)
+            accounts = new ArrayList<>();
+
+        if (messages == null)
+            messages = new HashMap<>();
     }
 
     public class CookiesCommand extends Command {
@@ -39,22 +57,72 @@ public class CookieCommands extends CommandGroup {
         }
 
         public void invoke(MessageParser msgp) {
-            CookieClickerAccount user = cookieAccounts.stream()
-                    .filter(acc -> msgp.getAuthor().equals(acc.getUser()))
-                    .findFirst()
-                    .orElseGet(() -> {
-                        CookieClickerAccount acc = new CookieClickerAccount(msgp.getAuthor());
-                        cookieAccounts.add(acc);
-                        save();
-                        return acc;
-                    });
+            CookieClickerAccount user = getAccountForUser(msgp.getAuthor());
 
-            msgp.reply(user.toString());
+            if (messages.containsKey(msgp.getAuthor().getID())) {
+                IMessage msg = messages.remove(msgp.getAuthor().getID()).get();
+                DiscordUtils.edit(msg, "**RedBot Cookie Clicker**\nSession expired. Use `cookies` command again to get a new one.");
+            }
+
+            IMessage msg = msgp.reply(user.toString()).get();
+
+            messages.put(msgp.getAuthor().getID(), new DiscordUtils.SerializableMessage(msg));
+
+            DiscordUtils.addReactions(msg, CLICK_UPGRADE_EMOJI, COOKIE_EMOJI, AUTO_UPGRADE_EMOJI);
+            save();
         }
     }
 
+    @EventSubscriber
+    public void onReactionAdd(ReactionAddEvent event) {
+        handle(event);
+    }
+
+    @EventSubscriber
+    public void onReactionRemove(ReactionRemoveEvent event) {
+        handle(event);
+    }
+
+    public void handle(ReactionEvent event) {
+
+        DiscordUtils.SerializableMessage cache = messages.get(event.getUser().getID());
+        if(cache != null &&
+                cache.getID().equals(event.getMessage().getID())) {
+
+            CookieClickerAccount acc = getAccountForUser(event.getUser());
+            Emoji emoji = event.getReaction().getUnicodeEmoji();
+
+            if(COOKIE_EMOJI.equals(emoji)) {
+                acc.click();
+                return;
+            }
+            else if(CLICK_UPGRADE_EMOJI.equals(emoji))
+                acc.upgradeClick();
+            else if(AUTO_UPGRADE_EMOJI.equals(emoji))
+                acc.upgradeAuto();
+            else
+                return;
+
+            DiscordUtils.edit(event.getMessage(), acc.toString());
+            save();
+        }
+    }
+
+    private CookieClickerAccount getAccountForUser(IUser user) {
+        return accounts.stream()
+                .filter(acc -> user.equals(acc.getUser()))
+                .findFirst()
+                .orElseGet(() -> {
+                    CookieClickerAccount acc = new CookieClickerAccount(user);
+                    accounts.add(acc);
+                    save();
+                    return acc;
+                });
+    }
+
     private void save() {
-        RedBot.getDataHandler().save(cookieAccounts, "cookies");
+        RedBot.getDataHandler().save(accounts, "cookie_accounts");
+        RedBot.getDataHandler().save(messages, "cookie_messages");
     }
 }
 
@@ -154,6 +222,10 @@ class CookieClickerAccount {
         return calculateCPS(upgrades + 1).multiply(BigInteger.valueOf(100 - (int) Math.log10(upgrades + 1)));
     }
 
+    public void click() {
+        cookies = cookies.add(getCookiesPerClick());
+    }
+
     public void update() {
 
         long newTime = System.nanoTime();
@@ -161,7 +233,7 @@ class CookieClickerAccount {
         long seconds = (newTime - lastUpdate + 500000000L) / 1000000000L;
 
         if (seconds != 0) {
-            cookies.add(getCookiesPerSecond().multiply(BigInteger.valueOf(seconds)));
+            cookies = cookies.add(getCookiesPerSecond().multiply(BigInteger.valueOf(seconds)));
             lastUpdate = newTime;
         }
 

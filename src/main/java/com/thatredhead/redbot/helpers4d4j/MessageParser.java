@@ -3,6 +3,7 @@ package com.thatredhead.redbot.helpers4d4j;
 import com.thatredhead.redbot.command.CommandException;
 import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.handle.obj.*;
+import sx.blah.discord.util.RequestBuffer;
 
 import java.util.Arrays;
 import java.util.regex.Matcher;
