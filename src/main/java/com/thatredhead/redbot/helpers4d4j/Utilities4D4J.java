@@ -217,4 +217,38 @@ public class Utilities4D4J {
                 e.printStackTrace();
             }
     }
+
+    public static class SerializableMessage {
+
+        private long channelID;
+        private long messageID;
+
+        public SerializableMessage() {}
+
+        public SerializableMessage(IMessage msg) {
+            channelID = msg.getChannel().getLongID();
+            messageID = msg.getLongID();
+        }
+
+        public IMessage get() {
+            return RedBot.getClient().getChannelByID(channelID).getMessageByID(messageID);
+        }
+
+        public long getID() {
+            return messageID;
+        }
+    }
+
+    public static IMessage getMessageByID(long id) {
+        IMessage msg = RedBot.getClient().getMessageByID(id);
+
+        if(msg == null) {
+            for (IChannel c : RedBot.getClient().getChannels()) {
+                msg = c.getMessageByID(id);
+                if (msg != null) return msg;
+            }
+        }
+
+        return null;
+    }
 }

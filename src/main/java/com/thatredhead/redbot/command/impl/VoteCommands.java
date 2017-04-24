@@ -17,11 +17,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-;
-
 public class VoteCommands extends CommandGroup {
 
-    private Map<String, Vote> votes;
+    private Map<Long, Vote> votes;
 
     public VoteCommands() {
         super("Vote Commands", "Commands to hold votes in Discord channels", "vote", null);
@@ -37,8 +35,8 @@ public class VoteCommands extends CommandGroup {
 
         @Override
         public void invoke(MessageParser msgp) throws CommandException {
-            if (votes.containsKey(msgp.getChannel().getID())) {
-                votes.get(msgp.getChannel().getID()).castBallot(msgp);
+            if (votes.containsKey(msgp.getChannel().getLongID())) {
+                votes.get(msgp.getChannel().getLongID()).castBallot(msgp);
                 RedBot.getDataHandler().save(votes, "saves");
             }
             else
@@ -54,11 +52,11 @@ public class VoteCommands extends CommandGroup {
 
         @Override
         public void invoke(MessageParser msgp) throws CommandException {
-            Vote current = votes.get(msgp.getChannel().getID());
+            Vote current = votes.get(msgp.getChannel().getLongID());
             if (current != null && !current.isDone())
                 msgp.reply("Please end the current vote first!");
             else {
-                votes.put(msgp.getChannel().getID(), new Vote(msgp));
+                votes.put(msgp.getChannel().getLongID(), new Vote(msgp));
                 RedBot.getDataHandler().save(votes, "saves");
             }
         }
@@ -72,7 +70,7 @@ public class VoteCommands extends CommandGroup {
 
         @Override
         public void invoke(MessageParser msgp) throws CommandException {
-            Vote current = votes.get(msgp.getChannel().getID());
+            Vote current = votes.get(msgp.getChannel().getLongID());
             if (current == null) msgp.reply("There is no vote in this channel to end.");
             else if (current.isDone()) msgp.reply("This channel's vote has already ended.");
             else {
@@ -85,7 +83,7 @@ public class VoteCommands extends CommandGroup {
 
 class Vote {
 
-    private String messageId;
+    private Utilities4D4J.SerializableMessage message;
 
     private String description;
     private List<String> options;
@@ -112,7 +110,7 @@ class Vote {
         ballots = new ArrayList<>();
         done = false;
 
-        messageId = Utilities4D4J.sendMessage(toString(), msgp.getChannel()).get().getID();
+        message = new Utilities4D4J.SerializableMessage(Utilities4D4J.sendMessage(toString(), msgp.getChannel()).get());
     }
 
     public void castBallot(MessageParser msgp) {
@@ -256,7 +254,7 @@ class Vote {
     }
 
     public void updateResult() {
-        Utilities4D4J.edit(messageId, this.toString());
+        Utilities4D4J.edit(message.get(), this.toString());
     }
 
     @Override
@@ -276,7 +274,7 @@ class Vote {
 
 class Ballot {
 
-    private String userID;
+    private long userID;
     private Set<Integer> choices;
 
     private transient IUser user;
@@ -289,7 +287,7 @@ class Ballot {
 
     public Ballot(IUser user, Set<Integer> choices) {
         this.user = user;
-        userID = user.getID();
+        userID = user.getLongID();
         this.choices = choices;
     }
 
@@ -307,7 +305,7 @@ class Ballot {
 
     @Override
     public boolean equals(Object o) {
-        return o != null && o instanceof Ballot && this.userID.equals(((Ballot) o).userID);
+        return o != null && o instanceof Ballot && this.userID == (((Ballot) o).userID);
     }
 
     public Ballot copy() {

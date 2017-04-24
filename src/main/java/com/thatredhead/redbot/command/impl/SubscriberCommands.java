@@ -117,12 +117,12 @@ public class SubscriberCommands extends CommandGroup {
         public void invoke(MessageParser msgp) {
             StringBuilder sb = new StringBuilder("```md\n");
 
-            String id = msgp.getChannel().getID();
+            long id = msgp.getChannel().getLongID();
 
             int count = 0;
             boolean has = false;
             for (Subscription sub : subscriptions)
-                if (id.equals(sub.channelId)) {
+                if (id == sub.channelId) {
                     has = true;
                     sb.append("[").append(count++).append("]: ").append(sub.getFeed().getTitle()).append("\n");
                 }
@@ -140,7 +140,7 @@ public class SubscriberCommands extends CommandGroup {
 
         @Override
         public void invoke(MessageParser msgp) {
-            String id = msgp.getChannel().getID();
+            long id = msgp.getChannel().getLongID();
 
             int target;
             try {
@@ -152,7 +152,7 @@ public class SubscriberCommands extends CommandGroup {
             int count = -1;
             int idx = 0;
             for (; idx < subscriptions.size(); idx++) {
-                if (id.equals(subscriptions.get(0).channelId))
+                if (id == subscriptions.get(0).channelId)
                     count++;
                 if (count == target)
                     break;
@@ -168,7 +168,7 @@ public class SubscriberCommands extends CommandGroup {
 
     private static class Subscription {
 
-        private String channelId;
+        private long channelId;
         private String subscriptionUrl;
         private long lastUpdate;
 
@@ -178,7 +178,7 @@ public class SubscriberCommands extends CommandGroup {
 
 
         public Subscription(String url, IChannel channel) {
-            channelId = channel.getID();
+            channelId = channel.getLongID();
             this.channel = channel;
             subscriptionUrl = url;
             checkFeed();
@@ -239,7 +239,7 @@ public class SubscriberCommands extends CommandGroup {
         }
 
         boolean equals(Subscription sub) {
-            return channelId.equals(sub.channelId) && subscriptionUrl.equals(sub.subscriptionUrl);
+            return channelId == sub.channelId && subscriptionUrl.equals(sub.subscriptionUrl);
         }
 
         private boolean feedHas(List<SyndEntry> old, SyndEntry entry) {

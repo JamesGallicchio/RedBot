@@ -113,7 +113,7 @@ public class PermsCommands extends CommandGroup {
                 if (channels.length != 0) {
 
                     List<IChannel> channelList = Arrays.stream(matcher.get(1))
-                            .map(id -> RedBot.getClient().getChannelByID(id)).collect(Collectors.toList());
+                            .map(id -> RedBot.getClient().getChannelByID(Long.parseUnsignedLong(id))).collect(Collectors.toList());
 
                     if (channelList.stream().anyMatch(it -> !perms.hasPermission(this, msgp.getAuthor(), it)))
                         msgp.reply("You don't have permission in all of those channels to enable commands!");

@@ -27,12 +27,12 @@ public class CommandHandler {
 
     private List<Command> commands;
 
-    private HashMap<String, String> prefixes;
+    private HashMap<Long, String> prefixes;
 
     public CommandHandler() {
         this.perms = RedBot.getPermHandler();
 
-        prefixes = RedBot.getDataHandler().get("guildprefixes", new TypeToken<HashMap<String, String>>(){}.getType(), new HashMap<String, String>());
+        prefixes = RedBot.getDataHandler().get("guildprefixes", new TypeToken<HashMap<Long, String>>(){}.getType(), new HashMap<Long, String>());
 
         Reflections r = new Reflections("com.thatredhead.redbot.command.impl");
 
@@ -130,8 +130,8 @@ public class CommandHandler {
     }
 
     private String getPrefix(IGuild guild) {
-        if(guild != null && prefixes.containsKey(guild.getID()))
-            return prefixes.get(guild.getID());
+        if(guild != null && prefixes.containsKey(guild.getLongID()))
+            return prefixes.get(guild.getLongID());
         return RedBot.DEFAULT_PREFIX;
     }
 }

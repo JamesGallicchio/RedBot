@@ -29,7 +29,7 @@ import java.util.regex.Pattern;
 public class CuteCommands extends CommandGroup {
 
     private DataHandler datah;
-    private HashMap<String, String> safeties;
+    private HashMap<Long, String> safeties;
 
     private static final String engine = "014731838518875835789:co91bck4x3g";
     private List<String> keys = Arrays.asList(
@@ -58,14 +58,9 @@ public class CuteCommands extends CommandGroup {
 
         @Override
         public void invoke(MessageParser msgp) {
-            /*prank*/
-            if("271393757696491521".equals(msgp.getGuild().getID())) {
-                msgp.reply("You have displeased the gods of cute, and they have taken your power.");
-                return;
-            }
 
-            if (!safeties.containsKey(msgp.getChannel().getID())) {
-                safeties.put(msgp.getChannel().getID(), "high");
+            if (!safeties.containsKey(msgp.getChannel().getLongID())) {
+                safeties.put(msgp.getChannel().getLongID(), "high");
                 datah.save(safeties, "cutesafety");
             }
             cuteSearch(msgp.getContentAfter(0), msgp.getChannel());
@@ -88,7 +83,7 @@ public class CuteCommands extends CommandGroup {
             if(!("off".equals(level) || "medium".equals(level) || "high".equals(level)))
                 throw new CommandArgumentException(1, level, "Safety level must be off, medium, or high!");
 
-            safeties.put(msgp.getChannel().getID(), level);
+            safeties.put(msgp.getChannel().getLongID(), level);
             RedBot.getDataHandler().save(safeties, "cutesafety");
         }
     }
@@ -129,7 +124,7 @@ public class CuteCommands extends CommandGroup {
 
     private void cuteSearch(String msg, IChannel channel) {
         StringBuilder message = new StringBuilder(msg.toUpperCase());
-        String safe = safeties.get(channel.getID());
+        String safe = safeties.get(channel.getLongID());
         String type;
         if (message.toString().endsWith("GIF")) {
             type = "&fileType=gif";

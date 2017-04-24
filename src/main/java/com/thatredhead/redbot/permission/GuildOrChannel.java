@@ -6,27 +6,27 @@ import sx.blah.discord.handle.obj.IGuild;
 
 public class GuildOrChannel {
 
-    String id;
+    long id;
     boolean isChannel;
 
     transient IChannel channel;
     transient IGuild guild;
 
     public GuildOrChannel(IGuild g) {
-        id = g.getID();
+        id = g.getLongID();
         isChannel = false;
         guild = g;
         channel = null;
     }
 
     public GuildOrChannel(IChannel c) {
-        id = c.getID();
+        id = c.getLongID();
         isChannel = true;
         guild = null;
         channel = c;
     }
 
-    public String getID() {
+    public long getID() {
         return id;
     }
 
@@ -50,11 +50,11 @@ public class GuildOrChannel {
     public boolean equals(Object o) {
         if(o instanceof GuildOrChannel) {
             GuildOrChannel obj = (GuildOrChannel) o;
-            return this.id.equals(obj.id) && this.isChannel == obj.isChannel;
+            return this.id == obj.id && this.isChannel == obj.isChannel;
         } if(o instanceof IChannel) {
-            return isChannel && this.id.equals(((IChannel) o).getID());
+            return isChannel && this.id == ((IChannel) o).getLongID();
         } if(o instanceof IGuild) {
-            return !isChannel && this.id.equals(((IGuild) o).getID());
+            return !isChannel && this.id == ((IGuild) o).getLongID();
         }
         return false;
     }

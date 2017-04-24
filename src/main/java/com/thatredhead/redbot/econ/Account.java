@@ -5,24 +5,24 @@ import sx.blah.discord.handle.obj.IUser;
 
 public class Account {
 
-    private String userID;
+    private long userID;
     private double amount;
 
     private transient IUser user;
 
     public Account(IUser user) {
         this.user = user;
-        this.userID = user.getID();
+        this.userID = user.getLongID();
         this.amount = 0;
     }
 
     public Account(IUser user, double amount) {
         this.user = user;
-        this.userID = user.getID();
+        this.userID = user.getLongID();
         this.amount = amount;
     }
 
-    public String getUserID() {
+    public long getUserID() {
         return userID;
     }
 
