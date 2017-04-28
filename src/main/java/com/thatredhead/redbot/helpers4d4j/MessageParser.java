@@ -107,6 +107,10 @@ public class MessageParser {
         return Utilities4D4J.sendMessage(response, msg.getChannel());
     }
 
+    public RequestBuffer.RequestFuture<IMessage> reply(String title, String description, boolean inline, String... fields) {
+        return Utilities4D4J.sendEmbed(msg.getChannel(), title, description, inline, fields);
+    }
+
     public void reply(EmbedObject response) {
         Utilities4D4J.sendEmbed(response, msg.getChannel());
     }

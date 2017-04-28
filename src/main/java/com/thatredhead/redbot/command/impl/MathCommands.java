@@ -6,6 +6,7 @@ import com.thatredhead.redbot.command.CommandGroup;
 import com.thatredhead.redbot.helpers4d4j.MessageParser;
 import com.thatredhead.redbot.permission.PermissionContext;
 
+import java.awt.*;
 import java.util.Arrays;
 
 public class MathCommands extends CommandGroup {
@@ -23,18 +24,18 @@ public class MathCommands extends CommandGroup {
         @Override
         public void invoke(MessageParser msgp) {
 
+            String math = msgp.getContentAfter(1);
+
             try {
-                String math = msgp.getContentAfter(1);
+                String result = new MathInterpreter(math).interpret().simplify().toString();
 
-                if("red/0".equalsIgnoreCase(math))
-                    msgp.reply("**Result:** God");
-                else {
-                    String result = new MathInterpreter(math).interpret().simplify().toString();
-
-                    msgp.reply("**Result:** `" + result + "`");
-                }
+                msgp.reply("Evaluate", "", true,
+                        "Input", "```" + math + "```",
+                        "Output", "```" + result + "```");
             } catch (IllegalArgumentException e) {
-                msgp.reply("That's currently not supported. :frowning:");
+                msgp.reply("Evaluate", "", true,
+                        "Input", "```" + math + "```",
+                        "Output", "ERROR! Cannot evaluate.");
             }
         }
     }

@@ -8,6 +8,7 @@ import com.thatredhead.redbot.helpers4d4j.MessageParser;
 import com.thatredhead.redbot.helpers4d4j.Utilities4D4J;
 import com.thatredhead.redbot.permission.PermissionContext;
 
+import java.awt.*;
 import java.util.Arrays;
 
 public class RedBotCommands extends CommandGroup {
@@ -24,7 +25,7 @@ public class RedBotCommands extends CommandGroup {
 
         @Override
         public void invoke(MessageParser msgp) throws CommandException {
-            Utilities4D4J.sendMessage("Invite me to another guild: " + RedBot.INVITE, msgp.getChannel());
+            Utilities4D4J.sendEmbed(msgp.getChannel(), "RedBot Invite", "[Invite me to another guild!](" + RedBot.INVITE + ")", false);
         }
     }
 }

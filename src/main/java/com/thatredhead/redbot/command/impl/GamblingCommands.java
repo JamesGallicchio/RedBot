@@ -6,10 +6,13 @@ import com.thatredhead.redbot.command.CommandGroup;
 import com.thatredhead.redbot.econ.Account;
 import com.thatredhead.redbot.econ.Economy;
 import com.thatredhead.redbot.helpers4d4j.MessageParser;
+import com.thatredhead.redbot.helpers4d4j.Utilities4D4J;
 import com.thatredhead.redbot.permission.PermissionContext;
 import com.vdurmont.emoji.Emoji;
 import com.vdurmont.emoji.EmojiManager;
+import sx.blah.discord.api.internal.json.objects.EmbedObject;
 
+import java.awt.*;
 import java.util.Arrays;
 
 public class GamblingCommands  extends CommandGroup {
@@ -155,8 +158,8 @@ public class GamblingCommands  extends CommandGroup {
                     ")\nYour balance: " + Economy.MONEY_PREFIX + act.getAmount());
         }
 
-        private static String getLose() {
-            StringBuilder sb = new StringBuilder("**__Slot Machine__**\n");
+        private static EmbedObject getLose() {
+            StringBuilder sb = new StringBuilder();
 
             Emoji[] emojis = new Emoji[ROWS*COLS];
 
@@ -175,11 +178,11 @@ public class GamblingCommands  extends CommandGroup {
 
             sb.append("*Sorry! Better luck next time!*");
 
-            return sb.toString();
+            return Utilities4D4J.makeEmbed("RedBot Slots Machine", sb.toString(), true);
         }
 
-        private static String getNormalWin() {
-            StringBuilder sb = new StringBuilder("**__Slot Machine__**\n");
+        private static EmbedObject getNormalWin() {
+            StringBuilder sb = new StringBuilder();
 
             Emoji[] emojis = new Emoji[ROWS*COLS];
 
@@ -205,11 +208,11 @@ public class GamblingCommands  extends CommandGroup {
 
             sb.append("**You won " + Economy.format(REWARD_NORMAL) + "!**");
 
-            return sb.toString();
+            return Utilities4D4J.makeEmbed("RedBot Slots Machine", sb.toString(),true);
         }
 
-        private static String getHighWin() {
-            StringBuilder sb = new StringBuilder("**__Slot Machine__**\n");
+        private static EmbedObject getHighWin() {
+            StringBuilder sb = new StringBuilder();
 
             Emoji[] emojis = new Emoji[ROWS*COLS];
 
@@ -233,13 +236,13 @@ public class GamblingCommands  extends CommandGroup {
                 sb.append("\n");
             }
 
-            sb.append("**You won " + Economy.format(REWARD_HIGH) + "!**");
+            sb.append("**You won ").append(Economy.format(REWARD_HIGH)).append("!**");
 
-            return sb.toString();
+            return Utilities4D4J.makeEmbed("RedBot Slots Machine", sb.toString(), false);
         }
 
-        private static String getJackpotWin() {
-            StringBuilder sb = new StringBuilder("**__Slot Machine__**\n");
+        private static EmbedObject getJackpotWin() {
+            StringBuilder sb = new StringBuilder();
 
             Emoji[] emojis = new Emoji[ROWS*COLS];
 
@@ -263,9 +266,9 @@ public class GamblingCommands  extends CommandGroup {
                 sb.append("\n");
             }
 
-            sb.append("**You won the jackpot: " + Economy.format(REWARD_JACKPOT) + "!**");
+            sb.append("**You won the jackpot: ").append(Economy.format(REWARD_JACKPOT)).append("!**");
 
-            return sb.toString();
+            return Utilities4D4J.makeEmbed("RedBot Slots Machine", sb.toString(), true);
         }
 
         private static <T> T getRandomNotIn(T[] blacklist, T[]... options) {

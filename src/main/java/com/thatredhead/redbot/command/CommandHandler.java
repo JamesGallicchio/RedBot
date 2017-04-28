@@ -4,7 +4,6 @@ import com.google.gson.reflect.TypeToken;
 import com.thatredhead.redbot.RedBot;
 import com.thatredhead.redbot.helpers4d4j.MessageParser;
 import com.thatredhead.redbot.helpers4d4j.Utilities4D4J;
-import com.thatredhead.redbot.permission.PermissionContext;
 import com.thatredhead.redbot.permission.PermissionHandler;
 import org.reflections.Reflections;
 import sx.blah.discord.api.events.EventSubscriber;
@@ -58,13 +57,6 @@ public class CommandHandler {
 
         commands = commandGroups.stream().flatMap(group -> group.getCommands().stream()).collect(Collectors.toList());
         commands.addAll(standaloneCommands);
-
-
-        commands.add(Command.of("test", "Command to test stuff out", "test", "test", true, true, PermissionContext.BOT_OWNER, msgp -> {
-            msgp.reply("hi");
-        }));
-
-
     }
 
     public List<Command> getCommands() {

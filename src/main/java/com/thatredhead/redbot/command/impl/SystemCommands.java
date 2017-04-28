@@ -10,6 +10,7 @@ import com.thatredhead.redbot.permission.PermissionContext;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.handle.obj.*;
 
+import java.awt.*;
 import java.util.Arrays;
 
 public class SystemCommands extends CommandGroup {
@@ -25,16 +26,17 @@ public class SystemCommands extends CommandGroup {
         }
 
         public void invoke(MessageParser msgp) throws CommandException {
-            StringBuilder info = new StringBuilder("**System Info**");
-            info.append("\nGuild count: ").append(RedBot.getClient().getGuilds().size());
-            info.append("\nUser count: ").append(RedBot.getClient().getUsers().size());
-            info.append("\nCurrent uptime: ").append(RedBot.getUptime());
-            info.append("\nThread count: ").append(Thread.activeCount());
+
             long total = Runtime.getRuntime().totalMemory();
             long free = Runtime.getRuntime().freeMemory();
-            info.append("\nMemory usage (MB): ").append((total-free)/1024/1024).append("/").append(total/1024/1024);
-            info.append("\nVersion: ").append(RedBot.getVersion());
-            Utilities4D4J.sendMessage(info.toString(), msgp.getChannel());
+
+            msgp.reply(Utilities4D4J.makeEmbed("System Info", "", false,
+            "Guild count", "" + RedBot.getClient().getGuilds().size(),
+                    "User count", "" + RedBot.getClient().getUsers().size(),
+                    "Current uptime", RedBot.getUptime(),
+                    "Thread count", "" + Thread.activeCount(),
+                    "Memory usage", "Usage: " + (total-free)/1024/1024 + " MB\nTotal: " + total/1024/1024 + " MB",
+                    "Version", RedBot.getVersion()));
         }
     }
 

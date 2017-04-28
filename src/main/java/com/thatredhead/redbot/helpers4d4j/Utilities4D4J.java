@@ -11,9 +11,12 @@ import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.DiscordException;
+import sx.blah.discord.util.EmbedBuilder;
 import sx.blah.discord.util.MissingPermissionsException;
 import sx.blah.discord.util.RequestBuffer;
 
+import java.awt.*;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executors;
@@ -97,6 +100,10 @@ public class Utilities4D4J {
         return RequestBuffer.request(() -> {
             return channel.sendMessage(embed);
         });
+    }
+
+    public static RequestBuffer.RequestFuture<IMessage> sendEmbed(IChannel channel, String title, String description, boolean inline, String... fields) {
+        return sendEmbed(Utilities4D4J.makeEmbed(title, description, inline, fields), channel);
     }
 
     /**
@@ -207,6 +214,26 @@ public class Utilities4D4J {
         return RequestBuffer.request(() -> {
             return msg.edit(newEmbed);
         });
+    }
+
+    public static RequestBuffer.RequestFuture<IMessage> edit(IMessage msg, String title, String description, boolean inline, String... fields) {
+        return edit(msg, Utilities4D4J.makeEmbed(title, description, inline, fields));
+    }
+
+    public static EmbedObject makeEmbed(String title, String description, boolean inline, String... fields) {
+        EmbedBuilder embed = new EmbedBuilder()
+                .withTitle(title)
+                .withDesc(description)
+                .withAuthorName("RedBot")
+                .withAuthorIcon(RedBot.getClient().getOurUser().getAvatarURL())
+                .withTimestamp(LocalDateTime.now())
+                .withColor(Color.RED);
+
+        for(int i = 1; i < fields.length; i += 2) {
+            embed.appendField(fields[i-1], fields[i], inline);
+        }
+
+        return embed.build();
     }
 
     private static void readyCheck() {
