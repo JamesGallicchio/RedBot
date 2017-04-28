@@ -16,16 +16,16 @@ public enum PermissionContext {
 
     public boolean applies(IUser user, IChannel channel) {
         switch(this) {
-            case BOT_OWNER:
-                return RedBot.OWNER_ID == user.getLongID();
-            case OWNER:
-                return user.getLongID() == channel.getGuild().getOwnerLongID();
-            case ADMIN:
-                return channel.getModifiedPermissions(user).contains(Permissions.ADMINISTRATOR);
-            case EVERYONE:
-                return true;
             case NOBODY:
                 return false;
+            case EVERYONE:
+                return true;
+            case ADMIN:
+                if(channel.getModifiedPermissions(user).contains(Permissions.ADMINISTRATOR)) return true;
+            case OWNER:
+                if(user.getLongID() == channel.getGuild().getOwnerLongID()) return true;
+            case BOT_OWNER:
+                if(RedBot.OWNER_ID == user.getLongID()) return true;
             default:
                 return false;
         }
