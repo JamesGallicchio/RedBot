@@ -17,10 +17,8 @@ import sx.blah.discord.handle.impl.events.guild.channel.message.reaction.Reactio
 import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.handle.obj.IUser;
 
-import java.awt.*;
 import java.math.BigInteger;
 import java.util.*;
-import java.util.List;
 
 public class CookieCommands extends CommandGroup {
 
@@ -43,7 +41,7 @@ public class CookieCommands extends CommandGroup {
                 }.getType());
 
         messages = RedBot.getDataHandler().get("cookie_messages",
-                new TypeToken<Map<String, Utilities4D4J.SerializableMessage>>() {
+                new TypeToken<Map<Long, Utilities4D4J.SerializableMessage>>() {
                 }.getType());
 
         if (accounts == null)
@@ -67,7 +65,7 @@ public class CookieCommands extends CommandGroup {
                 Utilities4D4J.edit(msg, "RedBot Cookie Clicker", "Session expired. Use `cookies` command again to get a new one.", false);
             }
 
-            IMessage msg = msgp.reply(user.toString()).get();
+            IMessage msg = msgp.reply(user.toEmbed()).get();
 
             messages.put(msgp.getAuthor().getLongID(), new Utilities4D4J.SerializableMessage(msg));
 
