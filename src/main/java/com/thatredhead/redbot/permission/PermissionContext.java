@@ -17,9 +17,11 @@ public enum PermissionContext {
     public boolean applies(IUser user, IChannel channel) {
         switch(this) {
             case NOBODY:
+            case NULL:
                 return false;
             case EVERYONE:
                 return true;
+            case MOD:
             case ADMIN:
                 if(channel.getModifiedPermissions(user).contains(Permissions.ADMINISTRATOR)) return true;
             case OWNER:
