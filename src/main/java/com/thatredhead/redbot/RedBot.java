@@ -40,8 +40,8 @@ public class RedBot {
 
     public static final Logger LOGGER = LoggerFactory.getLogger(RedBot.class);
 
-    public static final ProcessBuilder GIT = new ProcessBuilder("update.bat");
-    public static final ProcessBuilder MVN = new ProcessBuilder("build.bat");
+    public static final ProcessBuilder GIT = new ProcessBuilder("git.exe", "pull");
+    public static final ProcessBuilder MVN = new ProcessBuilder("mvn.exe", "clean", "compile");
     public static final ProcessBuilder RUN_REDBOT = new ProcessBuilder("run.bat");
 
     public static void main(String[] args) {
