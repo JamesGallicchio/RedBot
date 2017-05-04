@@ -7,9 +7,7 @@ import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.handle.impl.events.ReadyEvent;
 import sx.blah.discord.handle.impl.events.guild.channel.message.reaction.ReactionAddEvent;
 import sx.blah.discord.handle.impl.events.guild.channel.message.reaction.ReactionRemoveEvent;
-import sx.blah.discord.handle.obj.IChannel;
-import sx.blah.discord.handle.obj.IMessage;
-import sx.blah.discord.handle.obj.IUser;
+import sx.blah.discord.handle.obj.*;
 import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.EmbedBuilder;
 import sx.blah.discord.util.MissingPermissionsException;
@@ -18,6 +16,7 @@ import sx.blah.discord.util.RequestBuffer;
 import java.awt.*;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -137,6 +136,36 @@ public class Utilities4D4J {
                 }), milliDelay, TimeUnit.MILLISECONDS);
     }
 
+    public static void sendMessageToGuild(String message, IGuild g) {
+        IChannel channel = g.getGeneralChannel();
+
+        Iterator<IChannel> channels = g.getChannels().iterator();
+
+        while(channel != null && !channel.getModifiedPermissions(g.getClient().getOurUser()).contains(Permissions.SEND_MESSAGES)) {
+            if(channels.hasNext()) channel = channels.next();
+            else channel = null;
+        }
+
+        if(channel == null) return;
+
+        sendMessage(message, channel);
+    }
+
+    public static void sendEmbedToGuild(EmbedObject embed, IGuild g) {
+        IChannel channel = g.getGeneralChannel();
+
+        Iterator<IChannel> channels = g.getChannels().iterator();
+
+        while(channel != null && !channel.getModifiedPermissions(g.getClient().getOurUser()).contains(Permissions.SEND_MESSAGES)) {
+            if(channels.hasNext()) channel = channels.next();
+            else channel = null;
+        }
+
+        if(channel == null) return;
+
+        sendEmbed(embed, channel);
+    }
+
     public static IMessage addReactions(IMessage msg, Emoji... emojis) {
         for(Emoji e: emojis)
             RequestBuffer.request(() -> msg.addReaction(e));
@@ -222,10 +251,10 @@ public class Utilities4D4J {
 
     public static EmbedObject makeEmbed(String title, String description, boolean inline, String... fields) {
         EmbedBuilder embed = new EmbedBuilder()
-                .withTitle(title)
-                .withDesc(description)
                 .withAuthorName("RedBot")
                 .withAuthorIcon(RedBot.getClient().getOurUser().getAvatarURL())
+                .withTitle(title)
+                .withDesc(description)
                 .withTimestamp(LocalDateTime.now())
                 .withColor(Color.RED);
 
