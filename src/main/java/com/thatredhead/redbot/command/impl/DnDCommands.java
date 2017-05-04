@@ -1,10 +1,10 @@
 package com.thatredhead.redbot.command.impl;
 
 import com.thatredhead.redbot.command.Command;
+import com.thatredhead.redbot.command.CommandArgumentException;
 import com.thatredhead.redbot.command.CommandException;
 import com.thatredhead.redbot.command.CommandGroup;
 import com.thatredhead.redbot.helpers4d4j.MessageParser;
-import com.thatredhead.redbot.helpers4d4j.Utilities4D4J;
 import com.thatredhead.redbot.permission.PermissionContext;
 
 import java.util.Arrays;
@@ -62,7 +62,7 @@ public class DnDCommands extends CommandGroup {
                         for(int i = 0; i < rollInt; i++) {
                             int roll = (int) (Math.random() * sizeInt + 1);
                             sum += roll;
-                            result.append(" + ").append(roll);
+                            result.append(", ").append(roll);
                         }
 
                         matched.append(rolls).append("d").append(size);
@@ -77,9 +77,14 @@ public class DnDCommands extends CommandGroup {
                     if("+".equals(sign)) total += sum;
                     else total -= sum;
                 }
-                Utilities4D4J.sendMessage("`" + matched.delete(0, 2).toString().trim() + "`: *" +
-                        (result.length() < 100 && result.indexOf("+") > -1 ? result.delete(0, 3).toString() + "* = **" + total + "**" : "*" + total + "**"),
-                        msgp.getChannel());
+                if(matched.length() > 1018) throw new CommandArgumentException(1, matched.substring(0, 10) + "...", "Your roll request is waaay too long!");
+                msgp.reply("Dice Roller", "", true,
+                        "Input", "```\n" + matched.delete(0, 2).toString().trim() + "```",
+                        "Output", result.length() < 100 ?
+                                    result.indexOf(",", 1) > -1 ?
+                                            "```\n" + result.delete(0, 2).toString() + " = " + total + "```" :
+                                            "```\n" + total + "```" :
+                                "```\nLOTS OF DICE = " + total + "```");
             } catch (NumberFormatException e) {
                 throw new CommandException("Error parsing dice roll! Use help for proper format.");
             }
