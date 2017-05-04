@@ -46,10 +46,18 @@ public class RedBot {
 
     public static void main(String[] args) {
 
-        try {
-            new RedBot(FileUtils.readFileToString(new File("token.txt"), "UTF-8"));
-        } catch (Exception e) {
-            e.printStackTrace();
+        if(args.length == 0) {
+            try {
+                new RedBot(FileUtils.readFileToString(new File("test/test_token.txt"), "UTF-8"));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else {
+            try {
+                new RedBot(args[0]);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
