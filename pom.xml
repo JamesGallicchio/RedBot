@@ -6,7 +6,7 @@
 
     <groupId>com.thatredhead.redbot</groupId>
     <artifactId>RedBot</artifactId>
-    <version>1.2.2</version>
+    <version>1.2.3</version>
 
     <repositories>
         <repository>
@@ -28,9 +28,9 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.github.austinv11</groupId>
+            <groupId>com.github.JamesGallicchio</groupId>
             <artifactId>Discord4J</artifactId>
-            <version>dev-SNAPSHOT</version>
+            <version>aabed0</version>
         </dependency>
         <dependency>
             <groupId>com.google.code.gson</groupId>
