@@ -74,8 +74,7 @@ public class MessageParser {
             sb.append(args[i]);
             sb.append(' ');
         }
-        sb.deleteCharAt(sb.length() - 1);
-        return sb.toString();
+        return sb.toString().trim();
     }
 
     public IChannel getChannelMention(int i) {

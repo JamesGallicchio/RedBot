@@ -14,6 +14,8 @@ import sx.blah.discord.util.MissingPermissionsException;
 import sx.blah.discord.util.RequestBuffer;
 
 import java.awt.*;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -134,6 +136,16 @@ public class Utilities4D4J {
                         RedBot.reportError(e);
                     }
                 }), milliDelay, TimeUnit.MILLISECONDS);
+    }
+
+    public static RequestBuffer.RequestFuture<IMessage> sendFile(File f, IChannel channel) {
+        return RequestBuffer.request(() -> {
+            try {
+                return channel.sendFile(f);
+            } catch (FileNotFoundException e) {
+                return null;
+            }
+        });
     }
 
     public static void sendMessageToGuild(String message, IGuild g) {
