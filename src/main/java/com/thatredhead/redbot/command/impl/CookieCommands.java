@@ -195,13 +195,12 @@ class CookieClickerAccount {
     private transient BigInteger cookiesPerClick;
     private transient BigInteger cookiesPerSecond;
 
-    public CookieClickerAccount() {
-    }
+    public CookieClickerAccount() {}
 
     public CookieClickerAccount(IUser user) {
         this.user = user;
         this.id = user.getLongID();
-        this.lastUpdate = System.nanoTime();
+        this.lastUpdate = System.currentTimeMillis();
         this.cookies = BigInteger.ZERO;
     }
 
@@ -256,7 +255,7 @@ class CookieClickerAccount {
 
         if (cookies.compareTo(cost) >= 0) {
             cookies = cookies.subtract(cost);
-            cookiesPerSecond = calculateCPC(++autoUpgrades);
+            cookiesPerSecond = calculateCPS(++autoUpgrades);
             return true;
         }
 
@@ -285,9 +284,9 @@ class CookieClickerAccount {
 
     public void update() {
 
-        long newTime = System.nanoTime();
+        long newTime = System.currentTimeMillis();
 
-        long seconds = (newTime - lastUpdate + 500000000L) / 1000000000L;
+        long seconds = (newTime - lastUpdate) / 1000L;
 
         if (seconds != 0) {
             cookies = cookies.add(getCookiesPerSecond().multiply(BigInteger.valueOf(seconds)));
