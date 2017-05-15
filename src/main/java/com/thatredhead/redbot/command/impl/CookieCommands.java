@@ -11,9 +11,7 @@ import com.vdurmont.emoji.Emoji;
 import com.vdurmont.emoji.EmojiManager;
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.api.internal.json.objects.EmbedObject;
-import sx.blah.discord.handle.impl.events.guild.channel.message.reaction.ReactionAddEvent;
 import sx.blah.discord.handle.impl.events.guild.channel.message.reaction.ReactionEvent;
-import sx.blah.discord.handle.impl.events.guild.channel.message.reaction.ReactionRemoveEvent;
 import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.handle.obj.IUser;
 
@@ -125,15 +123,6 @@ public class CookieCommands extends CommandGroup {
     }
 
     @EventSubscriber
-    public void onReactionAdd(ReactionAddEvent event) {
-        handle(event);
-    }
-
-    @EventSubscriber
-    public void onReactionRemove(ReactionRemoveEvent event) {
-        handle(event);
-    }
-
     public void handle(ReactionEvent event) {
 
         Utilities4D4J.SerializableMessage cache = messages.get(event.getUser().getLongID());
