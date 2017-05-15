@@ -45,6 +45,10 @@ public class PermissionHandler {
         // If the perm is an empty string that always equates to true
         if ("".equals(perm)) return true;
 
+        if(channel.isPrivate()) {
+            return defaultPerms.applies(user, channel);
+        }
+
         // If perms doesn't contain this perm, put a new hashmap in
         if (!perms.containsKey(perm)) {
             perms.put(perm, new HashMap<>());

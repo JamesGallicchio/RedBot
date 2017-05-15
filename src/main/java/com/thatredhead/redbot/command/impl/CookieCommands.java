@@ -19,6 +19,10 @@ import sx.blah.discord.handle.obj.IUser;
 
 import java.math.BigInteger;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class CookieCommands extends CommandGroup {
 
@@ -26,29 +30,40 @@ public class CookieCommands extends CommandGroup {
     public static final Emoji COOKIE_EMOJI = EmojiManager.getByUnicode("\uD83C\uDF6A");
     public static final Emoji AUTO_UPGRADE_EMOJI = EmojiManager.getByUnicode("\u2B06");
 
-    private List<CookieClickerAccount> accounts;
-    private Map<Long, Utilities4D4J.SerializableMessage> messages; // UserID -> (ChannelID, MessageID)
+    private static List<CookieClickerAccount> accounts;
+    private static Map<Long, Utilities4D4J.SerializableMessage> messages; // UserID -> (ChannelID, MessageID)
+    private static List<Long> toBeUpdated;
+    private static ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 
     public CookieCommands() {
 
         super("Cookie Clicker Commands", "Commands for managing your cookie clicking!", "cookie",
                 null);
 
-        super.commands = Arrays.asList(new CookiesCommand());
+        super.commands = Arrays.asList(new CookiesCommand(), new CookieLeaderboardCommand());
 
-        accounts = RedBot.getDataHandler().get("cookie_accounts",
-                new TypeToken<List<CookieClickerAccount>>() {
-                }.getType());
+        if (accounts == null) {
+            accounts = RedBot.getDataHandler().get("cookie_accounts",
+                    new TypeToken<List<CookieClickerAccount>>() {
+                    }.getType());
 
-        messages = RedBot.getDataHandler().get("cookie_messages",
-                new TypeToken<Map<Long, Utilities4D4J.SerializableMessage>>() {
-                }.getType());
+            if (accounts == null)
+                accounts = new ArrayList<>();
+        }
 
-        if (accounts == null)
-            accounts = new ArrayList<>();
+        if (messages == null) {
 
-        if (messages == null)
-            messages = new HashMap<>();
+            messages = RedBot.getDataHandler().get("cookie_messages",
+                    new TypeToken<Map<Long, Utilities4D4J.SerializableMessage>>() {
+                    }.getType());
+
+            if (messages == null)
+                messages = new HashMap<>();
+        }
+
+        if (toBeUpdated == null) {
+            toBeUpdated = new ArrayList<>();
+        }
     }
 
     public class CookiesCommand extends Command {
@@ -69,8 +84,43 @@ public class CookieCommands extends CommandGroup {
 
             messages.put(msgp.getAuthor().getLongID(), new Utilities4D4J.SerializableMessage(msg));
 
-            Utilities4D4J.addReactions(msg, CLICK_UPGRADE_EMOJI, COOKIE_EMOJI, AUTO_UPGRADE_EMOJI);
+            Utilities4D4J.addReactionsOrdered(msg, COOKIE_EMOJI, CLICK_UPGRADE_EMOJI, AUTO_UPGRADE_EMOJI);
             save();
+        }
+    }
+
+    public class CookieLeaderboardCommand extends Command {
+
+        public CookieLeaderboardCommand() {
+            super("cookieleaderboard", "Lists the top RedBot Cookie Clickers ~~in the world~~", PermissionContext.EVERYONE);
+        }
+
+        public void invoke(MessageParser msgp) {
+            StringBuilder sb = new StringBuilder("**Most Wealthiest Cookie Clickers**\n");
+
+            List<CookieClickerAccount> sorted = accounts.stream()
+                    .sorted(Comparator.comparing(CookieClickerAccount::getCookies).reversed()).collect(Collectors.toList());
+
+            boolean covered = false;
+            for (int i = 0; i < 10 && i < sorted.size(); i++) {
+                CookieClickerAccount acc = sorted.get(i);
+                sb.append("#").append(i + 1).append(": ").append(acc.getUser().getName()).append(" - ")
+                        .append(CookieClickerAccount.formatNumber(acc.getCookies())).append("\n");
+                if (acc.getUser().equals(msgp.getAuthor())) {
+                    covered = true;
+                }
+            }
+
+            if (!covered) {
+                sorted.stream().filter(a -> a.getUser().equals(msgp.getAuthor())).findFirst()
+                        .ifPresent(cookieClickerAccount -> {
+                            CookieClickerAccount c = cookieClickerAccount;
+                            sb.append("#").append(sorted.indexOf(c) + 1).append(": ").append(c.getUser().getName()).append(" - ")
+                                    .append(CookieClickerAccount.formatNumber(c.getCookies()));
+                        });
+            }
+
+            msgp.reply(sb.toString());
         }
     }
 
@@ -87,25 +137,31 @@ public class CookieCommands extends CommandGroup {
     public void handle(ReactionEvent event) {
 
         Utilities4D4J.SerializableMessage cache = messages.get(event.getUser().getLongID());
-        if(cache != null &&
+        if (cache != null &&
                 cache.getID() == event.getMessage().getLongID()) {
 
             CookieClickerAccount acc = getAccountForUser(event.getUser());
             Emoji emoji = event.getReaction().getUnicodeEmoji();
 
-            if(COOKIE_EMOJI.equals(emoji)) {
+            if (COOKIE_EMOJI.equals(emoji)) {
                 acc.click();
-                return;
-            }
-            else if(CLICK_UPGRADE_EMOJI.equals(emoji))
+            } else if (CLICK_UPGRADE_EMOJI.equals(emoji))
                 acc.upgradeClick();
-            else if(AUTO_UPGRADE_EMOJI.equals(emoji))
+            else if (AUTO_UPGRADE_EMOJI.equals(emoji))
                 acc.upgradeAuto();
             else
                 return;
 
-            Utilities4D4J.edit(event.getMessage(), acc.toEmbed());
-            save();
+            long id = event.getMessage().getLongID();
+
+            if (!toBeUpdated.contains(id)) {
+                toBeUpdated.add(id);
+                executor.schedule(() -> {
+                    Utilities4D4J.edit(event.getMessage(), acc.toEmbed());
+                    toBeUpdated.remove(id);
+                }, 5, TimeUnit.SECONDS);
+                save();
+            }
         }
     }
 
@@ -276,13 +332,14 @@ class CookieClickerAccount {
     }
 
     public EmbedObject toEmbed() {
+        update();
         return Utilities4D4J.makeEmbed("RedBot Cookie Clicker :cookie:", "", true,
-                "Cookie count", CookieClickerAccount.formatNumber(getCookies()),
-                "Cookies/Click", CookieClickerAccount.formatNumber(getCookiesPerClick()) +
-                        "\nClick Upgrades: " + clickUpgrades +
-                        "\nNext Upgrade: " + formatNumber(getClickUpgradeCost()),
-                "Cookies/Second", CookieClickerAccount.formatNumber(getCookiesPerSecond()) +
-                        "\nSpeed Upgrades: " + autoUpgrades +
-                        "\nNext Upgrade: " + formatNumber(getAutoUpgradeCost()));
+                "Cookie count", formatNumber(getCookies()),
+                "Cookies/Click", formatNumber(getCookiesPerClick()) +
+                        "\nNext: " + formatNumber(calculateCPC(clickUpgrades + 1)) +
+                        "\nCost: " + formatNumber(getClickUpgradeCost()),
+                "Cookies/Second", formatNumber(getCookiesPerSecond()) +
+                        "\nNext: " + formatNumber(calculateCPS(autoUpgrades + 1)) +
+                        "\nCost: " + formatNumber(getAutoUpgradeCost()));
     }
 }

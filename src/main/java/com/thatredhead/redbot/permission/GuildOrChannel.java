@@ -63,6 +63,6 @@ public class GuildOrChannel {
     public int hashCode() {
         return isChannel?
                 getChannel().hashCode()
-                : getGuild().hashCode();
+                : getGuild() == null ? 0 : getGuild().hashCode();
     }
 }

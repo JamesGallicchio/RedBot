@@ -55,7 +55,7 @@ public class RecorderCommands extends CommandGroup {
                     pattern = "[%TIME%] %USER%: %CONTENT%";
                 }
 
-                File f = makeFile(pattern, start, end, msgp.getChannel(), false);
+                File f = makeFile(pattern, start, end, msgp.getChannel(), true);
                 Utilities4D4J.sendFile(f, msgp.getChannel()).get();
 
                 f.delete();

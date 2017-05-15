@@ -19,6 +19,7 @@ import java.io.FileNotFoundException;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -151,16 +152,26 @@ public class Utilities4D4J {
     public static void sendMessageToGuild(String message, IGuild g) {
         IChannel channel = g.getGeneralChannel();
 
-        Iterator<IChannel> channels = g.getChannels().iterator();
+        if (!weHaveSendMessagePerm(channel)) {
+            List<IChannel> channels = g.getChannels();
 
-        while(channel != null && !channel.getModifiedPermissions(g.getClient().getOurUser()).contains(Permissions.SEND_MESSAGES)) {
-            if(channels.hasNext()) channel = channels.next();
-            else channel = null;
+            channel = channels.stream()
+                    .filter(c -> c.getName().equals("general") && weHaveSendMessagePerm(c))
+                    .findFirst().orElseGet(() ->
+                            channels.stream()
+                                    .filter(c -> c.getName().contains("general") && weHaveSendMessagePerm(c))
+                                    .findFirst().orElseGet(() ->
+                                    channels.stream()
+                                            .filter(Utilities4D4J::weHaveSendMessagePerm)
+                                            .findFirst()
+                                            .orElse(null)));
         }
 
-        if(channel == null) return;
+        if(channel != null) sendMessage(message, channel);
+    }
 
-        sendMessage(message, channel);
+    public static boolean weHaveSendMessagePerm(IChannel c) {
+        return c.getModifiedPermissions(RedBot.getClient().getOurUser()).contains(Permissions.SEND_MESSAGES);
     }
 
     public static void sendEmbedToGuild(EmbedObject embed, IGuild g) {
@@ -227,16 +238,21 @@ public class Utilities4D4J {
     }
 
     @EventSubscriber
-    public static void onReactionAdd(ReactionAddEvent e) {
+    public void onReactionAdd(ReactionAddEvent e) {
         ReactionListener l = reactions.get(e.getMessage().getLongID());
-        l.onReactionAdd(e.getMessage(), e.getUser(), e.getReaction().getUnicodeEmoji());
+        if (l != null && !e.getUser().equals(RedBot.getClient().getOurUser())) {
+            l.onReactionAdd(e.getMessage(), e.getUser(), e.getReaction().getUnicodeEmoji());
+            l.onReactionToggle(e.getMessage(), e.getUser(), e.getReaction().getUnicodeEmoji());
+        }
     }
 
     @EventSubscriber
-    public static void onReactionRemove(ReactionRemoveEvent e) {
+    public void onReactionRemove(ReactionRemoveEvent e) {
         ReactionListener l = reactions.get(e.getMessage().getLongID());
-        l.onReactionRemove(e.getMessage(), e.getUser(), e.getReaction().getUnicodeEmoji());
-        l.onReactionToggle(e.getMessage(), e.getUser(), e.getReaction().getUnicodeEmoji());
+        if (l != null && !e.getUser().equals(RedBot.getClient().getOurUser())) {
+            l.onReactionRemove(e.getMessage(), e.getUser(), e.getReaction().getUnicodeEmoji());
+            l.onReactionToggle(e.getMessage(), e.getUser(), e.getReaction().getUnicodeEmoji());
+        }
     }
 
     public static RequestBuffer.RequestFuture<IMessage> edit(IMessage msg, String newContent) {

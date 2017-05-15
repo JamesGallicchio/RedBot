@@ -10,7 +10,6 @@ import com.thatredhead.redbot.permission.PermissionContext;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.handle.obj.*;
 
-import java.awt.*;
 import java.util.Arrays;
 
 public class SystemCommands extends CommandGroup {
@@ -144,7 +143,7 @@ public class SystemCommands extends CommandGroup {
             String announcement = msgp.getContentAfter(1);
 
             for(IGuild g: RedBot.getClient().getGuilds())
-                Utilities4D4J.sendMessage(announcement, g.getGeneralChannel());
+                Utilities4D4J.sendMessageToGuild(announcement, g);
 
             msgp.reply("Announcement sent!");
         }

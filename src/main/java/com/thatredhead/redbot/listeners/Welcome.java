@@ -11,7 +11,7 @@ import java.time.ZoneId;
 public class Welcome {
 
     @EventSubscriber
-    public static void onGuildCreateEvent(GuildCreateEvent e) {
+    public void onGuildCreateEvent(GuildCreateEvent e) {
 
         long now = LocalDateTime.now().atZone(ZoneId.systemDefault()).toEpochSecond();
         long joined = e.getGuild().getJoinTimeForUser(e.getClient().getOurUser()).atZone(ZoneId.systemDefault()).toEpochSecond();

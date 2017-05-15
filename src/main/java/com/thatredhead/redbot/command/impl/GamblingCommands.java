@@ -12,7 +12,6 @@ import com.vdurmont.emoji.Emoji;
 import com.vdurmont.emoji.EmojiManager;
 import sx.blah.discord.api.internal.json.objects.EmbedObject;
 
-import java.awt.*;
 import java.util.Arrays;
 
 public class GamblingCommands  extends CommandGroup {
