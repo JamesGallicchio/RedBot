@@ -17,12 +17,11 @@ import java.awt.*;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Iterator;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -291,6 +290,76 @@ public class Utilities4D4J {
         }
 
         return embed.build();
+    }
+
+    public static class RequestQueue<T> {
+
+        private static final ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
+
+        private int cooldown;
+        private TimeUnit unit;
+
+        private int size;
+        private LinkedList<RequestBuffer.IRequest<T>> queue;
+        private boolean isWaiting;
+
+        public RequestQueue(int size, int cooldown, TimeUnit unit) {
+            this.size = size;
+            this.queue = new LinkedList<>();
+            this.isWaiting = false;
+            this.cooldown = cooldown;
+            this.unit = unit;
+        }
+
+        public void queue(RequestBuffer.IRequest<T> request) {
+            queue.addFirst(request);
+            while(queue.size() > size) queue.removeLast();
+            if(!isWaiting) makeRequest();
+        }
+
+        private void makeRequest() {
+            RequestBuffer.request(queue.removeLast());
+            isWaiting = true;
+            exec.schedule(() -> {
+                isWaiting = false;
+                if(queue.size() != 0) makeRequest();
+            }, cooldown, unit);
+        }
+    }
+
+    public static class VoidRequestQueue {
+
+        private static final ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
+
+        private int cooldown;
+        private TimeUnit unit;
+
+        private int size;
+        private LinkedList<RequestBuffer.IVoidRequest> queue;
+        private boolean isWaiting;
+
+        public VoidRequestQueue(int size, int cooldown, TimeUnit unit) {
+            this.size = size;
+            this.queue = new LinkedList<>();
+            this.isWaiting = false;
+            this.cooldown = cooldown;
+            this.unit = unit;
+        }
+
+        public void queue(RequestBuffer.IVoidRequest request) {
+            queue.addFirst(request);
+            while(queue.size() > size) queue.removeLast();
+            if(!isWaiting) makeRequest();
+        }
+
+        private void makeRequest() {
+            RequestBuffer.request(queue.removeLast());
+            isWaiting = true;
+            exec.schedule(() -> {
+                isWaiting = false;
+                if(queue.size() != 0) makeRequest();
+            }, cooldown, unit);
+        }
     }
 
     private static void readyCheck() {
