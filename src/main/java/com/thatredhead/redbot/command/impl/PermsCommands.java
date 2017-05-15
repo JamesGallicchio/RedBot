@@ -144,12 +144,70 @@ public class PermsCommands extends CommandGroup {
     public class DisableCommand extends Command {
 
         public DisableCommand() {
-            super("disable", "Disables a command or commandgroup in the guild or the specified channel(s)", true, PermissionContext.ADMIN);
+            super("disable", "Disables a command or commandgroup in the guild or the specified channel(s)",
+                    "disable < all | {Command} | {CommandGroup} > [channel mention [channel mention...]]", true, PermissionContext.ADMIN);
         }
 
         @Override
         public void invoke(MessageParser msgp) throws CommandException {
+            MessageMatcher matcher = msgp.match("T+C+?");
 
+            if (matcher.match()) {
+
+                String cmdName = concat(matcher.get(0), " ");
+
+                String perm = "";
+                PermissionContext context = PermissionContext.NULL;
+
+                Command cmd = RedBot.getCommandHandler().getCommand(cmdName);
+                boolean all = false;
+
+                if (cmd != null) {
+                    perm = cmd.getPermission();
+                    context = cmd.getDefaultPermissions();
+                } else {
+                    CommandGroup cmdGroup = RedBot.getCommandHandler().getCommandGroup(cmdName);
+                    if (cmdGroup != null) {
+                        perm = cmdGroup.getPermission();
+                        context = null;
+                    } else if ("all".equalsIgnoreCase(cmdName))
+                        all = true;
+                    else {
+                        msgp.reply("That command or command group doesn't exist!");
+                        return;
+                    }
+                }
+
+                String[] channels = matcher.get(1);
+
+                if (channels.length != 0) {
+
+                    List<IChannel> channelList = Arrays.stream(matcher.get(1))
+                            .map(id -> RedBot.getClient().getChannelByID(Long.parseUnsignedLong(id))).collect(Collectors.toList());
+
+                    if (channelList.stream().anyMatch(it -> !perms.hasPermission(this, msgp.getAuthor(), it)))
+                        msgp.reply("You don't have permission in all of those channels to disable commands!");
+                    else {
+                        if(all)
+                            RedBot.getCommandHandler().getCommands().forEach(command ->
+                                    channelList.forEach(channel -> perms.remove(command.getPermission(), channel)));
+                        else {
+                            final String fPerm = perm;
+                            final PermissionContext fContext = context;
+                            channelList.forEach(channel -> perms.remove(fPerm, channel));
+                        }
+                        msgp.reply("Disabled for those channels :ok_hand:");
+                    }
+                } else {
+                    if(all)
+                        RedBot.getCommandHandler().getCommands()
+                                .forEach(command -> perms.remove(command.getPermission(), msgp.getGuild()));
+                    else
+                        perms.remove(perm, msgp.getGuild());
+                    msgp.reply("Disabled for this guild :ok_hand:");
+                }
+
+            } else msgp.reply("Command not formatted correctly. See disable usage.");
         }
     }
 

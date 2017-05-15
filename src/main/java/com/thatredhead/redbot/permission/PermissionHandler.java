@@ -161,6 +161,27 @@ public class PermissionHandler {
         return false;
     }
 
+    public boolean remove(String perm, IGuild g) {
+        return remove(perm, new GuildOrChannel(g));
+    }
+
+    public boolean remove(String perm, IChannel c) {
+        return remove(perm, new GuildOrChannel(c));
+    }
+
+    public boolean remove(String perm, GuildOrChannel obj) {
+        perms.putIfAbsent(perm, new HashMap<>());
+
+        Map<GuildOrChannel, PermissionContext> map = perms.get(perm);
+        if(map.containsKey(obj)) {
+            map.remove(obj);
+            save();
+            return true;
+        }
+        save();
+        return false;
+    }
+
     public Map<String, Map<GuildOrChannel, PermissionContext>> getPermissions() {
         return perms;
     }
