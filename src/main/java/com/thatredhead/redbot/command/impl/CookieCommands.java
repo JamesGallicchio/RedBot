@@ -30,7 +30,7 @@ public class CookieCommands extends CommandGroup {
 
     private static List<CookieClickerAccount> accounts;
     private static Map<Long, Utilities4D4J.SerializableMessage> messages; // UserID -> (ChannelID, MessageID)
-    private static List<Long> toBeUpdated;
+    private static Map<Long, Utilities4D4J.RequestQueue<IMessage>> updaters; // MessageID -> Queue
     private static ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 
     public CookieCommands() {
@@ -59,8 +59,8 @@ public class CookieCommands extends CommandGroup {
                 messages = new HashMap<>();
         }
 
-        if (toBeUpdated == null) {
-            toBeUpdated = new ArrayList<>();
+        if (updaters == null) {
+            updaters = new HashMap<>();
         }
     }
 
@@ -75,12 +75,14 @@ public class CookieCommands extends CommandGroup {
 
             if (messages.containsKey(msgp.getAuthor().getLongID())) {
                 IMessage msg = messages.remove(msgp.getAuthor().getLongID()).get();
+                updaters.remove(msg.getLongID());
                 Utilities4D4J.edit(msg, "RedBot Cookie Clicker", "Session expired. Use `cookies` command again to get a new one.", false);
             }
 
             IMessage msg = msgp.reply(user.toEmbed()).get();
 
             messages.put(msgp.getAuthor().getLongID(), new Utilities4D4J.SerializableMessage(msg));
+            updaters.put(msg.getLongID(), new Utilities4D4J.RequestQueue<>(1, 3, TimeUnit.SECONDS));
 
             Utilities4D4J.addReactionsOrdered(msg, COOKIE_EMOJI, CLICK_UPGRADE_EMOJI, AUTO_UPGRADE_EMOJI);
             save();
@@ -141,16 +143,9 @@ public class CookieCommands extends CommandGroup {
             else
                 return;
 
-            long id = event.getMessage().getLongID();
+            IMessage msg = event.getMessage();
 
-            if (!toBeUpdated.contains(id)) {
-                toBeUpdated.add(id);
-                executor.schedule(() -> {
-                    Utilities4D4J.edit(event.getMessage(), acc.toEmbed());
-                    toBeUpdated.remove(id);
-                }, 5, TimeUnit.SECONDS);
-                save();
-            }
+            updaters.get(msg.getLongID()).queue(() -> msg.edit(acc.toEmbed()));
         }
     }
 
@@ -184,13 +179,12 @@ class CookieClickerAccount {
     private transient BigInteger cookiesPerClick;
     private transient BigInteger cookiesPerSecond;
 
-    public CookieClickerAccount() {
-    }
+    public CookieClickerAccount() {}
 
     public CookieClickerAccount(IUser user) {
         this.user = user;
         this.id = user.getLongID();
-        this.lastUpdate = System.nanoTime();
+        this.lastUpdate = System.currentTimeMillis();
         this.cookies = BigInteger.ZERO;
     }
 
@@ -245,7 +239,7 @@ class CookieClickerAccount {
 
         if (cookies.compareTo(cost) >= 0) {
             cookies = cookies.subtract(cost);
-            cookiesPerSecond = calculateCPC(++autoUpgrades);
+            cookiesPerSecond = calculateCPS(++autoUpgrades);
             return true;
         }
 
@@ -274,9 +268,9 @@ class CookieClickerAccount {
 
     public void update() {
 
-        long newTime = System.nanoTime();
+        long newTime = System.currentTimeMillis();
 
-        long seconds = (newTime - lastUpdate + 500000000L) / 1000000000L;
+        long seconds = (newTime - lastUpdate) / 1000L;
 
         if (seconds != 0) {
             cookies = cookies.add(getCookiesPerSecond().multiply(BigInteger.valueOf(seconds)));
