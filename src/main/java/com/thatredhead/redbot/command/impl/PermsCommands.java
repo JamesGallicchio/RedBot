@@ -6,17 +6,13 @@ import com.thatredhead.redbot.command.CommandException;
 import com.thatredhead.redbot.command.CommandGroup;
 import com.thatredhead.redbot.helpers4d4j.MessageMatcher;
 import com.thatredhead.redbot.helpers4d4j.MessageParser;
-import com.thatredhead.redbot.helpers4d4j.Utilities4D4J;
 import com.thatredhead.redbot.permission.PermissionContext;
 import com.thatredhead.redbot.permission.PermissionHandler;
-import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.handle.obj.IChannel;
-import sx.blah.discord.handle.obj.IGuild;
 import sx.blah.discord.util.EmbedBuilder;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 public class PermsCommands extends CommandGroup {
@@ -26,49 +22,11 @@ public class PermsCommands extends CommandGroup {
     public PermsCommands() {
         super("Perms Commands", "Commands to edit command permissions in this guild", "perms", null);
         commands = Arrays.asList(
-                new PermsCommand(),
                 new EnableCommand(),
                 new DisableCommand(),
                 new CommandsCommand()
         );
         this.perms = RedBot.getPermHandler();
-    }
-
-    public class PermsCommand extends Command {
-
-        public PermsCommand() {
-            super("perms", "Lists permissions for this guild the specified channel",
-                    "perms [channel mention]", true, PermissionContext.ADMIN);
-        }
-
-        @Override
-        public void invoke(MessageParser msgp) {
-
-            if (msgp.getArgCount() == 1)
-                Utilities4D4J.sendEmbed(format(msgp.getGuild()), msgp.getChannel());
-            else
-                Utilities4D4J.sendEmbed(format(msgp.getChannelMention(1)), msgp.getChannel());
-        }
-
-        private EmbedObject format(IGuild g) {
-            EmbedBuilder result = new EmbedBuilder()
-                    .withTitle("Permissions for " + g.getName());
-
-            for (Map.Entry<String, PermissionContext> entry : perms.getPermissionsFor(g).entrySet())
-                result.appendField(entry.getKey(), entry.getValue().name(), false);
-
-            return result.build();
-        }
-
-        private EmbedObject format(IChannel c) {
-            EmbedBuilder result = new EmbedBuilder()
-                    .withTitle("Permissions for " + c.getName());
-
-            for (Map.Entry<String, PermissionContext> entry : perms.getPermissionsFor(c).entrySet())
-                result.appendField(entry.getKey(), entry.getValue().name(), false);
-
-            return result.build();
-        }
     }
 
     public class EnableCommand extends Command {
