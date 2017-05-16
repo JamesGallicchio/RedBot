@@ -10,7 +10,6 @@ import com.thatredhead.redbot.permission.PermissionContext;
 import org.jetbrains.kotlin.script.jsr223.KotlinJsr223JvmDaemonLocalEvalScriptEngineFactory;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.handle.obj.*;
-import sx.blah.discord.util.EmbedBuilder;
 
 import javax.script.ScriptException;
 import java.util.Arrays;
@@ -18,7 +17,7 @@ import java.util.Arrays;
 public class SystemCommands extends CommandGroup {
 
     public SystemCommands() {
-        super("System Commands", "Commands for administrative purposes (for ThatRedhead)", "system", Arrays.asList(new RebuildCommand(), new RestartCommand(), new ShutdownCommand(), new SysInfoCommand(), new GetByIDCommand(), new AnnounceCommand(), new EvalCommand()));
+        super("System Commands", "Commands for administrative purposes (for ThatRedhead)", "system", Arrays.asList(new RebuildCommand(), new RestartCommand(), new ShutdownCommand(), new SysInfoCommand(), new GetByIDCommand(), new AnnounceCommand(), new ExecCommand()));
     }
 
     public static class SysInfoCommand extends Command {
@@ -152,11 +151,11 @@ public class SystemCommands extends CommandGroup {
         }
     }
 
-    public static class EvalCommand extends Command {
+    public static class ExecCommand extends Command {
         private KotlinJsr223JvmDaemonLocalEvalScriptEngineFactory factory = new KotlinJsr223JvmDaemonLocalEvalScriptEngineFactory();
 
-        public EvalCommand() {
-            super("eval", "evaluates a kotlin script", PermissionContext.BOT_OWNER);
+        public ExecCommand() {
+            super("exec", "evaluates a kotlin script", PermissionContext.BOT_OWNER);
         }
 
         @Override

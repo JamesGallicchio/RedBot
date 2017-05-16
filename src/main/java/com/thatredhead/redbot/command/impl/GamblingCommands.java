@@ -17,7 +17,7 @@ import java.util.Arrays;
 public class GamblingCommands  extends CommandGroup {
 
     public GamblingCommands() {
-        super("GamblingCommands", "Commands for playing a variety of gambling games",
+        super("Gambling Commands", "Commands for playing a variety of gambling games",
                 "gambling", Arrays.asList(
                         new SlotsCommand(),
                         new Magic8Ball()
