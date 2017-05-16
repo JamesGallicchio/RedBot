@@ -6,6 +6,5 @@ COPY "target\RedBot-jar-with-dependencies.jar" "temp\RedBot-jar-with-dependencie
 
 set /p token=<token.txt
 
-start java -jar temp\RedBot-jar-with-dependencies.jar %token%
-
+start java -jar temp\RedBot-jar-with-dependencies.jar %token% -Dkotlin.compiler.jar="C:/Users/James/RedBot/kotlinc/lib/kotlin-compiler.jar"
 exit

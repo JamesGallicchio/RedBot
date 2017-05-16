@@ -21,6 +21,7 @@ import sx.blah.discord.handle.impl.events.shard.ReconnectSuccessEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.Objects;
+import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -108,8 +109,9 @@ public class RedBot {
         startup = System.currentTimeMillis();
 
         try {
-            System.getProperties().load(getClass().getClassLoader().getResourceAsStream("redbot.properties"));
-            version = System.getProperties().getProperty("version");
+            Properties p = new Properties();
+            p.load(getClass().getClassLoader().getResourceAsStream("redbot.properties"));
+            version = p.getProperty("version");
         } catch (IOException e) {
             e.printStackTrace();
         }
