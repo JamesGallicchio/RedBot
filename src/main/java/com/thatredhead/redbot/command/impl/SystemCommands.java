@@ -7,9 +7,12 @@ import com.thatredhead.redbot.command.CommandGroup;
 import com.thatredhead.redbot.helpers4d4j.MessageParser;
 import com.thatredhead.redbot.helpers4d4j.Utilities4D4J;
 import com.thatredhead.redbot.permission.PermissionContext;
+import org.jetbrains.kotlin.script.jsr223.KotlinJsr223JvmDaemonLocalEvalScriptEngineFactory;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.handle.obj.*;
+import sx.blah.discord.util.EmbedBuilder;
 
+import javax.script.ScriptException;
 import java.util.Arrays;
 
 public class SystemCommands extends CommandGroup {
@@ -146,6 +149,30 @@ public class SystemCommands extends CommandGroup {
                 Utilities4D4J.sendMessageToGuild(announcement, g);
 
             msgp.reply("Announcement sent!");
+        }
+    }
+
+    public static class EvalCommand extends Command {
+        private KotlinJsr223JvmDaemonLocalEvalScriptEngineFactory factory = new KotlinJsr223JvmDaemonLocalEvalScriptEngineFactory();
+
+        public EvalCommand() {
+            super("eval", "evaluates a kotlin script", PermissionContext.BOT_OWNER);
+        }
+
+        @Override
+        public void invoke(MessageParser msgp) {
+            String content = msgp.getContentAfter(1).replace("```kotlin", "").replace("```kt", "").replace("`", "");
+
+            Object o;
+            try {
+                o = factory.getScriptEngine().eval(content);
+            } catch (ScriptException e) {
+                Utilities4D4J.sendEmbed(msgp.getChannel(), "RedBot Script Executor", "", false,
+                        "Failure!", "```\n" + e.getMessage() + "```");
+                return;
+            }
+            Utilities4D4J.sendEmbed(msgp.getChannel(), "RedBot Script Executor", "", false,
+                    "Success!", "```\n" + o.toString() + "```");
         }
     }
 }
