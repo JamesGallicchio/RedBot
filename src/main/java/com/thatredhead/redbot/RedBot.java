@@ -17,6 +17,7 @@ import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.impl.events.ReadyEvent;
 import sx.blah.discord.handle.impl.events.shard.DisconnectedEvent;
 import sx.blah.discord.handle.impl.events.shard.ReconnectSuccessEvent;
+import sx.blah.discord.util.RequestBuffer;
 
 import java.io.File;
 import java.io.IOException;
@@ -230,8 +231,8 @@ public class RedBot {
      */
     public static void reportError(Throwable e) {
         String stacktrace = ExceptionUtils.getStackTrace(e);
-        Utilities4D4J.sendMessage("```\n" + limit(stacktrace, 1990) + "```", getClient().getChannelByID(ERROR_CHANNEL_ID));
         LOGGER.error(stacktrace);
+        RequestBuffer.request(() -> client.getChannelByID(ERROR_CHANNEL_ID).sendMessage("```\n" + limit(stacktrace, 1990) + "```"));
     }
 
     private static String limit(String s, int chars) {
