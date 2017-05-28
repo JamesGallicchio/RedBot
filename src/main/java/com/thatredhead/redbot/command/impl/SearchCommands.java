@@ -31,7 +31,7 @@ public class SearchCommands extends CommandGroup {
             String search = msgp.getContentAfter(1);
 
             try {
-                msgp.reply("http://www.lmgtfy/q=" + URLEncoder.encode(search, "UTF-8"));
+                msgp.reply("http://www.lmgtfy.com/?q=" + URLEncoder.encode(search, "UTF-8"));
             } catch (UnsupportedEncodingException ignored) {
 
             }
