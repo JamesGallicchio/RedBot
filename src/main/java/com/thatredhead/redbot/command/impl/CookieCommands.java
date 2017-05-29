@@ -121,7 +121,9 @@ public class CookieCommands extends CommandGroup {
             }
 
             msgp.reply(sb.toString());
-        }
+
+	    accounts = sorted;
+	}
     }
 
     @EventSubscriber
