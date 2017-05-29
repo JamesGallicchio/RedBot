@@ -22,6 +22,7 @@ import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -29,7 +30,7 @@ import java.util.regex.Pattern;
 public class CuteCommands extends CommandGroup {
 
     private DataHandler datah;
-    private HashMap<Long, String> safeties;
+    private Map<Long, String> safeties;
 
     private static final String engine = "014731838518875835789:co91bck4x3g";
     private List<String> keys = Arrays.asList(
@@ -46,7 +47,7 @@ public class CuteCommands extends CommandGroup {
         commands = Arrays.asList(new CuteCommand(), new CuteSafetyCommand(), new CuteReportCommand());
 
         this.datah = RedBot.getDataHandler();
-        safeties = datah.get("cutesafety", new TypeToken<HashMap<String, String>>(){}.getType(), new HashMap<>());
+        safeties = datah.get("cutesafety", new TypeToken<Map<Long, String>>(){}.getType(), new HashMap<>());
     }
 
     public class CuteCommand extends Command {
@@ -85,7 +86,9 @@ public class CuteCommands extends CommandGroup {
 
             safeties.put(msgp.getChannel().getLongID(), level);
             RedBot.getDataHandler().save(safeties, "cutesafety");
-        }
+
+	    msgp.reply("Set this channel's safety level to " + level + "!");
+	}
     }
 
     public class CuteReportCommand extends Command {
