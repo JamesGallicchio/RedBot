@@ -102,7 +102,9 @@ public class RedBotCommands extends CommandGroup {
                 sb.append(c.getDescription());
                 sb.append("\n");
             }
-            help.appendField("Miscellaneous", sb.toString(), true);
+            if (sb.length() != 0) {
+                help.appendField("Miscellaneous", sb.toString(), true);
+	    }
             Utilities4D4J.sendPrivateMessage(help.build(), msgp.getAuthor());
             Utilities4D4J.sendTemporaryMessage("Check your PMs!", msgp.getChannel());
         }
