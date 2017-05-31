@@ -17,7 +17,7 @@ public class MessageMatcher {
         OPTIONAL;
 
         private static final Pattern CHNLP = Pattern.compile("<#(\\d+)>");
-        private static final Pattern USERP = Pattern.compile("<@(\\d+)>");
+        private static final Pattern USERP = Pattern.compile("<@!?(\\d+)>");
         private static final Pattern ROLEP = Pattern.compile("<@&(\\d+)>");
 
         public static MessageToken[] compile(String pattern) {
