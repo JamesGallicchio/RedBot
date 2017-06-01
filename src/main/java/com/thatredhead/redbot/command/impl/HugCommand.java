@@ -27,7 +27,7 @@ public class HugCommand extends Command {
                 Utilities4D4J.sendTemporaryMessage("That's not a valid user mention! `hug <user mention>`", msgp.getChannel());
             } else {
                 EmbedObject e = Utilities4D4J.makeEmbed(
-                        msgp.getAuthor().getDisplayName(msgp.getGuild()) + " hugged " + u.getDisplayName(msgp.getGuild()),
+                        msgp.getAuthor().getDisplayName(msgp.getGuild()) + " hugged " + u.getDisplayName(msgp.getGuild()) + "! :heart:",
                         "", false);
 
                 e.image = new EmbedObject.ImageObject(HUG_GIF_URL, null, 0, 0);
