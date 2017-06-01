@@ -62,10 +62,6 @@ public class Economy {
 
         for(int i = 1; i < accounts.size(); i++) {
             int j = i-1;
-            if (accounts.get(i).getOwner() == null) {
-                accounts.remove(i--);
-                continue;
-            }
             double amount = accounts.get(i).getAmount();
             while(j >= 0 && accounts.get(j).getAmount() < amount)
                 j--;

@@ -47,7 +47,7 @@ public class MoneyCommands extends CommandGroup {
 
                             for(int i = 0; i < richest.size(); i++) {
                                 Account next = richest.get(i);
-                                response.append("#").append(i+1).append(": ").append(next.getOwner().getName()).append(" - ").append(Economy.format(next.getAmount())).append("\n");
+                                response.append("#").append(i+1).append(": ").append(next.getOwner() == null ? "N/A" : next.getOwner().getName()).append(" - ").append(Economy.format(next.getAmount())).append("\n");
                             }
 
                             msgp.reply(response.toString());
