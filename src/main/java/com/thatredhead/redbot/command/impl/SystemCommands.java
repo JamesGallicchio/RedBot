@@ -176,7 +176,7 @@ public class SystemCommands extends CommandGroup {
 
         @Override
         public void invoke(MessageParser msgp) {
-            String content = IMPORTS + msgp.getContentAfter(1).replace("```kotlin", "").replace("```kt", "").replace("`", "");
+            String content = IMPORTS + "val msgp: MessageParser = bindings.get(\"MSGP\")\n" + msgp.getContentAfter(1).replace("```kotlin", "").replace("```kt", "").replace("`", "");
 
             Object o;
             try {
