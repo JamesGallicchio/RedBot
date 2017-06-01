@@ -110,7 +110,7 @@ public class RedBot {
 
         try {
             System.getProperties().load(getClass().getClassLoader().getResourceAsStream("redbot.properties"));
-            version = System.getProperties().getProperty("version");
+            version = System.getProperty("version");
         } catch (IOException e) {
             e.printStackTrace();
         }

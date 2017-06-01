@@ -156,6 +156,7 @@ public class SystemCommands extends CommandGroup {
 
         public ExecCommand() {
             super("exec", "evaluates a kotlin script", PermissionContext.BOT_OWNER);
+            System.setProperty("kotlin.compiler.jar", "kotlinc/lib/kotlin-compiler.jar");
         }
 
         @Override
