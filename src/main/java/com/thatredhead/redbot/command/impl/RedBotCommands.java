@@ -45,7 +45,7 @@ public class RedBotCommands extends CommandGroup {
                             "[is publicly available online](http://github.com/JamesGallicchio/RedBot).", false,
                     "Getting Started", "Use `%help` to find out what you can do. You can use whatever commands this server's administration has enabled, or PM RedBot to use all of its functions.\n"+
                                 "For administrators: Use `%adminhelp` for information on how to set up RedBot in your server.",
-                            "Support", "Join my support guild [here](currently disabled). There you can find help, suggest new features, talk to Red, etc."
+                            "Support", "Join my support guild [here](https://discord.gg/QVwRdk3). There you can find help, suggest new features, talk to Red, etc."
                     );
         }
     }
