@@ -33,6 +33,8 @@ public class MoneyCommands extends CommandGroup {
 
                                     from.transferTo(recip, amt);
 
+                                    msgp.reply("Paid :diamonds:" + amt + " to " + msgp.getAuthor().getName());
+
                                 } catch (NumberFormatException e) {
                                     msgp.reply("Invalid money amount! Check help for correct usage.");
                                 }
