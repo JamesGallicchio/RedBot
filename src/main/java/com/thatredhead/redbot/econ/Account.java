@@ -58,6 +58,6 @@ public class Account {
 
     @Override
     public String toString() {
-        return "User: " + user.getName() + ". Balance: " + amount;
+        return "User: " + getOwner().getName() + ". Balance: " + amount;
     }
 }
