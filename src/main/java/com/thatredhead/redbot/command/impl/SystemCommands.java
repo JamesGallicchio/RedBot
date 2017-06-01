@@ -161,13 +161,12 @@ public class SystemCommands extends CommandGroup {
         static {
             try {
                 Files.readAllLines(Paths.get("script-imports.txt"))
-                        .stream().map(String::trim).filter(String::isEmpty)
+                        .stream().filter(s -> !s.trim().isEmpty())
                         .forEach(s -> IMPORTS += "import " + s + "\n");
-            } catch (IOException ignored) {}
+            } catch (IOException ignored) {
+	        ignored.printStackTrace();
+            }
 
-            System.out.println("::::IMPORTS::::");
-            System.out.println(IMPORTS);
-            System.out.println("::::IMPORTS::::");
             System.setProperty("kotlin.compiler.jar", "kotlinc/lib/kotlin-compiler.jar");
         }
 
@@ -179,7 +178,7 @@ public class SystemCommands extends CommandGroup {
 
         @Override
         public void invoke(MessageParser msgp) {
-            String content = IMPORTS + "val msgp: MessageParser = bindings.get(\"MSGP\")\n" + msgp.getContentAfter(1).replace("```kotlin", "").replace("```kt", "").replace("`", "");
+            String content = IMPORTS + "val msgp: MessageParser = bindings.get(\"MSGP\") as MessageParser\n" + msgp.getContentAfter(1).replace("```kotlin", "").replace("```kt", "").replace("`", "");
 
             Object o;
             try {
