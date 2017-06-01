@@ -71,6 +71,9 @@ public class CookieCommands extends CommandGroup {
         }
 
         public void invoke(MessageParser msgp) {
+
+            msgp.reply(Utilities4D4J.makeEmbed("RedBot Cookie Clicker", "Cookie clicker is currently disabled while I rewrite it! Thanks for your patience :)", false));
+            /*
             CookieClickerAccount user = getAccountForUser(msgp.getAuthor());
 
             if (messages.containsKey(msgp.getAuthor().getLongID())) {
@@ -85,7 +88,7 @@ public class CookieCommands extends CommandGroup {
             updaters.put(msg.getLongID(), new Utilities4D4J.RequestQueue<>(1, 3, TimeUnit.SECONDS));
 
             Utilities4D4J.addReactionsOrdered(msg, COOKIE_EMOJI, CLICK_UPGRADE_EMOJI, AUTO_UPGRADE_EMOJI);
-            save();
+            save();*/
         }
     }
 
@@ -121,12 +124,10 @@ public class CookieCommands extends CommandGroup {
             }
 
             msgp.reply(sb.toString());
-
-	    accounts = sorted;
-	}
+            accounts = sorted;
+        }
     }
 
-    @EventSubscriber
     public void handle(ReactionEvent event) {
 
         Utilities4D4J.SerializableMessage cache = messages.get(event.getUser().getLongID());
