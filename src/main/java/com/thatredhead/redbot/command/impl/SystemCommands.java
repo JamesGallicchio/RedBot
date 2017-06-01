@@ -165,6 +165,9 @@ public class SystemCommands extends CommandGroup {
                         .forEach(s -> IMPORTS += "import " + s + "\n");
             } catch (IOException ignored) {}
 
+            System.out.println("::::IMPORTS::::");
+            System.out.println(IMPORTS);
+            System.out.println("::::IMPORTS::::");
             System.setProperty("kotlin.compiler.jar", "kotlinc/lib/kotlin-compiler.jar");
         }
 
