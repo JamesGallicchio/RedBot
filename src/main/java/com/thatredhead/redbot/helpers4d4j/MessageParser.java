@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
 public class MessageParser {
 
     private static final Pattern CHNLP = Pattern.compile("<#(\\d+)>");
-    private static final Pattern USERP = Pattern.compile("<@(\\d+)>");
+    private static final Pattern USERP = Pattern.compile("<@!?(\\d+)>");
     private static final Pattern ROLEP = Pattern.compile("<@&(\\d+)>");
 
     private IMessage msg;
