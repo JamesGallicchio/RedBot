@@ -8,6 +8,7 @@ import com.thatredhead.redbot.helpers4d4j.MessageParser;
 import com.thatredhead.redbot.helpers4d4j.Utilities4D4J;
 import com.thatredhead.redbot.permission.PermissionContext;
 import org.jetbrains.kotlin.script.jsr223.KotlinJsr223JvmDaemonLocalEvalScriptEngineFactory;
+import org.jetbrains.kotlin.script.jsr223.KotlinJsr223JvmLocalScriptEngineFactory;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.handle.obj.*;
 
@@ -152,11 +153,14 @@ public class SystemCommands extends CommandGroup {
     }
 
     public static class ExecCommand extends Command {
-        private KotlinJsr223JvmDaemonLocalEvalScriptEngineFactory factory = new KotlinJsr223JvmDaemonLocalEvalScriptEngineFactory();
+         static {
+             System.setProperty("kotlin.compiler.jar", "kotlinc/lib/kotlin-compiler.jar");
+         }
+
+        private KotlinJsr223JvmLocalScriptEngineFactory factory = new KotlinJsr223JvmLocalScriptEngineFactory();
 
         public ExecCommand() {
             super("exec", "evaluates a kotlin script", PermissionContext.BOT_OWNER);
-            System.setProperty("kotlin.compiler.jar", "kotlinc/lib/kotlin-compiler.jar");
         }
 
         @Override
