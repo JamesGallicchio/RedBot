@@ -7,12 +7,15 @@ import com.thatredhead.redbot.command.CommandGroup;
 import com.thatredhead.redbot.helpers4d4j.MessageParser;
 import com.thatredhead.redbot.helpers4d4j.Utilities4D4J;
 import com.thatredhead.redbot.permission.PermissionContext;
-import org.jetbrains.kotlin.script.jsr223.KotlinJsr223JvmDaemonLocalEvalScriptEngineFactory;
 import org.jetbrains.kotlin.script.jsr223.KotlinJsr223JvmLocalScriptEngineFactory;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.handle.obj.*;
 
+import javax.script.ScriptEngine;
 import javax.script.ScriptException;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
 
 public class SystemCommands extends CommandGroup {
@@ -153,9 +156,17 @@ public class SystemCommands extends CommandGroup {
     }
 
     public static class ExecCommand extends Command {
-         static {
-             System.setProperty("kotlin.compiler.jar", "kotlinc/lib/kotlin-compiler.jar");
-         }
+        public static String IMPORTS = "";
+
+        static {
+            try {
+                Files.readAllLines(Paths.get("script-imports.txt"))
+                        .stream().map(String::trim).filter(String::isEmpty)
+                        .forEach(s -> IMPORTS += "import " + s + "\n");
+            } catch (IOException ignored) {}
+
+            System.setProperty("kotlin.compiler.jar", "kotlinc/lib/kotlin-compiler.jar");
+        }
 
         private KotlinJsr223JvmLocalScriptEngineFactory factory = new KotlinJsr223JvmLocalScriptEngineFactory();
 
@@ -165,11 +176,13 @@ public class SystemCommands extends CommandGroup {
 
         @Override
         public void invoke(MessageParser msgp) {
-            String content = msgp.getContentAfter(1).replace("```kotlin", "").replace("```kt", "").replace("`", "");
+            String content = IMPORTS + msgp.getContentAfter(1).replace("```kotlin", "").replace("```kt", "").replace("`", "");
 
             Object o;
             try {
-                o = factory.getScriptEngine().eval(content);
+                ScriptEngine e = factory.getScriptEngine();
+                e.put("MSGP", msgp);
+                o = e.eval(content);
             } catch (ScriptException e) {
                 Utilities4D4J.sendEmbed(msgp.getChannel(), "RedBot Script Executor", "", false,
                         "Failure!", "```\n" + e.getMessage() + "```");

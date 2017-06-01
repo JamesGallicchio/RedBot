@@ -1,0 +1,13 @@
+com.thatredhead.redbot.RedBot
+com.thatredhead.redbot.helpers4d4j.*
+com.thatredhead.redbot.econ.*
+com.thatredhead.redbot.data.*
+com.thatredhead.redbot.command.*
+com.thatredhead.redbot.command.impl.*
+
+sx.blah.discord.api.*
+sx.blah.discord.api.events.*
+sx.blah.discord.handle.obj.*
+sx.blah.discord.handle.impl.obj.*
+sx.blah.discord.util.*
+sx.blah.discord.util.cache.*
