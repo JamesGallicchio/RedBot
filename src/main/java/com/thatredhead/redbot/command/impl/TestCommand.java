@@ -3,12 +3,12 @@ package com.thatredhead.redbot.command.impl;
 import com.thatredhead.redbot.command.Command;
 import com.thatredhead.redbot.command.CommandException;
 import com.thatredhead.redbot.helpers4d4j.MessageParser;
-import com.thatredhead.redbot.helpers4d4j.Utilities4D4J;
 import com.thatredhead.redbot.permission.PermissionContext;
 import com.vdurmont.emoji.Emoji;
 import com.vdurmont.emoji.EmojiManager;
-import sx.blah.discord.handle.obj.IMessage;
-import sx.blah.discord.handle.obj.IUser;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class TestCommand extends Command {
 
@@ -21,16 +21,12 @@ public class TestCommand extends Command {
 
     @Override
     public void invoke(MessageParser msgp) throws CommandException {
-
-        Utilities4D4J.sendReactionUI("0", msgp.getChannel(), new Utilities4D4J.ReactionListener() {
-            @Override
-            public void onReactionToggle(IMessage msg, IUser user, Emoji emoji) {
-                if(emoji.equals(plus)) {
-                    Utilities4D4J.edit(msg, Integer.parseInt(msg.getContent())+1+"");
-                } else if(emoji.equals(minus)) {
-                    Utilities4D4J.edit(msg, Integer.parseInt(msg.getContent())-1+"");
-                }
-            }
-        }, plus, minus);
+        if (msgp.getArgCount() < 2) {
+            msgp.reply("Specify a filepath!");
+        } else {
+            Path p = Paths.get(msgp.getArg(1));
+            msgp.reply("exists? " + p.toFile().exists());
+            msgp.reply("path: " + p.toString());
+        }
     }
 }

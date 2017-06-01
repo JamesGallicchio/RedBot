@@ -1,14 +1,12 @@
 package com.thatredhead.redbot.command.impl;
 
 import com.thatredhead.redbot.command.Command;
-import com.thatredhead.redbot.command.CommandArgumentException;
 import com.thatredhead.redbot.command.CommandException;
 import com.thatredhead.redbot.helpers4d4j.MessageParser;
 import com.thatredhead.redbot.helpers4d4j.Utilities4D4J;
 import com.thatredhead.redbot.permission.PermissionContext;
 import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.handle.obj.IUser;
-import sx.blah.discord.util.EmbedBuilder;
 
 public class HugCommand extends Command {
     public static final String HUG_GIF_URL = "https://media1.giphy.com/media/XpgOZHuDfIkoM/giphy.gif";
