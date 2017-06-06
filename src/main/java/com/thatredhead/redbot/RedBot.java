@@ -130,6 +130,7 @@ public class RedBot {
 
     @EventSubscriber
     public static void onSuccessfulReconnect(ReconnectSuccessEvent event) {
+        reportError(new RuntimeException("Successfully reconnected!"));
         ready.set(true);
     }
 
@@ -231,7 +232,9 @@ public class RedBot {
     public static void reportError(Throwable e) {
         String stacktrace = ExceptionUtils.getStackTrace(e);
         LOGGER.error(stacktrace);
-        RequestBuffer.request(() -> client.getChannelByID(ERROR_CHANNEL_ID).sendMessage("```\n" + limit(stacktrace, 1990) + "```"));
+        if (client.isReady()) {
+            RequestBuffer.request(() -> client.getChannelByID(ERROR_CHANNEL_ID).sendMessage("```\n" + limit(stacktrace, 1990) + "```"));
+        }
     }
 
     private static String limit(String s, int chars) {
