@@ -82,32 +82,36 @@ public class CommandHandler {
     @EventSubscriber
     public void onMessageReceive(MessageReceivedEvent e) {
 
-        MessageParser msgp = new MessageParser(e.getMessage());
-        String prefix = getPrefix(msgp.getGuild());
+        if (e.getMessage().getChannel().getModifiedPermissions(RedBot.getClient().getOurUser()).contains(Permissions.SEND_MESSAGES)) {
+            MessageParser msgp = new MessageParser(e.getMessage());
+            String prefix = getPrefix(msgp.getGuild());
 
-        if(msgp.construct(prefix)) {
-            boolean success = false;
+            if(msgp.construct(prefix)) {
+                boolean success = false;
 
-            for (Command c : commands) {
-                if (c.usesPrefix() && c.getKeyword().equalsIgnoreCase(msgp.getArg(0))) {
-                    if (perms.hasPermission(c, msgp.getMsg()))
-                        invoke(c, msgp);
-                    else
-                        Utilities4D4J.sendTemporaryMessage("You don't have permission to perform this command.", msgp.getChannel());
-                    success = true;
+                for (Command c : commands) {
+                    if (c.usesPrefix() && c.getKeyword().equalsIgnoreCase(msgp.getArg(0))) {
+                        if (perms.hasPermission(c, msgp.getMsg()))
+                            invoke(c, msgp);
+                        else
+                            Utilities4D4J.sendTemporaryMessage("You don't have permission to perform this command.", msgp.getChannel());
+                        success = true;
+                    }
                 }
-            }
-            if (!success)
-                Utilities4D4J.sendTemporaryMessage("Unknown command! Use help command for a list of commands.", msgp.getChannel());
-        } else
-            for (Command c : commands) {
-                if (!c.usesPrefix() && c.getKeyword().equalsIgnoreCase(msgp.getArg(0))) {
-                    if (perms.hasPermission(c, msgp.getMsg()))
-                        invoke(c, msgp);
-                    else
-                        Utilities4D4J.sendTemporaryMessage("You don't have permission to perform this command.", msgp.getChannel());
+                if (!success)
+                    Utilities4D4J.sendTemporaryMessage("Unknown command! Use help command for a list of commands.", msgp.getChannel());
+            } else
+                for (Command c : commands) {
+                    if (!c.usesPrefix() && c.getKeyword().equalsIgnoreCase(msgp.getArg(0))) {
+                        if (perms.hasPermission(c, msgp.getMsg()))
+                            invoke(c, msgp);
+                        else
+                            Utilities4D4J.sendTemporaryMessage("You don't have permission to perform this command.", msgp.getChannel());
+                    }
                 }
-            }
+        } else {
+            Utilities4D4J.sendEmbed(e.getMessage().getAuthor().getOrCreatePMChannel(), "Mising Permissions", "I'm not able to talk in " + e.getMessage().getChannel().mention() + "! If you think this is a mistake, tell the owner of the server to give RedBot the send message permission in that channel.", false);
+        }
     }
 
     private static void invoke(Command c, MessageParser msg) {
