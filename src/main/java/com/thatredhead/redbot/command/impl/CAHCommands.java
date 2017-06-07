@@ -65,7 +65,7 @@ public class CAHCommand extends Command {
                 else if (g.isStarted()) msgp.reply("This game has already started!");
                 else {
                     g.start();
-                    
+                    takeTurn(msgp.getChannel(), g);
                 }
             default:
                 msgp.reply("Unknown command " + msgp.getArg(1) + "! Use `cah` for help.");
@@ -74,6 +74,7 @@ public class CAHCommand extends Command {
     
     private static void takeTurn(IChannel c, CAHGame g) {
         Utilities4D4J.sendEmbed(c, "Cards Against Humanity", "Current czar: " + g.getCzar().mention(), true, "Scores", scores(g));
+
     }
 
     private static String scores(CAHGame g) {
@@ -82,14 +83,14 @@ public class CAHCommand extends Command {
         for (Player p : ps) {
             s.append(p.getUser().mention()).append(": ").append(p.getScore()).append("\n");
         }
-	return s.toString();
+        return s.toString();
     }
 
-    private static EmbedObject toEmbed(List<Card> cards) {
-        String[] fields = new String[cards.size()*2];
-        for (int i = 0; i < cards.size(); i++) {
-            fields[i*2] = "Card " + i;
-            fields[i*2+1] = cards.get(i).getText();
+    private static EmbedObject toEmbed(Player p) {
+        String[] fields = new String[p.getCards().size()*2];
+        for (int i = 0; i < p.getCards().size(); i++) {
+            fields[i*2] = i == p.getChoice() ? "Card " + i : "**Card " + i + "**";
+            fields[i*2+1] = p.getCards().get(i).getText();
         }
         return Utilities4D4J.makeEmbed("Your CAH Hand", "", true, fields);
     }
