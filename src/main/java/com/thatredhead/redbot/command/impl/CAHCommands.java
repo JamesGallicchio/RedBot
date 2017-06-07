@@ -1,6 +1,11 @@
 package com.thatredhead.redbot.command.impl;
 
-import com.thatredhead.redbot.command.CommandGroup;
+import com.thatredhead.redbot.command.Command;
+import com.thatredhead.redbot.command.CommandException;
+import com.thatredhead.redbot.helpers4d4j.MessageParser;
+import com.thatredhead.redbot.helpers4d4j.Utilities4D4J;
+import com.thatredhead.redbot.permission.PermissionContext;
+import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IUser;
 
@@ -10,9 +15,10 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class CAHCommands extends CommandGroup{
+public class CAHCommand extends Command {
     public static final List<Card> WHITE_CARDS;
     public static final List<Card> BLACK_CARDS;
+    public static final EmbedObject HELP_EMBED = Utilities4D4J.makeEmbed("Cards Against Humanity Help", "You can start a new game in any channel where the `cah` command is enabled using `cah create`. To join the game, each player should use `cah join`. When you're ready to start, use `cah start`.", false);
 
     static {
         List<Card> whites = null;
@@ -34,12 +40,14 @@ public class CAHCommands extends CommandGroup{
 
     private Map<IChannel, CAHGame> games;
 
-    public CAHCommands() {
-        super("Cards Against Humanity", "For playing games of CAH!",
-                "cah", Arrays.asList());
+    public CAHCommand() {
+        super("cah", "The root command for Cards Against Humanity games", PermissionContext.EVERYONE);
     }
 
-    
+    @Override
+    public void invoke(MessageParser msgp) throws CommandException {
+        if (msgp.getArgCount() < 1) msgp.reply()
+    }
 
     private static class CAHGame {
         private final int minPlayers;
