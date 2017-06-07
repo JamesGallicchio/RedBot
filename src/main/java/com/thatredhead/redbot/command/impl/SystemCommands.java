@@ -17,6 +17,8 @@ import javax.script.ScriptException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.Arrays;
 
 public class SystemCommands extends CommandGroup {
@@ -43,6 +45,22 @@ public class SystemCommands extends CommandGroup {
                     "Thread count", "" + Thread.activeCount(),
                     "Memory usage", "Usage: " + (total-free)/1024/1024 + " MB\nTotal: " + total/1024/1024 + " MB",
                     "Version", RedBot.getVersion()));
+        }
+    }
+
+    public static class PingCommand extends Command {
+        public PingCommand() {
+            super("ping", "Shows response time of the bot", PermissionContext.EVERYONE);
+        }
+
+        public void invoke(MessageParser msgp) throws CommandException {
+            IMessage msg = msgp.reply("Please wait...").get();
+
+            long diff = msgp.getMsg().getTimestamp().toInstant(ZoneOffset.of(ZoneId.systemDefault().getId())).toEpochMilli()
+                    - msg.getTimestamp().toInstant(ZoneOffset.of(ZoneId.systemDefault().getId())).toEpochMilli();
+            long responseTime = msgp.getMsg().getShard().getResponseTime();
+
+            Utilities4D4J.edit(msg, "Request ping: " + diff/1000.0 + "s\nHeartbeat ping: " + responseTime/1000.0 + "s");
         }
     }
 
