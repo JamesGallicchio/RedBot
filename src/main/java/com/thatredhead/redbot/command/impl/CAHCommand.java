@@ -1,5 +1,6 @@
 package com.thatredhead.redbot.command.impl;
 
+import com.thatredhead.redbot.RedBot;
 import com.thatredhead.redbot.command.Command;
 import com.thatredhead.redbot.command.CommandException;
 import com.thatredhead.redbot.helpers4d4j.MessageParser;
@@ -7,6 +8,7 @@ import com.thatredhead.redbot.helpers4d4j.Utilities4D4J;
 import com.thatredhead.redbot.permission.PermissionContext;
 import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.handle.obj.IChannel;
+import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.handle.obj.IUser;
 
 import java.io.IOException;
@@ -46,34 +48,42 @@ public class CAHCommand extends Command {
 
     @Override
     public void invoke(MessageParser msgp) throws CommandException {
-        if (msgp.getArgCount() < 1) Utilities4D4J.sendEmbed(msgp.getChannel(), HELP_EMBED);
-        switch(msgp.getArg(1).toLowercase()) {
-            case "create":
-                msgp.reply("no");
-            case "join":
-                CAHGame g = games.get(msgp.getChannel().getLongID());
-                if (g == null) msgp.reply("There is no game going on right now. Use `cah` for help.");
-		else if (g.isStarted()) msgp.reply("This game has already started!");
-                else if (g.isPlayer(u)) msgp.reply("You're already in this game.");
-                else {
-                    g.addPlayer(u);
+        if (msgp.getArgCount() < 1) Utilities4D4J.sendEmbed(HELP_EMBED, msgp.getChannel());
+
+        String keyword = msgp.getArg(1).toLowerCase();
+
+        if ("create".equals(keyword)) {
+            if (games.containsKey(msgp.getChannel().getLongID())) {
+                msgp.reply("There's already a game going on in this channel.");
+            } else {
+                games.put(msgp.getChannel().getLongID(), new CAHGame(7, 5, 3, 20));
+                games.get(msgp.getChannel().getLongID()).addPlayer(msgp.getAuthor());
+                msgp.reply("New game created! `cah join` to join the game.");
+            }
+        } else {
+            CAHGame g = games.get(msgp.getChannel().getLongID());
+            if (g == null) {
+                msgp.reply("There is no game going on right now. Use `cah` for help.");
+            } else if (g.hasStarted()) {
+                msgp.reply("This game has already started!");
+            } else if ("join".equals(keyword)) {
+                if (g.isPlayer(msgp.getAuthor())) {
+                    msgp.reply("You're already in this game.");
+                } else {
+                    g.addPlayer(msgp.getAuthor());
                     msgp.reply("Successfully joined the game!");
-                } break;
-	    case "start":
-                CAHGame g = games.get(msgp.getChannel().getLongID());
-                if (g == null) msgp.reply("There is no game going on right now. Use `cah` for help.");
-                else if (g.isStarted()) msgp.reply("This game has already started!");
-                else {
-                    g.start();
-                    takeTurn(msgp.getChannel(), g);
                 }
-            default:
+            } else if ("start".equals(keyword)) {
+                g.start();
+                takeTurn(msgp.getChannel(), g);
+            } else {
                 msgp.reply("Unknown command " + msgp.getArg(1) + "! Use `cah` for help.");
+            }
         }
     }
-    
+
     private static void takeTurn(IChannel c, CAHGame g) {
-        Utilities4D4J.sendEmbed(c, "Cards Against Humanity", "Current czar: " + g.getCzar().mention(), true, "Scores", scores(g));
+        Utilities4D4J.sendEmbed(c, "Cards Against Humanity", "Current czar: <@" + g.getCzar() + ">", true, "Scores", scores(g));
 
     }
 
@@ -81,16 +91,18 @@ public class CAHCommand extends Command {
         List<Player> ps = g.getPlayers();
         StringBuilder s = new StringBuilder();
         for (Player p : ps) {
-            s.append(p.getUser().mention()).append(": ").append(p.getScore()).append("\n");
+            s.append("<@").append(p.getUserID()).append(">").append(": ")
+                    .append(p.getScore()).append("\n");
         }
         return s.toString();
     }
 
     private static EmbedObject toEmbed(Player p) {
-        String[] fields = new String[p.getCards().size()*2];
-        for (int i = 0; i < p.getCards().size(); i++) {
-            fields[i*2] = i == p.getChoice() ? "Card " + i : "**Card " + i + "**";
-            fields[i*2+1] = p.getCards().get(i).getText();
+        List<Card> c = p.getCards();
+        String[] fields = new String[c.size() * 2];
+        for (int i = 0; i < c.size(); i++) {
+            fields[i * 2] = i == p.getChoice() ? "Card " + i : "**Card " + i + "**";
+            fields[i * 2 + 1] = c.get(i).getText();
         }
         return Utilities4D4J.makeEmbed("Your CAH Hand", "", true, fields);
     }
@@ -129,12 +141,13 @@ public class CAHCommand extends Command {
             if (isPlayer(u)) throw new IllegalStateException("Player already in the game!");
 
             Player p = new Player(u);
-            for (int i= 0; i < handSize; i++) p.getCards().add(getNextWhiteCard());
+            for (int i = 0; i < handSize; i++) p.getCards().add(getNextWhiteCard());
             players.addLast(p);
         }
 
         public void removePlayer(IUser u) {
-            if (players.getFirst().getUserID() == u.getLongID()) throw new IllegalStateException("Czar can't leave the game during their turn!");
+            if (players.getFirst().getUserID() == u.getLongID())
+                throw new IllegalStateException("Czar can't leave the game during their turn!");
             if (!players.removeIf(p -> p.getUserID() == u.getLongID())) {
                 throw new IllegalStateException("Can't remove someone who isn't in the game!");
             }
@@ -148,8 +161,13 @@ public class CAHCommand extends Command {
             return players.stream().filter(p -> p.userID == id).findFirst();
         }
 
+        public List<Player> getPlayers() {
+            return players;
+        }
+
         public void start() {
-            if (players.size() < minPlayers || players.size() > maxPlayers) throw new IllegalStateException("Player count is not within range!");
+            if (players.size() < minPlayers || players.size() > maxPlayers)
+                throw new IllegalStateException("Player count is not within range!");
             if (isStarted) throw new IllegalStateException("Already started!");
             isStarted = true;
         }
@@ -181,15 +199,16 @@ public class CAHCommand extends Command {
         }
 
         public Map<Long, Card> getChosen() {
-            return players.stream().collect(Collectors.toMap(Player::getUserID, Player::getChoice));
+            return players.stream().collect(Collectors.toMap(Player::getUserID, Player::getChoiceCard));
         }
 
         public void czarChoose(long userID) {
             getPlayer(userID).orElseThrow(() -> new IllegalArgumentException("Given user ID doesn't correspond to a player!"))
                     .incrScore();
             players.forEach(p -> {
-                if (p.getChoice() != null) {
-                    whiteDiscard.add(p.getChoice());
+                if (p.getChoice() >= 0) {
+                    whiteDiscard.add(p.removeChoiceCard());
+                    p.dealCard(whiteDeck.get(whiteDeck.size()-1));
                     p.setChoice(-1);
                 }
             });
@@ -203,7 +222,7 @@ public class CAHCommand extends Command {
                     whiteDeck.add(whiteDiscard.remove((int) (whiteDiscard.size() * Math.random())));
                 }
             }
-            return whiteDeck.remove(whiteDeck.size()-1);
+            return whiteDeck.remove(whiteDeck.size() - 1);
         }
 
         private Card getNextBlackCard() {
@@ -212,23 +231,24 @@ public class CAHCommand extends Command {
                     blackDeck.add(blackDiscard.remove((int) (blackDiscard.size() * Math.random())));
                 }
             }
-            return blackDeck.remove(blackDeck.size()-1);
+            return blackDeck.remove(blackDeck.size() - 1);
         }
     }
 
     private static class Player {
         private long userID;
-	private long cardsMessageID;
+        private long cardsMessageID;
         private int score;
         private List<Card> cards;
         private int choice;
 
-        public Player() {}
+        public Player() {
+        }
 
         public Player(IUser u) {
             userID = u.getLongID();
             cards = new ArrayList<>();
-            cardsMessageID = Utilities4D4J.sendEmbed(Utilities4D4J.sendEmbed("Your CAH Hand", "Your hand will be dealt when the game starts!", false), u.getOrCreatePMChannel()).get().getID(); 
+            cardsMessageID = Utilities4D4J.sendEmbed(u.getOrCreatePMChannel(), "Your CAH Hand", "Your hand will be dealt when the game starts!", false).get().getLongID();
         }
 
         public long getUserID() {
@@ -236,7 +256,7 @@ public class CAHCommand extends Command {
         }
 
         public IMessage getCardsMessage() {
-            return RedBot.getUserByID(userID).getOrCreatePMChannel().getMessageByID(cardsMessageID);
+            return RedBot.getClient().getUserByID(userID).getOrCreatePMChannel().getMessageByID(cardsMessageID);
         }
 
         public int getScore() {
@@ -259,8 +279,16 @@ public class CAHCommand extends Command {
             choice = i;
         }
 
-        public Card getChoice() {
+        public int getChoice() {
+            return choice;
+        }
+
+        public Card getChoiceCard() {
             return choice < 0 ? null : cards.get(choice);
+        }
+
+        public Card removeChoiceCard() {
+            return choice < 0 ? null : cards.remove(choice);
         }
     }
 
@@ -269,7 +297,8 @@ public class CAHCommand extends Command {
         private boolean isBlack;
         private boolean isCustomCard;
 
-        public Card() {}
+        public Card() {
+        }
 
         public Card(String text, boolean isBlack, boolean isCustomCard) {
             this.isBlack = isBlack;
