@@ -7,6 +7,7 @@ import com.thatredhead.redbot.command.CommandGroup;
 import com.thatredhead.redbot.helpers4d4j.MessageParser;
 import com.thatredhead.redbot.helpers4d4j.Utilities4D4J;
 import com.thatredhead.redbot.permission.PermissionContext;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.kotlin.script.jsr223.KotlinJsr223JvmLocalScriptEngineFactory;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.handle.obj.*;
@@ -187,7 +188,7 @@ public class SystemCommands extends CommandGroup {
                 o = e.eval(content);
             } catch (ScriptException e) {
                 Utilities4D4J.sendEmbed(msgp.getChannel(), "RedBot Script Executor", "", false,
-                        "Failure!", "```\n" + e.getMessage() + "```");
+                        "Failure!", "```\n" + StringUtils.abbreviate(e.getMessage(), 1000) + "```");
                 return;
             }
             Utilities4D4J.sendEmbed(msgp.getChannel(), "RedBot Script Executor", "", false,
