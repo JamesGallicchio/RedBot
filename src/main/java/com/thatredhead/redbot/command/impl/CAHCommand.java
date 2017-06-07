@@ -44,6 +44,7 @@ public class CAHCommand extends Command {
 
     public CAHCommand() {
         super("cah", "The root command for Cards Against Humanity games", PermissionContext.EVERYONE);
+        games = new HashMap<>();
     }
 
     @Override
@@ -132,8 +133,10 @@ public class CAHCommand extends Command {
             players = new LinkedList<>();
             whiteDeck = new ArrayList<>();
             whiteDeck.addAll(WHITE_CARDS);
+            whiteDiscard = new ArrayList<>();
             blackDeck = new ArrayList<>();
             blackDeck.addAll(BLACK_CARDS);
+            blackDiscard = new ArrayList<>();
         }
 
         public void addPlayer(IUser u) {
