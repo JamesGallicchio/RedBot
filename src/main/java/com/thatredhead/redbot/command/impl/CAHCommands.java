@@ -38,7 +38,7 @@ public class CAHCommand extends Command {
         }
     }
 
-    private Map<IChannel, CAHGame> games;
+    private Map<Long, CAHGame> games;
 
     public CAHCommand() {
         super("cah", "The root command for Cards Against Humanity games", PermissionContext.EVERYONE);
@@ -46,7 +46,52 @@ public class CAHCommand extends Command {
 
     @Override
     public void invoke(MessageParser msgp) throws CommandException {
-        if (msgp.getArgCount() < 1) msgp.reply()
+        if (msgp.getArgCount() < 1) Utilities4D4J.sendEmbed(msgp.getChannel(), HELP_EMBED);
+        switch(msgp.getArg(1).toLowercase()) {
+            case "create":
+                msgp.reply("no");
+            case "join":
+                CAHGame g = games.get(msgp.getChannel().getLongID());
+                if (g == null) msgp.reply("There is no game going on right now. Use `cah` for help.");
+		else if (g.isStarted()) msgp.reply("This game has already started!");
+                else if (g.isPlayer(u)) msgp.reply("You're already in this game.");
+                else {
+                    g.addPlayer(u);
+                    msgp.reply("Successfully joined the game!");
+                } break;
+	    case "start":
+                CAHGame g = games.get(msgp.getChannel().getLongID());
+                if (g == null) msgp.reply("There is no game going on right now. Use `cah` for help.");
+                else if (g.isStarted()) msgp.reply("This game has already started!");
+                else {
+                    g.start();
+                    
+                }
+            default:
+                msgp.reply("Unknown command " + msgp.getArg(1) + "! Use `cah` for help.");
+        }
+    }
+    
+    private static void takeTurn(IChannel c, CAHGame g) {
+        Utilities4D4J.sendEmbed(c, "Cards Against Humanity", "Current czar: " + g.getCzar().mention(), true, "Scores", scores(g));
+    }
+
+    private static String scores(CAHGame g) {
+        List<Player> ps = g.getPlayers();
+        StringBuilder s = new StringBuilder();
+        for (Player p : ps) {
+            s.append(p.getUser().mention()).append(": ").append(p.getScore()).append("\n");
+        }
+	return s.toString();
+    }
+
+    private static EmbedObject toEmbed(List<Card> cards) {
+        String[] fields = new String[cards.size()*2];
+        for (int i = 0; i < cards.size(); i++) {
+            fields[i*2] = "Card " + i;
+            fields[i*2+1] = cards.get(i).getText();
+        }
+        return Utilities4D4J.makeEmbed("Your CAH Hand", "", true, fields);
     }
 
     private static class CAHGame {
@@ -172,6 +217,7 @@ public class CAHCommand extends Command {
 
     private static class Player {
         private long userID;
+	private long cardsMessageID;
         private int score;
         private List<Card> cards;
         private int choice;
@@ -181,10 +227,15 @@ public class CAHCommand extends Command {
         public Player(IUser u) {
             userID = u.getLongID();
             cards = new ArrayList<>();
+            cardsMessageID = Utilities4D4J.sendEmbed(Utilities4D4J.sendEmbed("Your CAH Hand", "Your hand will be dealt when the game starts!", false), u.getOrCreatePMChannel()).get().getID(); 
         }
 
         public long getUserID() {
             return userID;
+        }
+
+        public IMessage getCardsMessage() {
+            return RedBot.getUserByID(userID).getOrCreatePMChannel().getMessageByID(cardsMessageID);
         }
 
         public int getScore() {
