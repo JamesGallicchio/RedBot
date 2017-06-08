@@ -18,7 +18,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.util.Arrays;
 
 public class SystemCommands extends CommandGroup {
@@ -56,8 +55,8 @@ public class SystemCommands extends CommandGroup {
         public void invoke(MessageParser msgp) throws CommandException {
             IMessage msg = msgp.reply("Please wait...").get();
 
-            long diff = msgp.getMsg().getTimestamp().toInstant(ZoneOffset.of(ZoneId.systemDefault().getId())).toEpochMilli()
-                    - msg.getTimestamp().toInstant(ZoneOffset.of(ZoneId.systemDefault().getId())).toEpochMilli();
+            long diff = msgp.getMsg().getTimestamp().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+                    - msg.getTimestamp().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
             long responseTime = msgp.getMsg().getShard().getResponseTime();
 
             Utilities4D4J.edit(msg, "Request ping: " + diff/1000.0 + "s\nHeartbeat ping: " + responseTime/1000.0 + "s");
