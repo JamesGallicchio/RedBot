@@ -23,7 +23,7 @@ import java.util.Arrays;
 public class SystemCommands extends CommandGroup {
 
     public SystemCommands() {
-        super("System Commands", "Commands for administrative purposes (for ThatRedhead)", "system", Arrays.asList(new RebuildCommand(), new RestartCommand(), new ShutdownCommand(), new SysInfoCommand(), new GetByIDCommand(), new AnnounceCommand(), new ExecCommand()));
+        super("System Commands", "Commands for administrative purposes (for ThatRedhead)", "system", Arrays.asList(new RebuildCommand(), new RestartCommand(), new ShutdownCommand(), new SysInfoCommand(), new PingCommand(), new GetByIDCommand(), new AnnounceCommand(), new ExecCommand()));
     }
 
     public static class SysInfoCommand extends Command {
@@ -38,11 +38,11 @@ public class SystemCommands extends CommandGroup {
             long free = Runtime.getRuntime().freeMemory();
 
             msgp.reply(Utilities4D4J.makeEmbed("System Info", "", false,
-            "Guild count", "" + RedBot.getClient().getGuilds().size(),
+                    "Guild count", "" + RedBot.getClient().getGuilds().size(),
                     "User count", "" + RedBot.getClient().getUsers().size(),
                     "Current uptime", RedBot.getUptime(),
                     "Thread count", "" + Thread.activeCount(),
-                    "Memory usage", "Usage: " + (total-free)/1024/1024 + " MB\nTotal: " + total/1024/1024 + " MB",
+                    "Memory usage", "Usage: " + (total - free) / 1024 / 1024 + " MB\nTotal: " + total / 1024 / 1024 + " MB",
                     "Version", RedBot.getVersion()));
         }
     }
@@ -59,7 +59,7 @@ public class SystemCommands extends CommandGroup {
                     - msg.getTimestamp().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
             long responseTime = msgp.getMsg().getShard().getResponseTime();
 
-            Utilities4D4J.edit(msg, "Request ping: " + diff/1000.0 + "s\nHeartbeat ping: " + responseTime/1000.0 + "s");
+            Utilities4D4J.edit(msg, "Request ping: " + diff / 1000.0 + "s\nHeartbeat ping: " + responseTime / 1000.0 + "s");
         }
     }
 
@@ -83,7 +83,7 @@ public class SystemCommands extends CommandGroup {
         }
 
         public void invoke(MessageParser msgp) {
-            if(RedBot.OWNER_ID == msgp.getAuthor().getLongID()) {
+            if (RedBot.OWNER_ID == msgp.getAuthor().getLongID()) {
                 msgp.reply("Restarting RedBot!");
 
                 RedBot.restart();
@@ -117,36 +117,35 @@ public class SystemCommands extends CommandGroup {
             long id = Long.parseUnsignedLong(msgp.getArg(1));
 
             IUser user = client.getUserByID(id);
-            if(user != null) {
+            if (user != null) {
                 msgp.reply("User: `" + user.getName() + "`");
                 return;
             }
 
             IGuild guild = client.getGuildByID(id);
-            if(guild != null) {
+            if (guild != null) {
                 msgp.reply("Guild: `" + guild.getName() + "` (Owned by `" + guild.getOwner().getStringID() + "`)");
                 return;
             }
 
             IChannel channel = client.getChannelByID(id);
-            if(channel != null) {
-                if(channel.isPrivate()) {
+            if (channel != null) {
+                if (channel.isPrivate()) {
                     IPrivateChannel priv = (IPrivateChannel) channel;
                     msgp.reply("Private channel: `" + priv.getRecipient().getName() + "`");
-                }
-                else
+                } else
                     msgp.reply("Channel: " + channel.mention() + " (Guild `" + channel.getGuild().getStringID() + "`)");
                 return;
             }
 
             IRole role = client.getRoleByID(id);
-            if(role != null) {
+            if (role != null) {
                 msgp.reply("Role: `" + role.getName() + "` (Guild `" + role.getGuild().getStringID() + "`)");
                 return;
             }
 
             IMessage message = Utilities4D4J.getMessageByID(id);
-            if(message != null) {
+            if (message != null) {
                 msgp.reply("Message: `" + message.getContent() + "` (Channel `" + message.getChannel().getStringID() + "`)");
                 return;
             }
@@ -166,7 +165,7 @@ public class SystemCommands extends CommandGroup {
 
             String announcement = msgp.getContentAfter(1);
 
-            for(IGuild g: RedBot.getClient().getGuilds())
+            for (IGuild g : RedBot.getClient().getGuilds())
                 Utilities4D4J.sendMessageToGuild(announcement, g);
 
             msgp.reply("Announcement sent!");
@@ -182,7 +181,7 @@ public class SystemCommands extends CommandGroup {
                         .stream().filter(s -> !s.trim().isEmpty())
                         .forEach(s -> IMPORTS += "import " + s + "\n");
             } catch (IOException ignored) {
-	        ignored.printStackTrace();
+                ignored.printStackTrace();
             }
 
             System.setProperty("kotlin.compiler.jar", "kotlinc/lib/kotlin-compiler.jar");
