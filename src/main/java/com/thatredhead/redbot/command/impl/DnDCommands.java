@@ -7,7 +7,9 @@ import com.thatredhead.redbot.command.CommandGroup;
 import com.thatredhead.redbot.helpers4d4j.MessageParser;
 import com.thatredhead.redbot.permission.PermissionContext;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -21,11 +23,11 @@ public class DnDCommands extends CommandGroup {
 
     public static class Roll extends Command {
 
-        private static final String pattern = "(?:\\s+)?([+-])?(?:\\s+)?(?:(?:(\\d+)?[dD](\\d+))|(\\d+)(?![dD]))";
+        private static final String pattern = "(?:\\s+)?([+-])?(?:\\s+)?(?:(?:(\\d+)?[dD](\\d+)(!)?(?:\\(([kK]|[dD])(\\d+)([lL]|[hH])\\))?)|(\\d+)(?![dD]))";
 
         public Roll() {
             super("roll", "Rolls a die in TTRPG fashion",
-                    "<# of dice>d<size> +/- <more dice, or modifiers>", PermissionContext.EVERYONE);
+                    "<count>d<size>{! if exploding}{k/d<count>H/L} +/- <more dice, or modifiers>", PermissionContext.EVERYONE);
         }
 
         @Override
@@ -42,7 +44,11 @@ public class DnDCommands extends CommandGroup {
                     String sign = m.group(1);
                     String rolls = m.group(2);
                     String size = m.group(3);
-                    String mod = m.group(4);
+                    boolean explode = m.group(4) != null;
+                    String kOrD = m.group(5);
+                    String count = m.group(6);
+                    String hOrL = m.group(7);
+                    String mod = m.group(8);
                     if(sign == null) {
                         if(first) {
                             sign = "+";
@@ -50,22 +56,81 @@ public class DnDCommands extends CommandGroup {
                         } else
                             throw new CommandException();
                     }
-                    if(rolls == null) rolls = "1";
 
                     matched.append(sign).append(" ");
 
                     int sum = 0;
                     if(mod == null) {
-                        int rollInt = inRange(Integer.parseInt(rolls));
+                        int rollInt = rolls == null ? 1 : inRange(Integer.parseInt(rolls));
                         int sizeInt = inRange(Integer.parseInt(size));
 
-                        for(int i = 0; i < rollInt; i++) {
-                            int roll = (int) (Math.random() * sizeInt + 1);
-                            sum += roll;
-                            result.append(", ").append(roll);
+                        if (rolls != null) matched.append(rolls);
+                        matched.append("d").append(size);
+
+                        if (explode) matched.append("!");
+
+                        List<Integer> setRolls = new ArrayList<>();
+                        List<Integer> ignored = new ArrayList<>();
+
+                        for (int i = 0; i < rollInt; i++) {
+                            int check, roll = 0;
+                            do {
+                                roll += (check = (int) (Math.random() * sizeInt + 1));
+                            } while (explode && check == sizeInt);
+                            setRolls.add(roll);
                         }
 
-                        matched.append(rolls).append("d").append(size);
+                        if ("k".equalsIgnoreCase(kOrD)) {
+                            int countInt = Integer.parseInt(count);
+                            boolean isHigh = "h".equalsIgnoreCase(hOrL);
+
+                            List<Integer> keep = new ArrayList<>();
+
+                            for (int c = 0; c < countInt && c < setRolls.size(); c++) {
+                                int biggestIdx = 0;
+                                for (int i = 0; i < setRolls.size(); i++) {
+                                    if ((isHigh == setRolls.get(biggestIdx) < setRolls.get(i))
+                                            && !keep.contains(i)) {
+                                        biggestIdx = i;
+                                    }
+                                }
+                                keep.add(biggestIdx);
+                            }
+
+                            for (int i = 0; i < setRolls.size(); i++) {
+                                if (!keep.contains(i)) {
+                                    ignored.add(i);
+                                }
+                            }
+
+                            matched.append("(k").append(count).append(hOrL.toUpperCase()).append(")");
+                        } else if ("d".equalsIgnoreCase(kOrD)) {
+
+                            int countInt = Integer.parseInt(count);
+                            boolean isHigh = "l".equalsIgnoreCase(hOrL);
+
+                            for (int c = 0; c < countInt && c < setRolls.size(); c++) {
+                                int biggestIdx = 0;
+                                for (int i = 0; i < setRolls.size(); i++) {
+                                    if ((isHigh == setRolls.get(biggestIdx) < setRolls.get(i))
+                                            && !ignored.contains(i)) {
+                                        biggestIdx = i;
+                                    }
+                                }
+                                ignored.add(biggestIdx);
+                            }
+
+                            matched.append("(k").append(count).append(hOrL.toUpperCase()).append(")");
+                        }
+
+                        for(int i = 0; i < setRolls.size(); i++) {
+                            if (ignored.contains(i)) {
+                                result.append(", ~~").append(setRolls.get(i)).append("~~");
+                            } else {
+                                sum += setRolls.get(i);
+                                result.append(", ").append(setRolls.get(i));
+                            }
+                        }
                     } else {
                         sum = Integer.parseInt(mod);
 
@@ -86,7 +151,7 @@ public class DnDCommands extends CommandGroup {
                                             "```\n" + total + "```" :
                                 "```\nLOTS OF DICE = " + total + "```");
             } catch (NumberFormatException e) {
-                throw new CommandException("Error parsing dice roll! Use help for proper format.");
+                throw new CommandException("Error parsing dice roll! Use `help` for proper format.");
             }
         }
 
