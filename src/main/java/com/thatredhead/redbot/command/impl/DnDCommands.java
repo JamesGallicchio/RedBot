@@ -23,51 +23,50 @@ public class DnDCommands extends CommandGroup {
 
     public static class Roll extends Command {
 
-        private static final String pattern = "(?:\\s+)?([+-])?(?:\\s+)?(?:(?:(\\d+)?[dD](\\d+)(!)?(?:\\(([kK]|[dD])(\\d+)([lL]|[hH])\\))?)|(\\d+)(?![dD]))";
+        private static final String pattern = "([+-])?(?:(?:(\\d+)\\*)?(\\d+)?d(\\d+)(!)?(?:\\(([kKrR])(\\d+)([hHlL])\\))?|(\\d+))";
 
         public Roll() {
             super("roll", "Rolls a die in TTRPG fashion",
-                    "<count>d<size>{! if exploding}{k/d<count>H/L} +/- <more dice, or modifiers>", PermissionContext.EVERYONE);
+                    "<count>d<size>{! if exploding}{k/r<count>H/L} +/- <more dice, or modifiers>", PermissionContext.EVERYONE);
         }
 
         @Override
         public void invoke(MessageParser msgp) {
             try {
-                StringBuilder matched = new StringBuilder();
-                Matcher m = Pattern.compile(pattern).matcher(msgp.getContentAfter(1));
+                String matched = msgp.getContentAfter(1)
+                        .replace(" ", "").replace("\t", "")
+                        .replace("\n", "");
+
+                Matcher m = Pattern.compile(pattern).matcher(matched);
 
                 int total = 0;
                 StringBuilder result = new StringBuilder();
 
-                boolean first = true;
+                int idx = 0;
                 while (m.find()) {
-                    String sign = m.group(1);
-                    String rolls = m.group(2);
-                    String size = m.group(3);
-                    boolean explode = m.group(4) != null;
-                    String kOrD = m.group(5);
-                    String count = m.group(6);
-                    String hOrL = m.group(7);
-                    String mod = m.group(8);
-                    if(sign == null) {
-                        if(first) {
-                            sign = "+";
-                            first = false;
-                        } else
-                            throw new CommandException();
-                    }
+                    if (idx != m.start()) throw new CommandException("Unknown symbol: `" + matched.substring(0, idx) + "` **" + matched.charAt(idx) + "** `" + matched.substring(idx+1) + "`");
 
-                    matched.append(sign).append(" ");
+                    String sign = m.group(1);
+                    String mult = m.group(2);
+                    String rolls = m.group(3);
+                    String size = m.group(4);
+                    boolean explode = m.group(5) != null;
+                    String kOrR = m.group(6);
+                    String count = m.group(7);
+                    String hOrL = m.group(8);
+                    String mod = m.group(9);
+                    if(sign == null) {
+                        if(idx == 0) {
+                            sign = "+";
+                        } else
+                            throw new CommandException("Missing sign on term `" + m.group(0) + "`");
+                    }
 
                     int sum = 0;
                     if(mod == null) {
+                        int multInt = mult == null ? 1 : inRange(Integer.parseInt(mult));
                         int rollInt = rolls == null ? 1 : inRange(Integer.parseInt(rolls));
                         int sizeInt = inRange(Integer.parseInt(size));
-
-                        if (rolls != null) matched.append(rolls);
-                        matched.append("d").append(size);
-
-                        if (explode) matched.append("!");
 
                         List<Integer> setRolls = new ArrayList<>();
                         List<Integer> ignored = new ArrayList<>();
@@ -75,42 +74,26 @@ public class DnDCommands extends CommandGroup {
                         for (int i = 0; i < rollInt; i++) {
                             int check, roll = 0;
                             do {
-                                roll += (check = (int) (Math.random() * sizeInt + 1));
-                            } while (explode && check == sizeInt);
-                            setRolls.add(roll);
+                                roll += (check = (int) (Math.random() * sizeInt) + 1);
+                            } while (explode && check != 1 && check == sizeInt);
+                            setRolls.add(multInt * roll);
                         }
 
-                        if ("k".equalsIgnoreCase(kOrD)) {
+                        boolean keep = "k".equalsIgnoreCase(kOrR);
+                        boolean rem = "r".equalsIgnoreCase(kOrR);
+                        if (keep || rem) {
                             int countInt = Integer.parseInt(count);
                             boolean isHigh = "h".equalsIgnoreCase(hOrL);
 
-                            List<Integer> keep = new ArrayList<>();
-
-                            for (int c = 0; c < countInt && c < setRolls.size(); c++) {
-                                int biggestIdx = 0;
-                                for (int i = 0; i < setRolls.size(); i++) {
-                                    if ((isHigh == setRolls.get(biggestIdx) < setRolls.get(i))
-                                            && !keep.contains(i)) {
-                                        biggestIdx = i;
-                                    }
-                                }
-                                keep.add(biggestIdx);
+                            if (keep) {
+                                countInt = rollInt - countInt;
+                                isHigh = !isHigh;
                             }
 
-                            for (int i = 0; i < setRolls.size(); i++) {
-                                if (!keep.contains(i)) {
-                                    ignored.add(i);
-                                }
-                            }
-
-                            matched.append("(k").append(count).append(hOrL.toUpperCase()).append(")");
-                        } else if ("d".equalsIgnoreCase(kOrD)) {
-
-                            int countInt = Integer.parseInt(count);
-                            boolean isHigh = "l".equalsIgnoreCase(hOrL);
-
+                            // Remove countInt of the isHigh? highest : lowest dice
                             for (int c = 0; c < countInt && c < setRolls.size(); c++) {
                                 int biggestIdx = 0;
+                                while(ignored.contains(biggestIdx)) biggestIdx++;
                                 for (int i = 0; i < setRolls.size(); i++) {
                                     if ((isHigh == setRolls.get(biggestIdx) < setRolls.get(i))
                                             && !ignored.contains(i)) {
@@ -120,7 +103,6 @@ public class DnDCommands extends CommandGroup {
                                 ignored.add(biggestIdx);
                             }
 
-                            matched.append("(k").append(count).append(hOrL.toUpperCase()).append(")");
                         }
 
                         for(int i = 0; i < setRolls.size(); i++) {
@@ -133,18 +115,17 @@ public class DnDCommands extends CommandGroup {
                         }
                     } else {
                         sum = Integer.parseInt(mod);
-
-                        matched.append(mod);
                     }
-
-                    matched.append(" ");
 
                     if("+".equals(sign)) total += sum;
                     else total -= sum;
+                    idx = m.end();
                 }
+                if (idx != matched.length()) throw new CommandException("Unknown symbol: `" + matched.substring(0, idx) + "` **" + matched.charAt(idx) + "** `" + matched.substring(idx+1) + "`");
+
                 if(matched.length() > 1018) throw new CommandArgumentException(1, matched.substring(0, 10) + "...", "Your roll request is waaay too long!");
                 msgp.reply("Dice Roller", "", true,
-                        "Input", "```\n" + matched.delete(0, 2).toString().trim() + "```",
+                        "Input", "```\n" + matched.replace("+", " + ").replace("-", " - ") + "```",
                         "Output", result.length() < 100 ?
                                     result.indexOf(",", 1) > -1 ?
                                             "```\n" + result.delete(0, 2).toString() + " = " + total + "```" :
