@@ -16,6 +16,7 @@ import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.impl.events.ReadyEvent;
 import sx.blah.discord.handle.impl.events.shard.DisconnectedEvent;
 import sx.blah.discord.handle.impl.events.shard.ReconnectSuccessEvent;
+import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.util.RequestBuffer;
 
 import java.io.File;
@@ -31,6 +32,7 @@ public class RedBot {
     public static final String INVITE = "https://goo.gl/WcN0QK";
     public static final long OWNER_ID = 135553137699192832L;
     public static final long ERROR_CHANNEL_ID = 287324375785537547L;
+    public static final long TEST_ERROR_CHANNEL_ID = 308351509660172288L;
 
     public static final String DEFAULT_PREFIX = "%";
 
@@ -233,7 +235,11 @@ public class RedBot {
         String stacktrace = ExceptionUtils.getStackTrace(e);
         LOGGER.error(stacktrace);
         if (client.isReady()) {
-            RequestBuffer.request(() -> client.getChannelByID(ERROR_CHANNEL_ID).sendMessage("```\n" + limit(stacktrace, 1990) + "```"));
+            RequestBuffer.request(() -> {
+                IChannel c = client.getChannelByID(ERROR_CHANNEL_ID);
+                if (c == null) c = client.getChannelByID(TEST_ERROR_CHANNEL_ID);
+                c.sendMessage("```\n" + limit(stacktrace, 1990) + "```");
+            });
         }
     }
 
