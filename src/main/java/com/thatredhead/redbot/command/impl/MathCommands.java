@@ -1,6 +1,6 @@
 package com.thatredhead.redbot.command.impl;
 
-import com.thatredhead.jmath.interp.MathInterpreter;
+import org.mariuszgromada.math.mxparser.*;
 import com.thatredhead.redbot.command.Command;
 import com.thatredhead.redbot.command.CommandGroup;
 import com.thatredhead.redbot.helpers4d4j.MessageParser;
@@ -17,24 +17,23 @@ public class MathCommands extends CommandGroup {
     public static class EvalCommand extends Command {
 
         public EvalCommand() {
-            super("eval", "Evaluates a math expression", "eval <expression>", PermissionContext.BOT_OWNER);
+            super("eval", "Evaluates a math expression", "eval <expression>", PermissionContext.EVERYONE);
         }
 
         @Override
         public void invoke(MessageParser msgp) {
 
             String math = msgp.getContentAfter(1);
+            Expression e = new Expression(math);
 
-            try {
-                String result = new MathInterpreter(math).interpret().simplify().toString();
-
+            if (e.checkSyntax()) {
                 msgp.reply("Evaluate", "", true,
-                        "Input", "```" + math + "```",
-                        "Output", "```" + result + "```");
-            } catch (IllegalArgumentException e) {
+                        "Input", "```" + e.getExpressionString() + "```",
+                        "Output", "```\n= " + e.calculate() + "```");
+            } else {
                 msgp.reply("Evaluate", "", true,
-                        "Input", "```" + math + "```",
-                        "Output", "ERROR! Cannot evaluate.");
+                        "Input", "```" + e.getExpressionString() + "```",
+                        "Output", "ERROR!\n" + e.getErrorMessage());
             }
         }
     }

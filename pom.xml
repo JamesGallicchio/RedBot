@@ -17,9 +17,9 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.github.JamesGallicchio</groupId>
-            <artifactId>JMath</artifactId>
-            <version>c7f2f65</version>
+            <groupId>org.mariuszgromada.math</groupId>
+            <artifactId>MathParser.org-mXparser</artifactId>
+            <version>4.0.0</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
