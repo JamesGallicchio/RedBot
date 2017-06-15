@@ -69,7 +69,16 @@ public class CAHCommand extends Command {
             if (g == null) {
                 msgp.reply("There is no game going on right now. Use `cah` for help.");
             } else if (g.hasStarted()) {
-                msgp.reply("This game has already started!");
+                if ("end".equals(keyword)) {
+                    if (msgp.getAuthor().getLongID() == g.getCzar()) {
+                        games.remove(msgp.getChannel().getLongID());
+                        msgp.reply("__Ended the game! Final scores__\n" + scores(g));
+                    } else {
+                        msgp.reply("Only the current czar can end a game.");
+                    }
+                } else {
+                    msgp.reply("This game has already started!");
+                }
             } else if ("join".equals(keyword)) {
                 if (g.isPlayer(msgp.getAuthor())) {
                     msgp.reply("You're already in this game.");
@@ -93,6 +102,8 @@ public class CAHCommand extends Command {
 
     private static String scores(CAHGame g) {
         List<Player> ps = g.getPlayers();
+        ps.sort(Comparator.comparing(Player::getScore));
+        
         StringBuilder s = new StringBuilder();
         for (Player p : ps) {
             s.append("<@").append(p.getUserID()).append(">").append(": ")
