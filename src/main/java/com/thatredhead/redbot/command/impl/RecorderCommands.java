@@ -123,9 +123,7 @@ public class RecorderCommands extends CommandGroup {
 
         try (BufferedWriter w = new BufferedWriter(new FileWriter(f))) {
 
-            for (IMessage msg : c.getHistory()
-                    .startAt(start, include)
-                    .endAt(end, include)) {
+            for (IMessage msg : c.getMessageHistoryIn(start, end)) {
                 w.write(format(msg, pattern));
                 w.newLine();
             }
