@@ -202,13 +202,27 @@ public class Utilities4D4J {
     }
 
     public interface ReactionListener {
-        default void onReactionAdd(IMessage msg, IUser user, Emoji emoji) {
-            onReactionToggle(msg, user, emoji);
-        }
-        default void onReactionRemove(IMessage msg, IUser user, Emoji emoji) {
-            onReactionToggle(msg, user, emoji);
-        }
+        default void onReactionAdd(IMessage msg, IUser user, Emoji emoji) {}
+        default void onReactionRemove(IMessage msg, IUser user, Emoji emoji) {}
         default void onReactionToggle(IMessage msg, IUser user, Emoji emoji) {}
+    }
+
+    @FunctionalInterface
+    public interface ReactionToggleListener extends ReactionListener {
+        @Override
+        void onReactionToggle(IMessage msg, IUser user, Emoji emoji);
+    }
+
+    public static IMessage sendReactionUI(String msg, IChannel channel, ReactionToggleListener listener, Emoji... emojis) {
+        return sendReactionUI(msg, channel, (ReactionListener) listener);
+    }
+
+    public static IMessage sendReactionUI(EmbedObject msg, IChannel channel, ReactionToggleListener listener, Emoji... emojis) {
+        return sendReactionUI(msg, channel, (ReactionListener) listener, emojis);
+    }
+
+    public static IMessage addReactionUI(IMessage msg, ReactionToggleListener l) {
+        return addReactionUI(msg, (ReactionListener) l);
     }
 
     public static IMessage sendReactionUI(String msg, IChannel channel, ReactionListener listener, Emoji... emojis) {

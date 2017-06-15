@@ -6,6 +6,8 @@ import com.thatredhead.redbot.command.CommandException;
 import com.thatredhead.redbot.helpers4d4j.MessageParser;
 import com.thatredhead.redbot.helpers4d4j.Utilities4D4J;
 import com.thatredhead.redbot.permission.PermissionContext;
+import com.vdurmont.emoji.Emoji;
+import com.vdurmont.emoji.EmojiManager;
 import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IMessage;
@@ -15,6 +17,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 public class CAHCommand extends Command {
@@ -98,16 +101,6 @@ public class CAHCommand extends Command {
         return s.toString();
     }
 
-    private static EmbedObject toEmbed(Player p) {
-        List<Card> c = p.getCards();
-        String[] fields = new String[c.size() * 2];
-        for (int i = 0; i < c.size(); i++) {
-            fields[i * 2] = i == p.getChoice() ? "Card " + i : "**Card " + i + "**";
-            fields[i * 2 + 1] = c.get(i).getText();
-        }
-        return Utilities4D4J.makeEmbed("Your CAH Hand", "", true, fields);
-    }
-
     private static class CAHGame {
         private final int minPlayers;
         private final int maxPlayers;
@@ -145,6 +138,7 @@ public class CAHCommand extends Command {
 
             Player p = new Player(u);
             for (int i = 0; i < handSize; i++) p.getCards().add(getNextWhiteCard());
+            p.choice = -2;
             players.addLast(p);
         }
 
@@ -173,6 +167,7 @@ public class CAHCommand extends Command {
                 throw new IllegalStateException("Player count is not within range!");
             if (isStarted) throw new IllegalStateException("Already started!");
             isStarted = true;
+            players.forEach(p -> p.choice = -1);
         }
 
         public boolean hasStarted() {
@@ -239,6 +234,8 @@ public class CAHCommand extends Command {
     }
 
     private static class Player {
+        private static final Emoji LEFT = EmojiManager.getByUnicode("←");
+        private static final Emoji RIGHT = EmojiManager.getByUnicode("→");
         private long userID;
         private long cardsMessageID;
         private int score;
@@ -248,10 +245,30 @@ public class CAHCommand extends Command {
         public Player() {
         }
 
-        public Player(IUser u) {
-            userID = u.getLongID();
+        public Player(IUser user) {
+            userID = user.getLongID();
             cards = new ArrayList<>();
-            cardsMessageID = Utilities4D4J.sendEmbed(u.getOrCreatePMChannel(), "Your CAH Hand", "Your hand will be dealt when the game starts!", false).get().getLongID();
+            cardsMessageID = Utilities4D4J.sendReactionUI(
+                    Utilities4D4J.makeEmbed("Your CAH Hand", "Your hand will be dealt when the game starts!", false),
+                    user.getOrCreatePMChannel(),
+                    (m, u, e) -> {
+                        if (score > -2) {
+                            if (LEFT.equals(e)) {
+                                choice--;
+                                if (choice < 0) {
+                                    choice = cards.size();
+                                }
+                            } else {
+                                choice++;
+                                if (choice >= cards.size()) {
+                                    choice = 0;
+                                }
+                            }
+                            AtomicInteger i = new AtomicInteger();
+                            Utilities4D4J.edit(m, toEmbed());
+                        }
+                    }, LEFT, RIGHT
+            ).getLongID();
         }
 
         public long getUserID() {
@@ -292,6 +309,16 @@ public class CAHCommand extends Command {
 
         public Card removeChoiceCard() {
             return choice < 0 ? null : cards.remove(choice);
+        }
+
+        private EmbedObject toEmbed() {
+            List<Card> c = getCards();
+            String[] fields = new String[c.size() * 2];
+            for (int i = 0; i < c.size(); i++) {
+                fields[i * 2] = i == getChoice() ? "Card " + i : "**Card " + i + "**";
+                fields[i * 2 + 1] = c.get(i).getText();
+            }
+            return Utilities4D4J.makeEmbed("Your CAH Hand", "", true, fields);
         }
     }
 
