@@ -47,7 +47,7 @@ public class RedBot {
 
     public static void main(String[] args) {
 
-        if(args.length == 0) {
+        if (args.length == 0) {
             try {
                 new RedBot(FileUtils.readFileToString(new File("test/test_token.txt"), "UTF-8"));
             } catch (Exception e) {

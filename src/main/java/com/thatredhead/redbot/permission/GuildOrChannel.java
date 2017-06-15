@@ -31,29 +31,31 @@ public class GuildOrChannel {
     }
 
     public IChannel getChannel() {
-        return isChannel?
-                channel == null?
+        return isChannel ?
+                channel == null ?
                         channel = RedBot.getClient().getChannelByID(id)
                         : channel
                 : null;
     }
 
     public IGuild getGuild() {
-        return isChannel?
+        return isChannel ?
                 getChannel() == null ? null : channel.getGuild()
-                : guild == null?
-                        guild = RedBot.getClient().getGuildByID(id)
-                        : guild;
+                : guild == null ?
+                guild = RedBot.getClient().getGuildByID(id)
+                : guild;
     }
 
     @Override
     public boolean equals(Object o) {
-        if(o instanceof GuildOrChannel) {
+        if (o instanceof GuildOrChannel) {
             GuildOrChannel obj = (GuildOrChannel) o;
             return this.id == obj.id && this.isChannel == obj.isChannel;
-        } if(o instanceof IChannel) {
+        }
+        if (o instanceof IChannel) {
             return isChannel && this.id == ((IChannel) o).getLongID();
-        } if(o instanceof IGuild) {
+        }
+        if (o instanceof IGuild) {
             return !isChannel && this.id == ((IGuild) o).getLongID();
         }
         return false;
@@ -61,7 +63,7 @@ public class GuildOrChannel {
 
     @Override
     public int hashCode() {
-        return isChannel?
+        return isChannel ?
                 getChannel().hashCode()
                 : getGuild() == null ? 0 : getGuild().hashCode();
     }

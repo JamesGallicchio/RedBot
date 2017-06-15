@@ -7,7 +7,7 @@ public class Mention {
 
     @EventSubscriber
     public void onMention(MentionEvent e) {
-        if(!(e.getMessage().mentionsEveryone() || e.getMessage().mentionsHere()))
+        if (!(e.getMessage().mentionsEveryone() || e.getMessage().mentionsHere()))
             e.getMessage().reply("boop! *Use `%help` for a list of commands you can do (all commands should be prefixed with `%`)*");
     }
 }

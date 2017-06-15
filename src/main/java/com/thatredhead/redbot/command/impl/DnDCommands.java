@@ -44,7 +44,8 @@ public class DnDCommands extends CommandGroup {
 
                 int idx = 0;
                 while (m.find()) {
-                    if (idx != m.start()) throw new CommandException("Unknown symbol: `" + matched.substring(0, idx) + "` **" + matched.charAt(idx) + "** `" + matched.substring(idx+1) + "`");
+                    if (idx != m.start())
+                        throw new CommandException("Unknown symbol: `" + matched.substring(0, idx) + "` **" + matched.charAt(idx) + "** `" + matched.substring(idx + 1) + "`");
 
                     String sign = m.group(1);
                     String mult = m.group(2);
@@ -55,15 +56,15 @@ public class DnDCommands extends CommandGroup {
                     String count = m.group(7);
                     String hOrL = m.group(8);
                     String mod = m.group(9);
-                    if(sign == null) {
-                        if(idx == 0) {
+                    if (sign == null) {
+                        if (idx == 0) {
                             sign = "+";
                         } else
                             throw new CommandException("Missing sign on term `" + m.group(0) + "`");
                     }
 
                     int sum = 0;
-                    if(mod == null) {
+                    if (mod == null) {
                         int multInt = mult == null ? 1 : inRange(Integer.parseInt(mult));
                         int rollInt = rolls == null ? 1 : inRange(Integer.parseInt(rolls));
                         int sizeInt = inRange(Integer.parseInt(size));
@@ -93,7 +94,7 @@ public class DnDCommands extends CommandGroup {
                             // Remove countInt of the isHigh? highest : lowest dice
                             for (int c = 0; c < countInt && c < setRolls.size(); c++) {
                                 int biggestIdx = 0;
-                                while(ignored.contains(biggestIdx)) biggestIdx++;
+                                while (ignored.contains(biggestIdx)) biggestIdx++;
                                 for (int i = 0; i < setRolls.size(); i++) {
                                     if ((isHigh == setRolls.get(biggestIdx) < setRolls.get(i))
                                             && !ignored.contains(i)) {
@@ -105,7 +106,7 @@ public class DnDCommands extends CommandGroup {
 
                         }
 
-                        for(int i = 0; i < setRolls.size(); i++) {
+                        for (int i = 0; i < setRolls.size(); i++) {
                             if (ignored.contains(i)) {
                                 result.append(", ~~").append(setRolls.get(i)).append("~~");
                             } else {
@@ -117,19 +118,21 @@ public class DnDCommands extends CommandGroup {
                         sum = Integer.parseInt(mod);
                     }
 
-                    if("+".equals(sign)) total += sum;
+                    if ("+".equals(sign)) total += sum;
                     else total -= sum;
                     idx = m.end();
                 }
-                if (idx != matched.length()) throw new CommandException("Unknown symbol: `" + matched.substring(0, idx) + "` **" + matched.charAt(idx) + "** `" + matched.substring(idx+1) + "`");
+                if (idx != matched.length())
+                    throw new CommandException("Unknown symbol: `" + matched.substring(0, idx) + "` **" + matched.charAt(idx) + "** `" + matched.substring(idx + 1) + "`");
 
-                if(matched.length() > 1018) throw new CommandArgumentException(1, matched.substring(0, 10) + "...", "Your roll request is waaay too long!");
+                if (matched.length() > 1018)
+                    throw new CommandArgumentException(1, matched.substring(0, 10) + "...", "Your roll request is waaay too long!");
                 msgp.reply("Dice Roller", "", true,
                         "Input", "```\n" + matched.replace("+", " + ").replace("-", " - ") + "```",
                         "Output", result.length() < 100 ?
-                                    result.indexOf(",", 1) > -1 ?
-                                            "```\n" + result.delete(0, 2).toString() + " = " + total + "```" :
-                                            "```\n" + total + "```" :
+                                result.indexOf(",", 1) > -1 ?
+                                        "```\n" + result.delete(0, 2).toString() + " = " + total + "```" :
+                                        "```\n" + total + "```" :
                                 "```\nLOTS OF DICE = " + total + "```");
             } catch (NumberFormatException e) {
                 throw new CommandException("Error parsing dice roll! Use `help` for proper format.");
@@ -137,7 +140,7 @@ public class DnDCommands extends CommandGroup {
         }
 
         private int inRange(int val) {
-            if(val > 0 && val <= 999) return val;
+            if (val > 0 && val <= 999) return val;
             throw new CommandException("Dice parameter out of range!");
         }
     }

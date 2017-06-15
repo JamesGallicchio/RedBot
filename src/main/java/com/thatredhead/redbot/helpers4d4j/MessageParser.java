@@ -24,7 +24,7 @@ public class MessageParser {
 
     public boolean construct(String prefix) {
 
-        if(msg.getContent().startsWith(prefix)) {
+        if (msg.getContent().startsWith(prefix)) {
             args = msg.getContent().substring(prefix.length()).split(" ");
             return true;
         }
@@ -70,7 +70,7 @@ public class MessageParser {
 
     public String getContentAfter(int i) {
         StringBuilder sb = new StringBuilder();
-        for(; i < args.length; i++) {
+        for (; i < args.length; i++) {
             sb.append(args[i]);
             sb.append(' ');
         }
@@ -79,25 +79,25 @@ public class MessageParser {
 
     public IChannel getChannelMention(int i) {
         Matcher m = CHNLP.matcher(args[i]);
-        if(m.find())
+        if (m.find())
             return msg.getClient().getChannelByID(Long.parseUnsignedLong(m.group(1)));
         return null;
     }
 
     public IUser getUserMention(int i) {
         Matcher m = USERP.matcher(args[i]);
-        if(m.find())
+        if (m.find())
             return msg.getClient().getUserByID(Long.parseUnsignedLong(m.group(1)));
         return null;
     }
 
     public IRole getRoleMention(int i) {
         Matcher m = ROLEP.matcher(args[i]);
-        if(m.find())
+        if (m.find())
             return msg.getClient().getRoleByID(Long.parseUnsignedLong(m.group(1)));
         return null;
     }
-    
+
     public MessageMatcher match(String pattern) {
         return new MessageMatcher(Arrays.copyOfRange(args, 1, args.length), pattern);
     }

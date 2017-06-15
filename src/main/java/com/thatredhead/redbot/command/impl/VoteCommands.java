@@ -24,7 +24,8 @@ public class VoteCommands extends CommandGroup {
     public VoteCommands() {
         super("Vote Commands", "Commands to hold votes in Discord channels", "vote", null);
         commands = Arrays.asList(new VoteCommand(), new NewVoteCommand(), new EndVoteCommand());
-        votes = RedBot.getDataHandler().get("votes", new TypeToken<Map<String, Vote>>(){}.getType(), new HashMap<>());
+        votes = RedBot.getDataHandler().get("votes", new TypeToken<Map<String, Vote>>() {
+        }.getType(), new HashMap<>());
     }
 
     public class VoteCommand extends Command {
@@ -38,8 +39,7 @@ public class VoteCommands extends CommandGroup {
             if (votes.containsKey(msgp.getChannel().getLongID())) {
                 votes.get(msgp.getChannel().getLongID()).castBallot(msgp);
                 RedBot.getDataHandler().save(votes, "saves");
-            }
-            else
+            } else
                 msgp.reply("There's no active vote in this channel.");
         }
     }
@@ -121,13 +121,13 @@ class Vote {
         try {
             Set<Integer> choices = new ListOrderedSet<>();
             String[] args = msgp.getArgs();
-            for(int i = 1; i < args.length; i++) {
+            for (int i = 1; i < args.length; i++) {
                 int choice = Integer.parseInt(args[i]);
                 if (options.size() < choice || 1 > choice) throw new NumberFormatException();
                 choices.add(choice);
             }
             Ballot ballot = new Ballot(msgp.getAuthor(), choices);
-            if(ballots.contains(ballot)) {
+            if (ballots.contains(ballot)) {
                 ballots.remove(ballot);
                 msgp.reply("Vote updated!");
             } else
@@ -156,43 +156,43 @@ class Vote {
         int[] winners = getWinners();
 
         StringBuilder result = new StringBuilder();
-        for(int winner: winners) {
+        for (int winner : winners) {
             result.append(options.get(winner)).append(", ");
         }
 
-        return result.delete(result.length()-2, result.length()).toString();
+        return result.delete(result.length() - 2, result.length()).toString();
     }
 
     public int[] getWinners() {
-        if(!isDone())
+        if (!isDone())
             return new int[]{};
 
         List<SimpleBallot> ballots = this.ballots.stream().map(SimpleBallot::new).collect(Collectors.toList());
 
-        int quota = (int) (ballots.size()/(winCount+1.0))+1;
+        int quota = (int) (ballots.size() / (winCount + 1.0)) + 1;
 
         int[] winners = new int[options.size()];
         int winnersSoFar = 0;
 
-        while(winnersSoFar < winCount) {
+        while (winnersSoFar < winCount) {
 
             boolean done = false;
-            while(!done) {
+            while (!done) {
                 done = true;
 
                 Map<Integer, List<SimpleBallot>> votes = ballots.stream().collect(Collectors.groupingBy(SimpleBallot::choice));
-                for(Map.Entry<Integer, List<SimpleBallot>> entry: votes.entrySet()) {
+                for (Map.Entry<Integer, List<SimpleBallot>> entry : votes.entrySet()) {
 
                     List<SimpleBallot> choiceVotes = entry.getValue();
                     double totalVotes = choiceVotes.stream().mapToDouble(it -> it.value).sum();
                     if (totalVotes >= quota) {
                         done = false;
 
-                        winners[winnersSoFar++] = entry.getKey()-1;
+                        winners[winnersSoFar++] = entry.getKey() - 1;
 
                         List<SimpleBallot> nextBallots = entry.getValue().stream().filter(SimpleBallot::nextChoice).collect(Collectors.toList());
 
-                        double value = (totalVotes-quota)/nextBallots.size();
+                        double value = (totalVotes - quota) / nextBallots.size();
 
                         nextBallots.forEach(it -> it.value *= value);
 
@@ -201,7 +201,7 @@ class Vote {
                 }
             }
 
-            if(winnersSoFar >= winCount)
+            if (winnersSoFar >= winCount)
                 break;
 
             Map<Integer, Integer> votes = ballots.stream().collect(Collectors.groupingBy(SimpleBallot::choice)).entrySet().stream()
@@ -210,10 +210,10 @@ class Vote {
             List<Integer> mins = new ArrayList<>();
             mins.add(0);
             int minVotes = votes.get(0);
-            for (Map.Entry<Integer, Integer> entry: votes.entrySet())
-                if(entry.getValue() == minVotes)
+            for (Map.Entry<Integer, Integer> entry : votes.entrySet())
+                if (entry.getValue() == minVotes)
                     mins.add(entry.getKey());
-                else if(entry.getValue() < minVotes) {
+                else if (entry.getValue() < minVotes) {
                     mins.clear();
                     mins.add(entry.getKey());
                     minVotes = entry.getValue();
@@ -223,7 +223,7 @@ class Vote {
 
             ballots = ballots.stream().filter(it -> {
                 boolean ok = true;
-                for(int i: mins)
+                for (int i : mins)
                     ok = ok && it.removeChoice(i);
                 return ok;
             }).collect(Collectors.toList());
@@ -264,7 +264,7 @@ class Vote {
         result.append('[').append(done ? "DONE" : "CURRENT").append("] ").append(description);
 
         for (int i = 1; i <= options.size(); i++)
-            result.append("\n  [").append(i).append("]: ").append(options.get(i-1));
+            result.append("\n  [").append(i).append("]: ").append(options.get(i - 1));
 
         result.append("\nVERDICT: ").append(getWinnersString());
 
@@ -328,19 +328,19 @@ class SimpleBallot {
     }
 
     public boolean nextChoice() {
-        if(choices.length == 1) return false;
+        if (choices.length == 1) return false;
         choices = Arrays.copyOfRange(choices, 1, choices.length);
         return true;
     }
 
     public boolean removeChoice(int choice) {
         int count = 0;
-        for(int i = 0; i < choices.length; i++)
-            if(choices[i] == choice) {
+        for (int i = 0; i < choices.length; i++)
+            if (choices[i] == choice) {
                 count++;
                 int j = i;
-                while(j < choices.length && choices[j] == -1) j++;
-                if(j == choices.length) {
+                while (j < choices.length && choices[j] == -1) j++;
+                if (j == choices.length) {
                     count--;
                     break;
                 }
@@ -348,7 +348,7 @@ class SimpleBallot {
                 choices[j] = -1;
             }
 
-        choices = Arrays.copyOf(choices, choices.length-count);
+        choices = Arrays.copyOf(choices, choices.length - count);
         return choices.length != 0;
     }
 }

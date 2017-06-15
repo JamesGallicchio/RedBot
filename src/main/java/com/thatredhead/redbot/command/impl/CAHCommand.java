@@ -103,7 +103,7 @@ public class CAHCommand extends Command {
     private static String scores(CAHGame g) {
         List<Player> ps = g.getPlayers();
         ps.sort(Comparator.comparing(Player::getScore));
-        
+
         StringBuilder s = new StringBuilder();
         for (Player p : ps) {
             s.append("<@").append(p.getUserID()).append(">").append(": ")
@@ -217,7 +217,7 @@ public class CAHCommand extends Command {
             players.forEach(p -> {
                 if (p.getChoice() >= 0) {
                     whiteDiscard.add(p.removeChoiceCard());
-                    p.dealCard(whiteDeck.get(whiteDeck.size()-1));
+                    p.dealCard(whiteDeck.get(whiteDeck.size() - 1));
                     p.setChoice(-1);
                 }
             });

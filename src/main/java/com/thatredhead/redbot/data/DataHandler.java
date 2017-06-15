@@ -14,12 +14,13 @@ import java.nio.file.Paths;
 public class DataHandler {
 
     private Gson gson = new GsonBuilder()
-                            .enableComplexMapKeySerialization()
-                            .create();
+            .enableComplexMapKeySerialization()
+            .create();
 
     /**
      * Saves an object in json form
-     * @param obj the object to save
+     *
+     * @param obj  the object to save
      * @param name the name to save it under
      * @return o, for chaining methods
      */
@@ -29,7 +30,8 @@ public class DataHandler {
 
     /**
      * Saves an object in json form
-     * @param obj the object to save
+     *
+     * @param obj  the object to save
      * @param path the name to save it under
      * @return o, for chaining methods
      */
@@ -40,9 +42,10 @@ public class DataHandler {
 
     /**
      * Gets an object from json
-     * @param name the name the object is saved under
+     *
+     * @param name     the name the object is saved under
      * @param classOfT a class instance of T
-     * @param <T> the type of the object to get
+     * @param <T>      the type of the object to get
      * @return the object gotten from json
      */
     public <T> T get(String name, Class<T> classOfT) {
@@ -50,14 +53,16 @@ public class DataHandler {
             return gson.fromJson(readFromFile("data/" + name + ".json"), classOfT);
         } catch (FileNotFoundException ignored) {
 
-        } return null;
+        }
+        return null;
     }
 
     /**
      * Gets an object from json
+     *
      * @param name the name the object is saved under
-     * @param T the type of the object to get
-     * @param <T> the type of the object to get
+     * @param T    the type of the object to get
+     * @param <T>  the type of the object to get
      * @return the object gotten from json
      */
     public <T> T get(String name, Type T) {
@@ -65,15 +70,17 @@ public class DataHandler {
             return gson.fromJson(readFromFile("data/" + name + ".json"), T);
         } catch (FileNotFoundException ignored) {
 
-        } return null;
+        }
+        return null;
     }
 
     /**
      * Gets an object or defaults to another object if it doesn't exist
-     * @param name the name of the object to get
+     *
+     * @param name     the name of the object to get
      * @param classOfT a class instance of T
-     * @param def the default object to use if name isn't present
-     * @param <T> the type of object to get
+     * @param def      the default object to use if name isn't present
+     * @param <T>      the type of object to get
      * @return the object gotten from json, or default
      */
     public <T> T get(String name, Class<T> classOfT, T def) {
@@ -83,10 +90,11 @@ public class DataHandler {
 
     /**
      * Gets an object or defaults to another object if it doesn't exist
+     *
      * @param name the name of the object to get
-     * @param T the Type of the object to get
-     * @param def the default object to use if name isn't present
-     * @param <T> the type of object to get
+     * @param T    the Type of the object to get
+     * @param def  the default object to use if name isn't present
+     * @param <T>  the type of object to get
      * @return the object gotten from json, or default
      */
     public <T> T get(String name, Type T, T def) {
@@ -96,6 +104,7 @@ public class DataHandler {
 
     /**
      * Reads a file into a string
+     *
      * @param s name of the file to get
      * @return contents of the file in a String
      * @throws FileNotFoundException if the file can't be found
@@ -106,6 +115,7 @@ public class DataHandler {
 
     /**
      * Reads a file into a String
+     *
      * @param p the Path to the file
      * @return the contents of the file as a String
      * @throws FileNotFoundException if the file can't be found
@@ -123,6 +133,7 @@ public class DataHandler {
 
     /**
      * Write a String to a file
+     *
      * @param f the Path to the file to write the string to
      * @param s the String to write to the file
      */
@@ -132,6 +143,7 @@ public class DataHandler {
 
     /**
      * Write a String to a file
+     *
      * @param f the file to write the string to
      * @param s the string to write to the file
      */
@@ -146,7 +158,7 @@ public class DataHandler {
             RedBot.reportError(e);
         } finally {
             try {
-                if(bw != null) bw.close();
+                if (bw != null) bw.close();
                 if (fw != null) fw.close();
             } catch (IOException e) {
                 RedBot.reportError(e);

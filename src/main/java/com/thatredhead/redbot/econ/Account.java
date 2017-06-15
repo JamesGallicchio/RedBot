@@ -49,7 +49,7 @@ public class Account {
     }
 
     public void transferTo(Account recip, double amount) {
-        if(this.amount > amount) {
+        if (this.amount > amount) {
             this.amount -= amount;
             recip.amount += amount;
         } else

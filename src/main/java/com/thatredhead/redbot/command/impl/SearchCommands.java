@@ -1,16 +1,16 @@
 package com.thatredhead.redbot.command.impl;
 
+import com.google.gson.Gson;
 import com.thatredhead.redbot.command.Command;
 import com.thatredhead.redbot.command.CommandException;
 import com.thatredhead.redbot.command.CommandGroup;
 import com.thatredhead.redbot.helpers4d4j.MessageParser;
 import com.thatredhead.redbot.helpers4d4j.Utilities4D4J;
 import com.thatredhead.redbot.permission.PermissionContext;
-import com.google.gson.Gson;
 
-import java.io.UnsupportedEncodingException;
-import java.io.InputStreamReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Arrays;
@@ -21,7 +21,7 @@ public class SearchCommands extends CommandGroup {
 
     public SearchCommands() {
         super("Search Commands", "Commands to search popular engines like Google, Wikipedia, WolframAlpha, and Urban Dictionary!",
-                "search",Arrays.asList(
+                "search", Arrays.asList(
                         new LMGTFYCommand(),
                         new WolframAlphaSearchCommand(),
                         new UrbanDictCommand()
@@ -78,7 +78,8 @@ public class SearchCommands extends CommandGroup {
                 } else {
                     msgp.reply("Couldn't find that search on Urban Dictionary :(");
                 }
-            } catch (IOException ignored) {}
+            } catch (IOException ignored) {
+            }
         }
 
         public static class UrbanDictResponse {

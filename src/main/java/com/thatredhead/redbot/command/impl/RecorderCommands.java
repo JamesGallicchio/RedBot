@@ -35,7 +35,8 @@ public class RecorderCommands extends CommandGroup {
                 "recorder", null);
         commands = Arrays.asList(new RecordCommand(), new EndRecordCommand(), new ArchiveCommand());
 
-        startMessages = RedBot.getDataHandler().get("recordings", new TypeToken<Map<Pair<Long, Long>, Long>>(){}.getType(), new HashMap<>());
+        startMessages = RedBot.getDataHandler().get("recordings", new TypeToken<Map<Pair<Long, Long>, Long>>() {
+        }.getType(), new HashMap<>());
     }
 
     public class ArchiveCommand extends Command {
@@ -51,7 +52,7 @@ public class RecorderCommands extends CommandGroup {
                 long end = Long.parseLong(msgp.getArg(2));
 
                 String pattern = msgp.getContentAfter(3).trim();
-                if(pattern.length() == 0) {
+                if (pattern.length() == 0) {
                     pattern = "[%TIME%] %USER%: %CONTENT%";
                 }
 
@@ -75,7 +76,7 @@ public class RecorderCommands extends CommandGroup {
         public void invoke(MessageParser msgp) throws CommandException {
 
             Pair<Long, Long> key = Pair.of(msgp.getChannel().getLongID(), msgp.getAuthor().getLongID());
-            if(startMessages.containsKey(key)) {
+            if (startMessages.containsKey(key)) {
                 msgp.reply("You already have a recording going on! Use `endrecord` to stop the current recording.");
             } else {
                 startMessages.put(key, msgp.getMsg().getLongID());
@@ -94,11 +95,11 @@ public class RecorderCommands extends CommandGroup {
         public void invoke(MessageParser msgp) throws CommandException {
 
             Pair<Long, Long> key = Pair.of(msgp.getChannel().getLongID(), msgp.getAuthor().getLongID());
-            if(startMessages.containsKey(key)) {
+            if (startMessages.containsKey(key)) {
                 long start = startMessages.remove(key);
                 long end = msgp.getMsg().getLongID();
                 String pattern = msgp.getContentAfter(1).trim();
-                if(pattern.length() == 0) {
+                if (pattern.length() == 0) {
                     pattern = "[%TIME%] %USER%: %CONTENT%";
                 }
 
@@ -116,19 +117,19 @@ public class RecorderCommands extends CommandGroup {
     private static File makeFile(String pattern, long start, long end, IChannel c, boolean include) {
         File f = new File("data/records/record.txt");
         int count = 0;
-        while(f.exists()) {
+        while (f.exists()) {
             f = new File("data/records/record" + ++count + ".txt");
         }
 
-        try(BufferedWriter w = new BufferedWriter(new FileWriter(f))) {
+        try (BufferedWriter w = new BufferedWriter(new FileWriter(f))) {
 
-            for(IMessage msg : c.getHistory()
+            for (IMessage msg : c.getHistory()
                     .startAt(start, include)
                     .endAt(end, include)) {
                 w.write(format(msg, pattern));
                 w.newLine();
             }
-        } catch(IOException e) {
+        } catch (IOException e) {
             RedBot.reportError(e);
         }
 
@@ -140,16 +141,20 @@ public class RecorderCommands extends CommandGroup {
     private static String format(IMessage msg, String pattern) {
         Matcher m = p.matcher(pattern);
         StringBuffer result = new StringBuffer();
-        while(m.find()) {
-            switch(m.group(1)) {
+        while (m.find()) {
+            switch (m.group(1)) {
                 case "%USER%":
-                    m.appendReplacement(result, msg.getAuthor().getDisplayName(msg.getGuild())); break;
+                    m.appendReplacement(result, msg.getAuthor().getDisplayName(msg.getGuild()));
+                    break;
                 case "%CONTENT%":
-                    m.appendReplacement(result, msg.getContent()); break;
+                    m.appendReplacement(result, msg.getContent());
+                    break;
                 case "%TIME%":
-                    m.appendReplacement(result, time(msg.getTimestamp())); break;
+                    m.appendReplacement(result, time(msg.getTimestamp()));
+                    break;
                 case "%DATE%":
-                    m.appendReplacement(result, date(msg.getTimestamp())); break;
+                    m.appendReplacement(result, date(msg.getTimestamp()));
+                    break;
             }
         }
         return m.appendTail(result).toString();

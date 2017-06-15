@@ -1,10 +1,10 @@
 package com.thatredhead.redbot.command.impl;
 
-import org.mariuszgromada.math.mxparser.*;
 import com.thatredhead.redbot.command.Command;
 import com.thatredhead.redbot.command.CommandGroup;
 import com.thatredhead.redbot.helpers4d4j.MessageParser;
 import com.thatredhead.redbot.permission.PermissionContext;
+import org.mariuszgromada.math.mxparser.Expression;
 
 import java.util.Arrays;
 

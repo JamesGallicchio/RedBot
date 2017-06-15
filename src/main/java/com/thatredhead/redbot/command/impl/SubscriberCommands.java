@@ -279,7 +279,7 @@ public class SubscriberCommands extends CommandGroup {
 
         List<String> images = new ArrayList<>();
         while (m.find()) {
-            if(m.group().contains("height=\"1\"") || m.group().contains("width=\"1\"")) continue;
+            if (m.group().contains("height=\"1\"") || m.group().contains("width=\"1\"")) continue;
             images.add(m.group(1));
         }
 

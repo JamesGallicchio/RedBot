@@ -34,9 +34,10 @@ public class PermissionHandler {
 
     /**
      * Check if a user has a certain permission in a specified channel
-     * @param perm permission to check for
-     * @param user user to check if has permission
-     * @param channel channel in which to check if user has permission
+     *
+     * @param perm         permission to check for
+     * @param user         user to check if has permission
+     * @param channel      channel in which to check if user has permission
      * @param defaultPerms PermissionContext to put if that perm is not specified
      * @return true if user has permission, false otherwise
      */
@@ -45,7 +46,7 @@ public class PermissionHandler {
         // If the perm is an empty string that always equates to true
         if ("".equals(perm)) return true;
 
-        if(channel.isPrivate()) {
+        if (channel.isPrivate()) {
             return defaultPerms.applies(user, channel);
         }
 
@@ -66,20 +67,20 @@ public class PermissionHandler {
 
         // Return if the guild's perm applies
         PermissionContext guildPerm = permissions.get(channel.getGuild());
-        if(guildPerm != null)
+        if (guildPerm != null)
             if (guildPerm == PermissionContext.NULL)
                 return defaultPerms.applies(user, channel);
             else
                 return guildPerm.applies(user, channel);
 
         // If enabled by default, add it/return if it applies
-        if(enabledByDefault) {
+        if (enabledByDefault) {
             permissions.put(new GuildOrChannel(channel.getGuild()), defaultPerms);
             save();
             return defaultPerms.applies(user, channel);
         }
 
-        if(perm.contains(".")) {
+        if (perm.contains(".")) {
             Map<GuildOrChannel, PermissionContext> groupPerms = perms.get(perm.split(".")[0]);
 
             // Return if the channel's group perm applies
@@ -114,15 +115,15 @@ public class PermissionHandler {
     public Map<String, PermissionContext> getPermissionsFor(IChannel c) {
         Map<String, PermissionContext> channelPerms = new HashMap<>();
 
-        for(Map.Entry<String, Map<GuildOrChannel, PermissionContext>> entry : perms.entrySet()) {
+        for (Map.Entry<String, Map<GuildOrChannel, PermissionContext>> entry : perms.entrySet()) {
             Map<GuildOrChannel, PermissionContext> map = entry.getValue();
 
             PermissionContext perm = map.get(c);
-            if(perm != null)
+            if (perm != null)
                 channelPerms.put(entry.getKey(), perm);
             else {
                 perm = map.get(c.getGuild());
-                if(perm != null)
+                if (perm != null)
                     channelPerms.put(entry.getKey(), perm);
             }
         }
@@ -151,7 +152,7 @@ public class PermissionHandler {
             context = PermissionContext.NULL;
 
         Map<GuildOrChannel, PermissionContext> map = perms.get(perm);
-        if(map.containsKey(obj)) {
+        if (map.containsKey(obj)) {
             map.put(obj, context);
             save();
             return true;
@@ -173,7 +174,7 @@ public class PermissionHandler {
         perms.putIfAbsent(perm, new HashMap<>());
 
         Map<GuildOrChannel, PermissionContext> map = perms.get(perm);
-        if(map.containsKey(obj)) {
+        if (map.containsKey(obj)) {
             map.remove(obj);
             save();
             return true;

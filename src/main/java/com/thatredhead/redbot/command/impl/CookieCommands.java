@@ -180,7 +180,8 @@ class CookieClickerAccount {
     private transient BigInteger cookiesPerClick;
     private transient BigInteger cookiesPerSecond;
 
-    public CookieClickerAccount() {}
+    public CookieClickerAccount() {
+    }
 
     public CookieClickerAccount(IUser user) {
         this.user = user;

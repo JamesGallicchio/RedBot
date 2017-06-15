@@ -24,7 +24,7 @@ public class MoneyCommands extends CommandGroup {
                         Command.of("pay", "Pays money to another", "pay <user mention> <amount>", "pay", true, false, PermissionContext.EVERYONE, msgp -> {
                             IUser target = msgp.getUserMention(1);
 
-                            if(target == null) msgp.reply("Invalid user mention! Check help for correct usage.");
+                            if (target == null) msgp.reply("Invalid user mention! Check help for correct usage.");
                             else {
                                 try {
                                     double amt = Double.parseDouble(msgp.getArg(2));
@@ -45,9 +45,9 @@ public class MoneyCommands extends CommandGroup {
 
                             List<Account> richest = RedBot.getEconomy().getRichest(10);
 
-                            for(int i = 0; i < richest.size(); i++) {
+                            for (int i = 0; i < richest.size(); i++) {
                                 Account next = richest.get(i);
-                                response.append("#").append(i+1).append(": ").append(next.getOwner() == null ? "N/A" : next.getOwner().getName()).append(" - ").append(Economy.format(next.getAmount())).append("\n");
+                                response.append("#").append(i + 1).append(": ").append(next.getOwner() == null ? "N/A" : next.getOwner().getName()).append(" - ").append(Economy.format(next.getAmount())).append("\n");
                             }
 
                             msgp.reply(response.toString());

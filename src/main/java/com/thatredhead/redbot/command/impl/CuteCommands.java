@@ -43,7 +43,8 @@ public class CuteCommands extends CommandGroup {
         commands = Arrays.asList(new CuteCommand(), new CuteSafetyCommand(), new CuteReportCommand());
 
         this.datah = RedBot.getDataHandler();
-        safeties = datah.get("cutesafety", new TypeToken<Map<Long, String>>(){}.getType(), new HashMap<>());
+        safeties = datah.get("cutesafety", new TypeToken<Map<Long, String>>() {
+        }.getType(), new HashMap<>());
     }
 
     public class CuteCommand extends Command {
@@ -77,14 +78,14 @@ public class CuteCommands extends CommandGroup {
         public void invoke(MessageParser msgp) {
             String level = msgp.getArg(1);
 
-            if(!("off".equals(level) || "medium".equals(level) || "high".equals(level)))
+            if (!("off".equals(level) || "medium".equals(level) || "high".equals(level)))
                 throw new CommandArgumentException(1, level, "Safety level must be off, medium, or high!");
 
             safeties.put(msgp.getChannel().getLongID(), level);
             RedBot.getDataHandler().save(safeties, "cutesafety");
 
-	    msgp.reply("Set this channel's safety level to " + level + "!");
-	}
+            msgp.reply("Set this channel's safety level to " + level + "!");
+        }
     }
 
     public class CuteReportCommand extends Command {
@@ -108,7 +109,7 @@ public class CuteCommands extends CommandGroup {
                     reported = msg;
             }
 
-            if(reported == null) {
+            if (reported == null) {
                 if (full)
                     msgp.reply("None of my responses in this channel use that ID.");
                 else
@@ -190,9 +191,9 @@ public class CuteCommands extends CommandGroup {
                     continue;
 
                 response.setLength(0);
-                if(e.getMessage().contains("50"))
+                if (e.getMessage().contains("50"))
                     response.append("\nGoogle's servers are probably down. Try again in a minute.");
-                else if(e.getMessage().contains("40"))
+                else if (e.getMessage().contains("40"))
                     response.append("\nProbably reached daily request limit. :(");
                 else {
                     response.append("\nError getting an image. Try again in a bit.");
@@ -205,7 +206,7 @@ public class CuteCommands extends CommandGroup {
     }
 
     private int nextKey() {
-        if(++keyNum >= keys.size())
+        if (++keyNum >= keys.size())
             keyNum = 0;
         return keyNum;
     }

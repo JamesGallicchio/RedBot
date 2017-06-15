@@ -27,7 +27,7 @@ public class Economy {
 
         sort();
 
-        return accounts.subList(0, count > accounts.size()? accounts.size() : count);
+        return accounts.subList(0, count > accounts.size() ? accounts.size() : count);
     }
 
     public Account getAccountForUser(IUser user) {
@@ -60,12 +60,12 @@ public class Economy {
 
     public void sort() {
 
-        for(int i = 1; i < accounts.size(); i++) {
-            int j = i-1;
+        for (int i = 1; i < accounts.size(); i++) {
+            int j = i - 1;
             double amount = accounts.get(i).getAmount();
-            while(j >= 0 && accounts.get(j).getAmount() < amount)
+            while (j >= 0 && accounts.get(j).getAmount() < amount)
                 j--;
-            accounts.set(i, accounts.set(j+1, accounts.get(i)));
+            accounts.set(i, accounts.set(j + 1, accounts.get(i)));
         }
     }
 }

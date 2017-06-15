@@ -76,7 +76,7 @@ public class PermsCommands extends CommandGroup {
                     if (channelList.stream().anyMatch(it -> !perms.hasPermission(this, msgp.getAuthor(), it)))
                         msgp.reply("You don't have permission in all of those channels to enable commands!");
                     else {
-                        if(all)
+                        if (all)
                             RedBot.getCommandHandler().getCommands().forEach(command ->
                                     channelList.forEach(channel -> perms.add(command.getPermission(), channel, command.getDefaultPermissions())));
                         else {
@@ -87,7 +87,7 @@ public class PermsCommands extends CommandGroup {
                         msgp.reply("Enabled for those channels :ok_hand:");
                     }
                 } else {
-                    if(all)
+                    if (all)
                         RedBot.getCommandHandler().getCommands()
                                 .forEach(command -> perms.add(command.getPermission(), msgp.getGuild(), command.getDefaultPermissions()));
                     else
@@ -146,7 +146,7 @@ public class PermsCommands extends CommandGroup {
                     if (channelList.stream().anyMatch(it -> !perms.hasPermission(this, msgp.getAuthor(), it)))
                         msgp.reply("You don't have permission in all of those channels to disable commands!");
                     else {
-                        if(all)
+                        if (all)
                             RedBot.getCommandHandler().getCommands().forEach(command ->
                                     channelList.forEach(channel -> perms.remove(command.getPermission(), channel)));
                         else {
@@ -157,7 +157,7 @@ public class PermsCommands extends CommandGroup {
                         msgp.reply("Disabled for those channels :ok_hand:");
                     }
                 } else {
-                    if(all)
+                    if (all)
                         RedBot.getCommandHandler().getCommands()
                                 .forEach(command -> perms.remove(command.getPermission(), msgp.getGuild()));
                     else

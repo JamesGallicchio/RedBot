@@ -24,11 +24,11 @@ import java.util.Date;
 
 public class LogHandler extends Filter<ILoggingEvent> {
 
-    private static final long MILLI_LOG_PERSISTENCE = 1000L*60*60*24*7; // 7 days
+    private static final long MILLI_LOG_PERSISTENCE = 1000L * 60 * 60 * 24 * 7; // 7 days
     private static final File LOG_FILE = new File("logs/latest.log");
 
     static {
-        if(LOG_FILE.exists()) {
+        if (LOG_FILE.exists()) {
             LOG_FILE.delete();
         }
     }
@@ -37,9 +37,9 @@ public class LogHandler extends Filter<ILoggingEvent> {
     public FilterReply decide(ILoggingEvent iLoggingEvent) {
 
         IThrowableProxy proxy = iLoggingEvent.getThrowableProxy();
-        if(proxy != null && proxy instanceof ThrowableProxy) {
+        if (proxy != null && proxy instanceof ThrowableProxy) {
             Throwable e = ((ThrowableProxy) proxy).getThrowable();
-            if(!(e instanceof EofException)) {
+            if (!(e instanceof EofException)) {
                 RedBot.reportError(e);
                 return FilterReply.DENY;
             }

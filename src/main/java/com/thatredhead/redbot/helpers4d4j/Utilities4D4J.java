@@ -32,12 +32,13 @@ public class Utilities4D4J {
 
     /**
      * Sends a message to a channel through the request buffer
-     * @param msg message to send
+     *
+     * @param msg     message to send
      * @param channel channel to send msg to
      * @return request future for the message sent
      */
     public static RequestBuffer.RequestFuture<IMessage> sendMessage(String msg, IChannel channel) {
-        if(channel == null || msg == null)
+        if (channel == null || msg == null)
             throw new NullPointerException();
         readyCheck();
         return RequestBuffer.request(() -> {
@@ -48,12 +49,13 @@ public class Utilities4D4J {
     /**
      * Sends a message to a channel through the request buffer by sending a ZWSP,
      * and then editing it to include the message
-     * @param msg message to send
+     *
+     * @param msg     message to send
      * @param channel channel to send msg to
      * @return request future for the message sent
      */
     public static RequestBuffer.RequestFuture<IMessage> sendMessageAsEdit(String msg, IChannel channel) {
-        if(channel == null || msg == null)
+        if (channel == null || msg == null)
             throw new NullPointerException();
         readyCheck();
         return RequestBuffer.request(() -> {
@@ -65,12 +67,13 @@ public class Utilities4D4J {
 
     /**
      * Sends a private message to a user through the request buffer
-     * @param msg message to send
+     *
+     * @param msg  message to send
      * @param user user to PM msg to
      * @return request future for the message sent
      */
     public static RequestBuffer.RequestFuture<IMessage> sendPrivateMessage(String msg, IUser user) {
-        if(user == null || msg == null)
+        if (user == null || msg == null)
             throw new NullPointerException();
         readyCheck();
         return RequestBuffer.request(() -> {
@@ -79,7 +82,7 @@ public class Utilities4D4J {
     }
 
     public static RequestBuffer.RequestFuture<IMessage> sendPrivateMessage(EmbedObject embed, IUser user) {
-        if(user == null || embed == null)
+        if (user == null || embed == null)
             throw new NullPointerException();
         readyCheck();
         return RequestBuffer.request(() -> {
@@ -89,12 +92,13 @@ public class Utilities4D4J {
 
     /**
      * Sends an embed to a channel
-     * @param embed the embed to send
+     *
+     * @param embed   the embed to send
      * @param channel the channel to send the embed to
      * @return a future for the message
      */
     public static RequestBuffer.RequestFuture<IMessage> sendEmbed(EmbedObject embed, IChannel channel) {
-        if(channel == null || embed == null)
+        if (channel == null || embed == null)
             throw new NullPointerException();
         readyCheck();
         return RequestBuffer.request(() -> {
@@ -108,7 +112,8 @@ public class Utilities4D4J {
 
     /**
      * Sends a temporary message to a channel that lasts 30 seconds
-     * @param msg message to send
+     *
+     * @param msg     message to send
      * @param channel channel to send msg to
      */
     public static void sendTemporaryMessage(String msg, IChannel channel) {
@@ -119,22 +124,23 @@ public class Utilities4D4J {
 
     /**
      * Sends a temporary message to a channel
-     * @param msg message to send
-     * @param channel channel to send msg to
+     *
+     * @param msg        message to send
+     * @param channel    channel to send msg to
      * @param milliDelay length of time to wait before deleting the message
      */
     public static void sendTemporaryMessage(String msg, IChannel channel, int milliDelay) {
-        if(channel == null || msg == null)
+        if (channel == null || msg == null)
             throw new NullPointerException();
         readyCheck();
         RequestBuffer.RequestFuture<IMessage> message = sendMessage(msg + "\n\n*This message may be deleted.*", channel);
         scheduler.schedule(() -> RequestBuffer.request(() -> {
-                    try {
-                        message.get().delete();
-                    } catch (DiscordException | MissingPermissionsException e) {
-                        RedBot.reportError(e);
-                    }
-                }), milliDelay, TimeUnit.MILLISECONDS);
+            try {
+                message.get().delete();
+            } catch (DiscordException | MissingPermissionsException e) {
+                RedBot.reportError(e);
+            }
+        }), milliDelay, TimeUnit.MILLISECONDS);
     }
 
     public static RequestBuffer.RequestFuture<IMessage> sendFile(File f, IChannel channel) {
@@ -165,7 +171,7 @@ public class Utilities4D4J {
                                             .orElse(null)));
         }
 
-        if(channel != null) sendMessage(message, channel);
+        if (channel != null) sendMessage(message, channel);
     }
 
     public static boolean weHaveSendMessagePerm(IChannel c) {
@@ -177,34 +183,39 @@ public class Utilities4D4J {
 
         Iterator<IChannel> channels = g.getChannels().iterator();
 
-        while(channel != null && !channel.getModifiedPermissions(g.getClient().getOurUser()).contains(Permissions.SEND_MESSAGES)) {
-            if(channels.hasNext()) channel = channels.next();
+        while (channel != null && !channel.getModifiedPermissions(g.getClient().getOurUser()).contains(Permissions.SEND_MESSAGES)) {
+            if (channels.hasNext()) channel = channels.next();
             else channel = null;
         }
 
-        if(channel == null) return;
+        if (channel == null) return;
 
         sendEmbed(embed, channel);
     }
 
     public static IMessage addReactions(IMessage msg, Emoji... emojis) {
-        for(Emoji e: emojis)
+        for (Emoji e : emojis)
             RequestBuffer.request(() -> msg.addReaction(e));
 
         return msg;
     }
 
     public static IMessage addReactionsOrdered(IMessage msg, Emoji... emojis) {
-        for(Emoji e: emojis)
+        for (Emoji e : emojis)
             RequestBuffer.request(() -> msg.addReaction(e)).get();
 
         return msg;
     }
 
     public interface ReactionListener {
-        default void onReactionAdd(IMessage msg, IUser user, Emoji emoji) {}
-        default void onReactionRemove(IMessage msg, IUser user, Emoji emoji) {}
-        default void onReactionToggle(IMessage msg, IUser user, Emoji emoji) {}
+        default void onReactionAdd(IMessage msg, IUser user, Emoji emoji) {
+        }
+
+        default void onReactionRemove(IMessage msg, IUser user, Emoji emoji) {
+        }
+
+        default void onReactionToggle(IMessage msg, IUser user, Emoji emoji) {
+        }
     }
 
     @FunctionalInterface
@@ -268,7 +279,7 @@ public class Utilities4D4J {
     }
 
     public static RequestBuffer.RequestFuture<IMessage> edit(IMessage msg, String newContent) {
-        if(newContent == null || msg == null)
+        if (newContent == null || msg == null)
             throw new NullPointerException();
         readyCheck();
         return RequestBuffer.request(() -> {
@@ -277,7 +288,7 @@ public class Utilities4D4J {
     }
 
     public static RequestBuffer.RequestFuture<IMessage> edit(IMessage msg, EmbedObject newEmbed) {
-        if(newEmbed == null || msg == null)
+        if (newEmbed == null || msg == null)
             throw new NullPointerException();
         readyCheck();
         return RequestBuffer.request(() -> {
@@ -298,8 +309,8 @@ public class Utilities4D4J {
                 .withTimestamp(LocalDateTime.now())
                 .withColor(Color.RED);
 
-        for(int i = 1; i < fields.length; i += 2) {
-            embed.appendField(fields[i-1], fields[i], inline);
+        for (int i = 1; i < fields.length; i += 2) {
+            embed.appendField(fields[i - 1], fields[i], inline);
         }
 
         return embed.build();
@@ -326,8 +337,8 @@ public class Utilities4D4J {
 
         public void queue(RequestBuffer.IRequest<T> request) {
             queue.addFirst(request);
-            while(queue.size() > size) queue.removeLast();
-            if(!isWaiting) makeRequest();
+            while (queue.size() > size) queue.removeLast();
+            if (!isWaiting) makeRequest();
         }
 
         private void makeRequest() {
@@ -335,7 +346,7 @@ public class Utilities4D4J {
             isWaiting = true;
             exec.schedule(() -> {
                 isWaiting = false;
-                if(queue.size() != 0) makeRequest();
+                if (queue.size() != 0) makeRequest();
             }, cooldown, unit);
         }
     }
@@ -361,8 +372,8 @@ public class Utilities4D4J {
 
         public void queue(RequestBuffer.IVoidRequest request) {
             queue.addFirst(request);
-            while(queue.size() > size) queue.removeLast();
-            if(!isWaiting) makeRequest();
+            while (queue.size() > size) queue.removeLast();
+            if (!isWaiting) makeRequest();
         }
 
         private void makeRequest() {
@@ -370,13 +381,13 @@ public class Utilities4D4J {
             isWaiting = true;
             exec.schedule(() -> {
                 isWaiting = false;
-                if(queue.size() != 0) makeRequest();
+                if (queue.size() != 0) makeRequest();
             }, cooldown, unit);
         }
     }
 
     private static void readyCheck() {
-        if(!RedBot.isReady())
+        if (!RedBot.isReady())
             try {
                 RedBot.getClient().getDispatcher().waitFor(ReadyEvent.class);
             } catch (InterruptedException e) {
@@ -389,7 +400,8 @@ public class Utilities4D4J {
         private long channelID;
         private long messageID;
 
-        public SerializableMessage() {}
+        public SerializableMessage() {
+        }
 
         public SerializableMessage(IMessage msg) {
             channelID = msg.getChannel().getLongID();
@@ -408,7 +420,7 @@ public class Utilities4D4J {
     public static IMessage getMessageByID(long id) {
         IMessage msg = RedBot.getClient().getMessageByID(id);
 
-        if(msg == null) {
+        if (msg == null) {
             for (IChannel c : RedBot.getClient().getChannels()) {
                 msg = c.getMessageByID(id);
                 if (msg != null) return msg;

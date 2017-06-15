@@ -14,7 +14,7 @@ import sx.blah.discord.api.internal.json.objects.EmbedObject;
 
 import java.util.Arrays;
 
-public class GamblingCommands  extends CommandGroup {
+public class GamblingCommands extends CommandGroup {
 
     public GamblingCommands() {
         super("Gambling Commands", "Commands for playing a variety of gambling games",
@@ -44,7 +44,7 @@ public class GamblingCommands  extends CommandGroup {
         }
 
         public void invoke(MessageParser msgp) {
-            msgp.reply(Utilities4D4J.makeEmbed("Magic 8 Ball says...", responses[(int) (responses.length*Math.random())], true));
+            msgp.reply(Utilities4D4J.makeEmbed("Magic 8 Ball says...", responses[(int) (responses.length * Math.random())], true));
         }
     }
 
@@ -160,18 +160,18 @@ public class GamblingCommands  extends CommandGroup {
 
         public void invoke(MessageParser msgp) {
             Account act = RedBot.getEconomy().getAccountForUser(msgp.getAuthor());
-            if(act.getAmount() >= CHARGE) {
+            if (act.getAmount() >= CHARGE) {
 
                 RedBot.getEconomy().gamblingCharge(act, CHARGE);
 
                 double rando = Math.random();
-                if(CHANCE_JACKPOT > rando) {
+                if (CHANCE_JACKPOT > rando) {
                     msgp.reply(getJackpotWin());
                     RedBot.getEconomy().gamblingPayment(act, REWARD_JACKPOT);
-                } else if(CHANCE_JACKPOT + CHANCE_HIGH > rando) {
+                } else if (CHANCE_JACKPOT + CHANCE_HIGH > rando) {
                     msgp.reply(getHighWin());
                     RedBot.getEconomy().gamblingPayment(act, REWARD_HIGH);
-                } else if(CHANCE_JACKPOT + CHANCE_HIGH + CHANCE_NORMAL > rando) {
+                } else if (CHANCE_JACKPOT + CHANCE_HIGH + CHANCE_NORMAL > rando) {
                     msgp.reply(getNormalWin());
                     RedBot.getEconomy().gamblingPayment(act, REWARD_NORMAL);
                 } else {
@@ -185,17 +185,17 @@ public class GamblingCommands  extends CommandGroup {
         private static EmbedObject getLose() {
             StringBuilder sb = new StringBuilder();
 
-            Emoji[] emojis = new Emoji[ROWS*COLS];
+            Emoji[] emojis = new Emoji[ROWS * COLS];
 
-            for(int r = 0; r < ROWS; r++) {
-                for(int c = 0; c < COLS; c++) {
-                    emojis[r*COLS + c] = getRandomNotIn(emojis, NORMAL_EMOJIS, HIGH_EMOJIS, JACKPOT_EMOJIS);
+            for (int r = 0; r < ROWS; r++) {
+                for (int c = 0; c < COLS; c++) {
+                    emojis[r * COLS + c] = getRandomNotIn(emojis, NORMAL_EMOJIS, HIGH_EMOJIS, JACKPOT_EMOJIS);
                 }
             }
 
-            for(int r = 0; r < ROWS; r++) {
-                for(int c = 0; c < COLS; c++) {
-                    sb.append(emojis[r*COLS + c].getUnicode()).append(" ");
+            for (int r = 0; r < ROWS; r++) {
+                for (int c = 0; c < COLS; c++) {
+                    sb.append(emojis[r * COLS + c].getUnicode()).append(" ");
                 }
                 sb.append("\n");
             }
@@ -208,54 +208,54 @@ public class GamblingCommands  extends CommandGroup {
         private static EmbedObject getNormalWin() {
             StringBuilder sb = new StringBuilder();
 
-            Emoji[] emojis = new Emoji[ROWS*COLS];
+            Emoji[] emojis = new Emoji[ROWS * COLS];
 
-            for(int r = 0; r < ROWS; r++) {
-                if(r == ROWS/2) {
+            for (int r = 0; r < ROWS; r++) {
+                if (r == ROWS / 2) {
                     Emoji winner = getRandomNotIn(emojis, NORMAL_EMOJIS);
-                    for(int c = 0; c < COLS; c++) {
-                        emojis[r*COLS + c] = winner;
+                    for (int c = 0; c < COLS; c++) {
+                        emojis[r * COLS + c] = winner;
                     }
                 } else {
-                    for(int c = 0; c < COLS; c++) {
-                        emojis[r*COLS + c] = getRandomNotIn(emojis, NORMAL_EMOJIS, HIGH_EMOJIS, JACKPOT_EMOJIS);
+                    for (int c = 0; c < COLS; c++) {
+                        emojis[r * COLS + c] = getRandomNotIn(emojis, NORMAL_EMOJIS, HIGH_EMOJIS, JACKPOT_EMOJIS);
                     }
                 }
             }
 
-            for(int r = 0; r < ROWS; r++) {
-                for(int c = 0; c < COLS; c++) {
-                    sb.append(emojis[r*COLS + c].getUnicode()).append(" ");
+            for (int r = 0; r < ROWS; r++) {
+                for (int c = 0; c < COLS; c++) {
+                    sb.append(emojis[r * COLS + c].getUnicode()).append(" ");
                 }
                 sb.append("\n");
             }
 
             sb.append("**You won " + Economy.format(REWARD_NORMAL) + "!**");
 
-            return Utilities4D4J.makeEmbed("RedBot Slots Machine", sb.toString(),true);
+            return Utilities4D4J.makeEmbed("RedBot Slots Machine", sb.toString(), true);
         }
 
         private static EmbedObject getHighWin() {
             StringBuilder sb = new StringBuilder();
 
-            Emoji[] emojis = new Emoji[ROWS*COLS];
+            Emoji[] emojis = new Emoji[ROWS * COLS];
 
-            for(int r = 0; r < ROWS; r++) {
-                if(r == ROWS/2) {
+            for (int r = 0; r < ROWS; r++) {
+                if (r == ROWS / 2) {
                     Emoji winner = getRandomNotIn(emojis, HIGH_EMOJIS);
-                    for(int c = 0; c < COLS; c++) {
-                        emojis[r*COLS + c] = winner;
+                    for (int c = 0; c < COLS; c++) {
+                        emojis[r * COLS + c] = winner;
                     }
                 } else {
-                    for(int c = 0; c < COLS; c++) {
-                        emojis[r*COLS + c] = getRandomNotIn(emojis, NORMAL_EMOJIS, HIGH_EMOJIS, JACKPOT_EMOJIS);
+                    for (int c = 0; c < COLS; c++) {
+                        emojis[r * COLS + c] = getRandomNotIn(emojis, NORMAL_EMOJIS, HIGH_EMOJIS, JACKPOT_EMOJIS);
                     }
                 }
             }
 
-            for(int r = 0; r < ROWS; r++) {
-                for(int c = 0; c < COLS; c++) {
-                    sb.append(emojis[r*COLS + c].getUnicode()).append(" ");
+            for (int r = 0; r < ROWS; r++) {
+                for (int c = 0; c < COLS; c++) {
+                    sb.append(emojis[r * COLS + c].getUnicode()).append(" ");
                 }
                 sb.append("\n");
             }
@@ -268,24 +268,24 @@ public class GamblingCommands  extends CommandGroup {
         private static EmbedObject getJackpotWin() {
             StringBuilder sb = new StringBuilder();
 
-            Emoji[] emojis = new Emoji[ROWS*COLS];
+            Emoji[] emojis = new Emoji[ROWS * COLS];
 
-            for(int r = 0; r < ROWS; r++) {
-                if(r == ROWS/2) {
+            for (int r = 0; r < ROWS; r++) {
+                if (r == ROWS / 2) {
                     Emoji winner = getRandomNotIn(emojis, JACKPOT_EMOJIS);
-                    for(int c = 0; c < COLS; c++) {
-                        emojis[r*COLS + c] = winner;
+                    for (int c = 0; c < COLS; c++) {
+                        emojis[r * COLS + c] = winner;
                     }
                 } else {
-                    for(int c = 0; c < COLS; c++) {
-                        emojis[r*COLS + c] = getRandomNotIn(emojis, NORMAL_EMOJIS, HIGH_EMOJIS, JACKPOT_EMOJIS);
+                    for (int c = 0; c < COLS; c++) {
+                        emojis[r * COLS + c] = getRandomNotIn(emojis, NORMAL_EMOJIS, HIGH_EMOJIS, JACKPOT_EMOJIS);
                     }
                 }
             }
 
-            for(int r = 0; r < ROWS; r++) {
-                for(int c = 0; c < COLS; c++) {
-                    sb.append(emojis[r*COLS + c].getUnicode()).append(" ");
+            for (int r = 0; r < ROWS; r++) {
+                for (int c = 0; c < COLS; c++) {
+                    sb.append(emojis[r * COLS + c].getUnicode()).append(" ");
                 }
                 sb.append("\n");
             }
@@ -298,12 +298,12 @@ public class GamblingCommands  extends CommandGroup {
         private static <T> T getRandomNotIn(T[] blacklist, T[]... options) {
             T possibility = getRandom(options);
             boolean contains = true;
-            while(contains) {
+            while (contains) {
                 possibility = getRandom(options);
                 contains = false;
 
-                for(T one: blacklist)
-                    if(possibility.equals(one)) {
+                for (T one : blacklist)
+                    if (possibility.equals(one)) {
                         contains = true;
                         break;
                     }
@@ -316,8 +316,8 @@ public class GamblingCommands  extends CommandGroup {
 
             int idx = (int) (Math.random() * length);
 
-            for(T[] op: options) {
-                if(idx < op.length)
+            for (T[] op : options) {
+                if (idx < op.length)
                     return op[idx];
                 idx -= op.length;
             }
@@ -325,10 +325,10 @@ public class GamblingCommands  extends CommandGroup {
             return null;
         }
 
-        private static Emoji[] getEmojiList(String ... emojiAliases) {
+        private static Emoji[] getEmojiList(String... emojiAliases) {
             Emoji[] emojis = new Emoji[emojiAliases.length];
 
-            for(int i = 0; i < emojiAliases.length; i++)
+            for (int i = 0; i < emojiAliases.length; i++)
                 emojis[i] = EmojiManager.getForAlias(emojiAliases[i]);
 
             return emojis;

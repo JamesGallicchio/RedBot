@@ -43,10 +43,10 @@ public class RedBotCommands extends CommandGroup {
                     "Hi! I'm RedBot- a Discord bot written by <@" + RedBot.OWNER_ID +
                             ">! I'm written using [Discord4J](http://github.com/austinv11/Discord4J), and my source code " +
                             "[is publicly available online](http://github.com/JamesGallicchio/RedBot).", false,
-                    "Getting Started", "Use `%help` to find out what you can do. You can use whatever commands this server's administration has enabled, or PM RedBot to use all of its functions.\n"+
-                                "For administrators: Use `%adminhelp` for information on how to set up RedBot in your server.",
-                            "Support", "Join my support guild [here](https://discord.gg/QVwRdk3). There you can find help, suggest new features, talk to Red, etc."
-                    );
+                    "Getting Started", "Use `%help` to find out what you can do. You can use whatever commands this server's administration has enabled, or PM RedBot to use all of its functions.\n" +
+                            "For administrators: Use `%adminhelp` for information on how to set up RedBot in your server.",
+                    "Support", "Join my support guild [here](https://discord.gg/QVwRdk3). There you can find help, suggest new features, talk to Red, etc."
+            );
         }
     }
 
@@ -61,22 +61,22 @@ public class RedBotCommands extends CommandGroup {
 
         @Override
         public void invoke(MessageParser msgp) throws CommandException {
-            if(cmdGroups == null)
+            if (cmdGroups == null)
                 cmdGroups = RedBot.getCommandHandler().getCommandGroups();
-            if(cmds == null)
+            if (cmds == null)
                 cmds = RedBot.getCommandHandler().getStandaloneCommands();
 
             EmbedBuilder help = new EmbedBuilder();
             help.withTitle("RedBot Help for " + msgp.getChannel().mention());
 
-            for(CommandGroup cg : cmdGroups.stream()
+            for (CommandGroup cg : cmdGroups.stream()
                     .filter(cg -> cg.getCommands().stream()
                             .anyMatch(c -> RedBot.getPermHandler().hasPermission(c, msgp.getAuthor(), msgp.getChannel())))
                     .collect(Collectors.toList())) {
 
                 StringBuilder sb = new StringBuilder();
 
-                for(Command c : cg.getCommands().stream()
+                for (Command c : cg.getCommands().stream()
                         .filter(it -> RedBot.getPermHandler().hasPermission(it, msgp.getAuthor(), msgp.getChannel()))
                         .collect(Collectors.toList())) {
                     sb.append(c.getKeyword());
@@ -92,7 +92,7 @@ public class RedBotCommands extends CommandGroup {
 
             StringBuilder sb = new StringBuilder();
 
-            for(Command c : cmds.stream()
+            for (Command c : cmds.stream()
                     .filter(it -> RedBot.getPermHandler().hasPermission(it, msgp.getAuthor(), msgp.getChannel()))
                     .collect(Collectors.toList())) {
                 sb.append(c.getKeyword());
@@ -104,7 +104,7 @@ public class RedBotCommands extends CommandGroup {
             }
             if (sb.length() != 0) {
                 help.appendField("Miscellaneous", sb.toString(), true);
-	    }
+            }
             Utilities4D4J.sendPrivateMessage(help.build(), msgp.getAuthor());
             Utilities4D4J.sendTemporaryMessage("Check your PMs!", msgp.getChannel());
         }

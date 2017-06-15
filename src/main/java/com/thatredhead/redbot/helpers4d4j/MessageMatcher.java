@@ -23,35 +23,41 @@ public class MessageMatcher {
         public static MessageToken[] compile(String pattern) {
             MessageToken[] compiled = new MessageToken[pattern.length()];
 
-            for(int idx = 0; idx < pattern.length(); idx++)
-                switch(pattern.charAt(idx)) {
+            for (int idx = 0; idx < pattern.length(); idx++)
+                switch (pattern.charAt(idx)) {
                     case 'u':
                     case 'U':
-                        compiled[idx] = USER_MENTION; break;
+                        compiled[idx] = USER_MENTION;
+                        break;
                     case 'r':
                     case 'R':
-                        compiled[idx] = ROLE_MENTION; break;
+                        compiled[idx] = ROLE_MENTION;
+                        break;
                     case 'c':
                     case 'C':
-                        compiled[idx] = CHANNEL_MENTION; break;
+                        compiled[idx] = CHANNEL_MENTION;
+                        break;
                     case 't':
                     case 'T':
                     case 'w':
                     case 'W':
-                        compiled[idx] = TEXT; break;
+                        compiled[idx] = TEXT;
+                        break;
                     case '+':
-                        compiled[idx] = ONE_OR_MORE; break;
+                        compiled[idx] = ONE_OR_MORE;
+                        break;
                     case '?':
-                        compiled[idx] = OPTIONAL; break;
+                        compiled[idx] = OPTIONAL;
+                        break;
                     default:
                         throw new IllegalArgumentException();
                 }
 
-            if(compiled[0] == ONE_OR_MORE || compiled[0] == OPTIONAL)
+            if (compiled[0] == ONE_OR_MORE || compiled[0] == OPTIONAL)
                 throw new IllegalArgumentException();
 
             MessageToken last = OPTIONAL;
-            for(MessageToken token : compiled) {
+            for (MessageToken token : compiled) {
                 if ((token == ONE_OR_MORE || token == OPTIONAL) && last == token)
                     throw new IllegalArgumentException();
                 last = token;
@@ -61,30 +67,32 @@ public class MessageMatcher {
         }
 
         public boolean matches(String[] words, int idx) {
-            switch(this) {
+            switch (this) {
                 case USER_MENTION:
                     Matcher mu = USERP.matcher(words[idx]);
-                    if(mu.find()) {
+                    if (mu.find()) {
                         words[idx] = mu.group(1);
                         return true;
                     }
                     return false;
                 case ROLE_MENTION:
                     Matcher mr = ROLEP.matcher(words[idx]);
-                    if(mr.find()) {
+                    if (mr.find()) {
                         words[idx] = mr.group(1);
                         return true;
                     }
                     return false;
                 case CHANNEL_MENTION:
                     Matcher mc = CHNLP.matcher(words[idx]);
-                    if(mc.find()) {
+                    if (mc.find()) {
                         words[idx] = mc.group(1);
                         return true;
                     }
                     return false;
-                case TEXT: return !(USER_MENTION.matches(words, idx) || ROLE_MENTION.matches(words, idx) || CHANNEL_MENTION.matches(words, idx));
-                default: return false;
+                case TEXT:
+                    return !(USER_MENTION.matches(words, idx) || ROLE_MENTION.matches(words, idx) || CHANNEL_MENTION.matches(words, idx));
+                default:
+                    return false;
             }
         }
     }
@@ -104,10 +112,10 @@ public class MessageMatcher {
 
         int tokenIdx = 0, startWordIdx = 0, endWordIdx = 0;
         MessageToken last = tokens[0];
-        while(tokenIdx++ < tokens.length && endWordIdx < words.length) {
+        while (tokenIdx++ < tokens.length && endWordIdx < words.length) {
 
             if (!last.matches(words, startWordIdx)) {
-                if(tokens[tokenIdx++] == MessageToken.OPTIONAL ||
+                if (tokens[tokenIdx++] == MessageToken.OPTIONAL ||
                         tokens[tokenIdx++] == MessageToken.OPTIONAL)
                     tokenWords.add(null);
                 else return false;
@@ -127,10 +135,10 @@ public class MessageMatcher {
             }
         }
 
-        if(tokenIdx == tokens.length) return true;
+        if (tokenIdx == tokens.length) return true;
 
-        while(++tokenIdx < tokens.length) {
-            if(tokens[tokenIdx] == MessageToken.OPTIONAL ||
+        while (++tokenIdx < tokens.length) {
+            if (tokens[tokenIdx] == MessageToken.OPTIONAL ||
                     ++tokenIdx < tokens.length && tokens[tokenIdx] == MessageToken.OPTIONAL)
                 tokenWords.add(new String[0]);
             else return false;

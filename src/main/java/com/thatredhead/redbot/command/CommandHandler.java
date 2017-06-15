@@ -32,7 +32,8 @@ public class CommandHandler {
     public CommandHandler() {
         this.perms = RedBot.getPermHandler();
 
-        prefixes = RedBot.getDataHandler().get("guildprefixes", new TypeToken<HashMap<Long, String>>(){}.getType(), new HashMap<Long, String>());
+        prefixes = RedBot.getDataHandler().get("guildprefixes", new TypeToken<HashMap<Long, String>>() {
+        }.getType(), new HashMap<Long, String>());
 
         Reflections r = new Reflections("com.thatredhead.redbot.command.impl");
 
@@ -47,7 +48,7 @@ public class CommandHandler {
 
         standaloneCommands = r.getSubTypesOf(Command.class).stream().map(clazz -> {
             try {
-                if(clazz.getName().contains("$"))
+                if (clazz.getName().contains("$"))
                     return null;
                 else return clazz.newInstance();
             } catch (Exception e) {
@@ -85,7 +86,7 @@ public class CommandHandler {
         MessageParser msgp = new MessageParser(e.getMessage());
         String prefix = getPrefix(msgp.getGuild());
 
-        if(msgp.construct(prefix)) {
+        if (msgp.construct(prefix)) {
             if (msgp.getChannel().getModifiedPermissions(RedBot.getClient().getOurUser()).contains(Permissions.SEND_MESSAGES)) {
                 boolean success = false;
 
@@ -126,14 +127,14 @@ public class CommandHandler {
             c.invoke(msg);
         } catch (CommandArgumentException e) {
             Utilities4D4J.sendTemporaryMessage("Invalid argument #" + e.idx + " \"" + e.arg
-                                              + "\"! Proper format:\n`" + e.correctFormat + "`", msg.getChannel());
+                    + "\"! Proper format:\n`" + e.correctFormat + "`", msg.getChannel());
         } catch (CommandException e) {
             Utilities4D4J.sendTemporaryMessage(e.getMessage(), msg.getChannel());
         }
     }
 
     private String getPrefix(IGuild guild) {
-        if(guild != null && prefixes.containsKey(guild.getLongID()))
+        if (guild != null && prefixes.containsKey(guild.getLongID()))
             return prefixes.get(guild.getLongID());
         return RedBot.DEFAULT_PREFIX;
     }
