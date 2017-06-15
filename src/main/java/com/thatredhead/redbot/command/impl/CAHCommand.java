@@ -245,8 +245,8 @@ public class CAHCommand extends Command {
     }
 
     private static class Player {
-        private static final Emoji LEFT = EmojiManager.getByUnicode("←");
-        private static final Emoji RIGHT = EmojiManager.getByUnicode("→");
+        private static final Emoji LEFT = EmojiManager.getForAlias("arrow_left");
+        private static final Emoji RIGHT = EmojiManager.getForAlias("arrow_right");
         private long userID;
         private long cardsMessageID;
         private int score;
