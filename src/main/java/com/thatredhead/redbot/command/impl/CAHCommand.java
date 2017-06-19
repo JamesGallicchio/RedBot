@@ -24,10 +24,14 @@ public class CAHCommand extends Command {
     public static final List<Card> WHITE_CARDS;
     public static final List<Card> BLACK_CARDS;
     public static final EmbedObject HELP_EMBED = Utilities4D4J.makeEmbed("Cards Against Humanity Help", "You can start a new game in any channel where the `cah` command is enabled using `cah create`. To join the game, each player should use `cah join`. When you're ready to start, use `cah start`.", false);
+    public static final Emoji LEFT = EmojiManager.getForAlias("arrow_left");
+    public static final Emoji RIGHT = EmojiManager.getForAlias("arrow_right");
+    public static final Emoji CHOOSE = EmojiManager.getForAlias("white_check_mark");
 
     static {
         List<Card> whites = null;
         List<Card> blacks = null;
+        
         try {
             whites = Files.readAllLines(Paths.get("white-cards.txt")).stream()
                     .map(s -> new Card(s, false, false))
@@ -52,52 +56,69 @@ public class CAHCommand extends Command {
 
     @Override
     public void invoke(MessageParser msgp) throws CommandException {
-        if (msgp.getArgCount() < 1) Utilities4D4J.sendEmbed(HELP_EMBED, msgp.getChannel());
-
-        String keyword = msgp.getArg(1).toLowerCase();
-
-        if ("create".equals(keyword)) {
-            if (games.containsKey(msgp.getChannel().getLongID())) {
-                msgp.reply("There's already a game going on in this channel.");
-            } else {
-                games.put(msgp.getChannel().getLongID(), new CAHGame(7, 5, 3, 20));
-                games.get(msgp.getChannel().getLongID()).addPlayer(msgp.getAuthor());
-                msgp.reply("New game created! `cah join` to join the game.");
-            }
+        if (msgp.getArgCount() < 2) {
+            Utilities4D4J.sendEmbed(HELP_EMBED, msgp.getChannel());
         } else {
-            CAHGame g = games.get(msgp.getChannel().getLongID());
-            if (g == null) {
-                msgp.reply("There is no game going on right now. Use `cah` for help.");
-            } else if (g.hasStarted()) {
-                if ("end".equals(keyword)) {
+            String keyword = msgp.getArg(1).toLowerCase();
+
+            if ("create".equals(keyword)) {
+                if (games.containsKey(msgp.getChannel().getLongID())) {
+                    msgp.reply("There's already a game going on in this channel.");
+                } else {
+                    games.put(msgp.getChannel().getLongID(), new CAHGame(7, 5, 3, 20));
+                    games.get(msgp.getChannel().getLongID()).addPlayer(msgp.getAuthor());
+                    msgp.reply("New game created! `cah join` to join the game.");
+                }
+            } else {
+                CAHGame g = games.get(msgp.getChannel().getLongID());
+                if (g == null) {
+                    msgp.reply("There is no game going on right now. Use `cah` for help.");
+                } else if ("leave".equals(keyword)) {
+                    if (g.isPlayer(msgp.getAuthor())) {
+                        g.removePlayer(msgp.getAuthor());
+                        msgp.reply("You've left the game!");
+                    } else {
+                        msgp.reply("You're not a player in this game!");
+                    }
+                } else if ("end".equals(keyword)) {
                     if (msgp.getAuthor().getLongID() == g.getCzar()) {
+                        g.getPlayers().forEach(p -> Utilities4D4J.removeReactionUI(p.getCardsMessage().getLongID()));
                         games.remove(msgp.getChannel().getLongID());
                         msgp.reply("__Ended the game! Final scores__\n" + scores(g));
                     } else {
                         msgp.reply("Only the current czar can end a game.");
                     }
+                } else if ("join".equals(keyword)) {
+                    if (g.isPlayer(msgp.getAuthor())) {
+                        msgp.reply("You're already in this game.");
+                    } else if (g.getPlayers().size() >= g.maxPlayers) {
+                        msgp.reply("The max number of players has been reached! Someone will need to leave before you can join.");
+                    } else {
+                        g.addPlayer(msgp.getAuthor());
+                        msgp.reply("Successfully joined the game!");
+                    }
+                } else if ("start".equals(keyword)) {
+                    if (g.hasStarted()) {
+                        msgp.reply("This game has already started!");
+                    } else if (g.getPlayers().size() < g.minPlayers) {
+                        msgp.reply("There aren't enough players to start! You need at least " + g.minPlayers + " to begin.");
+                    } else {
+                        g.start();
+                        takeTurn(msgp.getChannel(), g);
+                    }
                 } else {
-                    msgp.reply("This game has already started!");
+                    msgp.reply("Unknown command " + msgp.getArg(1) + "! Use `cah` for help.");
                 }
-            } else if ("join".equals(keyword)) {
-                if (g.isPlayer(msgp.getAuthor())) {
-                    msgp.reply("You're already in this game.");
-                } else {
-                    g.addPlayer(msgp.getAuthor());
-                    msgp.reply("Successfully joined the game!");
-                }
-            } else if ("start".equals(keyword)) {
-                g.start();
-                takeTurn(msgp.getChannel(), g);
-            } else {
-                msgp.reply("Unknown command " + msgp.getArg(1) + "! Use `cah` for help.");
             }
         }
     }
 
     private static void takeTurn(IChannel c, CAHGame g) {
         Utilities4D4J.sendEmbed(c, "Cards Against Humanity", "Current czar: <@" + g.getCzar() + ">", true, "Scores", scores(g));
+    }
 
+    private void triggerUpdate(CAHGame g) {
+        games.entrySet().stream().filter(e -> e.getValue().equals(g)).findFirst().ifPresent(e -> g.triggerUpdate(RedBot.getClient().getChannelByID(e.getKey())));
     }
 
     private static String scores(CAHGame g) {
@@ -113,10 +134,10 @@ public class CAHCommand extends Command {
     }
 
     private static class CAHGame {
-        private final int minPlayers;
-        private final int maxPlayers;
-        private final int handSize;
-        private final int cardsToWin;
+        public final int minPlayers;
+        public final int maxPlayers;
+        public final int handSize;
+        public final int cardsToWin;
         private boolean isStarted;
 
         private LinkedList<Player> players;
@@ -127,7 +148,9 @@ public class CAHCommand extends Command {
         private List<Card> blackDiscard;
 
         private Card currentBlack;
-        private List<Card> submitted;
+        private Map<Player, Card> submitted;
+
+        private int selected;
 
         public CAHGame(int hands, int winCount, int minPlay, int maxPlay) {
             handSize = hands;
@@ -136,20 +159,21 @@ public class CAHCommand extends Command {
             maxPlayers = maxPlay;
             players = new LinkedList<>();
             whiteDeck = new ArrayList<>();
-            whiteDeck.addAll(WHITE_CARDS);
             whiteDiscard = new ArrayList<>();
             blackDeck = new ArrayList<>();
-            blackDeck.addAll(BLACK_CARDS);
             blackDiscard = new ArrayList<>();
+            whiteDiscard.addAll(WHITE_CARDS);
+            blackDiscard.addAll(WHITE_CARDS);
+
+            submitted = new HashMap<>();
         }
 
         public void addPlayer(IUser u) {
             if (isStarted) throw new IllegalStateException("Game already started!");
             if (isPlayer(u)) throw new IllegalStateException("Player already in the game!");
 
-            Player p = new Player(u);
+            Player p = new Player(u, this);
             for (int i = 0; i < handSize; i++) p.getCards().add(getNextWhiteCard());
-            p.choice = -2;
             players.addLast(p);
         }
 
@@ -178,7 +202,10 @@ public class CAHCommand extends Command {
                 throw new IllegalStateException("Player count is not within range!");
             if (isStarted) throw new IllegalStateException("Already started!");
             isStarted = true;
-            players.forEach(p -> p.choice = -1);
+            players.forEach(p -> {
+                p.choice = -1;
+                Utilities4D4J.edit(p.getCardsMessage(), p.toEmbed());
+            });
         }
 
         public boolean hasStarted() {
@@ -189,18 +216,18 @@ public class CAHCommand extends Command {
             return players.getFirst().userID;
         }
 
-        public void chooseCard(IUser u, int choice) {
+        public void chooseCard(long userID, Card choice) {
             if (!hasStarted())
                 throw new IllegalStateException("Game hasn't started yet!");
-            if (u.getLongID() == getCzar())
+            if (userID == getCzar())
                 throw new IllegalArgumentException("That player is the czar!");
 
-            Player p = getPlayer(u.getLongID()).orElse(null);
+            Player p = getPlayer(userID).orElse(null);
             if (p == null)
                 throw new IllegalArgumentException("Given user isn't a player!");
-            if (choice <= 0 || p.cards.size() < choice)
-                throw new IllegalArgumentException("Out of range selection!");
-            p.choice = choice;
+            if (submitted.containsKey(p))
+                throw new IllegalArgumentException("Given user already submitted!");
+            submitted.put(p, choice);
         }
 
         public boolean isWaiting() {
@@ -211,12 +238,44 @@ public class CAHCommand extends Command {
             return players.stream().collect(Collectors.toMap(Player::getUserID, Player::getChoiceCard));
         }
 
+        public void triggerUpdate(IChannel c) {
+            if (!isWaiting()) {
+                selected = -1;
+                long temp = 0;
+                Utilities4D4J.sendReactionUI(toEmbed(), c, (m, u, e) -> {
+                    if (u.getLongID() == getCzar()) {
+                        if (LEFT.equals(e)) {
+                            selected--;
+                            if (selected < 0) selected = submitted.size()-1;
+                        } else if (RIGHT.equals(e)) {
+                            selected++;
+                            if (selected >= submitted.size()) selected = 0;
+                        } else {
+                            czarChoose(submitted.keySet().toArray(new Long[0])[selected]);
+                            Utilities4D4J.removeReactionUI(m.getLongID());
+                        }
+                    }
+                }, LEFT, CHOOSE, RIGHT);
+            }
+        }
+
+        private EmbedObject toEmbed() {
+            String[] fields = new String[submitted.size() * 2];
+            List<Card> c = new ArrayList(submitted.entrySet());
+            for (int i = 0; i < c.size(); i++) {
+                fields[i * 2] = i == selected ? "**Card " + (i+1) + "**" : "" + (i+1);
+                fields[i * 2 + 1] = i == selected ? "**" + c.get(i).getText() + "**" : c.get(i).getText();
+            }
+            return Utilities4D4J.makeEmbed("Cards Against numanity", "Choose a card, <@" + getCzar() + ">!", true, fields);
+        }
+
         public void czarChoose(long userID) {
             getPlayer(userID).orElseThrow(() -> new IllegalArgumentException("Given user ID doesn't correspond to a player!"))
                     .incrScore();
+            whiteDiscard.addAll(submitted.values());
+            submitted.clear();
             players.forEach(p -> {
                 if (p.getChoice() >= 0) {
-                    whiteDiscard.add(p.removeChoiceCard());
                     p.dealCard(whiteDeck.get(whiteDeck.size() - 1));
                     p.setChoice(-1);
                 }
@@ -245,40 +304,47 @@ public class CAHCommand extends Command {
     }
 
     private static class Player {
-        private static final Emoji LEFT = EmojiManager.getForAlias("arrow_left");
-        private static final Emoji RIGHT = EmojiManager.getForAlias("arrow_right");
         private long userID;
         private long cardsMessageID;
         private int score;
         private List<Card> cards;
         private int choice;
+        private boolean submitted;
+
+        private CAHGame game;
 
         public Player() {
         }
 
-        public Player(IUser user) {
+        public Player(IUser user, CAHGame g) {
             userID = user.getLongID();
             cards = new ArrayList<>();
+            choice = -2;
+            game = g;
             cardsMessageID = Utilities4D4J.sendReactionUI(
-                    Utilities4D4J.makeEmbed("Your CAH Hand", "Your hand will be dealt when the game starts!", false),
+                    toEmbed(),
                     user.getOrCreatePMChannel(),
                     (m, u, e) -> {
-                        if (score > -2) {
+                        if (choice > -2 && !submitted) {
                             if (LEFT.equals(e)) {
                                 choice--;
                                 if (choice < 0) {
                                     choice = cards.size();
                                 }
-                            } else {
+                            } else if (RIGHT.equals(e)) {
                                 choice++;
                                 if (choice >= cards.size()) {
                                     choice = 0;
                                 }
+                            } else {
+                                if (choice >= 0) {
+                                    game.chooseCard(userID, cards.get(choice));
+                                    submitted = true;
+                                }
                             }
-                            AtomicInteger i = new AtomicInteger();
                             Utilities4D4J.edit(m, toEmbed());
                         }
-                    }, LEFT, RIGHT
+                    }, LEFT, CHOOSE, RIGHT
             ).getLongID();
         }
 
@@ -322,14 +388,22 @@ public class CAHCommand extends Command {
             return choice < 0 ? null : cards.remove(choice);
         }
 
+        public void deSubmit() {
+            submitted = false;
+        }
+
         private EmbedObject toEmbed() {
-            List<Card> c = getCards();
-            String[] fields = new String[c.size() * 2];
-            for (int i = 0; i < c.size(); i++) {
-                fields[i * 2] = i == getChoice() ? "Card " + i : "**Card " + i + "**";
-                fields[i * 2 + 1] = c.get(i).getText();
+            if (choice < -1) {
+               return Utilities4D4J.makeEmbed("Your CAH Hand", "Your hand will be dealt when the game starts!", true);
+            } else { 
+                List<Card> c = getCards();
+                String[] fields = new String[c.size() * 2];
+                for (int i = 0; i < c.size(); i++) {
+                    fields[i * 2] = i == getChoice() ? "**Card " + (i+1) + "**" : "Card " + (i+1);
+                    fields[i * 2 + 1] = i == getChoice() ? "**" + c.get(i).getText() + "**" : c.get(i).getText();
+                }
+                return Utilities4D4J.makeEmbed("Your CAH Hand", "", true, fields);
             }
-            return Utilities4D4J.makeEmbed("Your CAH Hand", "", true, fields);
         }
     }
 
