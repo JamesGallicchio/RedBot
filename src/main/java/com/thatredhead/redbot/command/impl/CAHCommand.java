@@ -17,7 +17,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 public class CAHCommand extends Command {
@@ -114,7 +113,10 @@ public class CAHCommand extends Command {
     }
 
     private static void takeTurn(IChannel c, CAHGame g) {
-        Utilities4D4J.sendEmbed(c, "Cards Against Humanity", "Current czar: <@" + g.getCzar() + ">", true, "Scores", scores(g));
+        g.blackDiscard.add(g.currentBlack);
+        g.currentBlack = g.getNextBlackCard();
+
+        Utilities4D4J.sendEmbed(c, "Cards Against Humanity", "Current czar: <@" + g.getCzar() + ">", true, "Scores", scores(g), "Black Card", g.currentBlack.getText());
     }
 
     private void triggerUpdate(CAHGame g) {
@@ -241,7 +243,6 @@ public class CAHCommand extends Command {
         public void triggerUpdate(IChannel c) {
             if (!isWaiting()) {
                 selected = -1;
-                long temp = 0;
                 Utilities4D4J.sendReactionUI(toEmbed(), c, (m, u, e) -> {
                     if (u.getLongID() == getCzar()) {
                         if (LEFT.equals(e)) {
@@ -251,8 +252,9 @@ public class CAHCommand extends Command {
                             selected++;
                             if (selected >= submitted.size()) selected = 0;
                         } else {
-                            czarChoose(submitted.keySet().toArray(new Long[0])[selected]);
+                            czarChoose(submitted.keySet().toArray(new Player[0])[selected].getUserID());
                             Utilities4D4J.removeReactionUI(m.getLongID());
+                            takeTurn(c, this);
                         }
                     }
                 }, LEFT, CHOOSE, RIGHT);
@@ -266,7 +268,7 @@ public class CAHCommand extends Command {
                 fields[i * 2] = i == selected ? "**Card " + (i+1) + "**" : "" + (i+1);
                 fields[i * 2 + 1] = i == selected ? "**" + c.get(i).getText() + "**" : c.get(i).getText();
             }
-            return Utilities4D4J.makeEmbed("Cards Against numanity", "Choose a card, <@" + getCzar() + ">!", true, fields);
+            return Utilities4D4J.makeEmbed("Cards Against Humanity", "Choose a card, <@" + getCzar() + ">!", true, fields);
         }
 
         public void czarChoose(long userID) {
