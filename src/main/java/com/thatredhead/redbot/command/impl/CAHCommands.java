@@ -27,6 +27,7 @@ public class CAHCommands extends CommandGroup {
     }
 
     public static class CAHCommand extends Command {
+        private static CAHCommand singleton;
         public static final List<Card> WHITE_CARDS;
         public static final List<Card> BLACK_CARDS;
         public static final EmbedObject HELP_EMBED = Utilities4D4J.makeEmbed("Cards Against Humanity Help", "You can start a new game in any channel where the `cah` command is enabled using `cah create`. To join the game, each player should use `cah join`. When you're ready to start, use `cah start`.", false);
@@ -58,6 +59,7 @@ public class CAHCommands extends CommandGroup {
         public CAHCommand() {
             super("cah", "The root command for Cards Against Humanity games", PermissionContext.EVERYONE);
             games = new HashMap<>();
+            singleton = this;
         }
 
         @Override
@@ -126,8 +128,8 @@ public class CAHCommands extends CommandGroup {
             Utilities4D4J.sendEmbed(c, "Cards Against Humanity", "Current czar: <@" + g.getCzar() + ">", true, "Scores", scores(g), "Black Card", g.currentBlack.getText());
         }
 
-        private void triggerUpdate(CAHGame g) {
-            games.entrySet().stream().filter(e -> e.getValue().equals(g)).findFirst().ifPresent(e -> g.triggerUpdate(RedBot.getClient().getChannelByID(e.getKey())));
+        private static void triggerUpdate(CAHGame g) {
+            singleton.games.entrySet().stream().filter(e -> e.getValue().equals(g)).findFirst().ifPresent(e -> g.triggerUpdate(RedBot.getClient().getChannelByID(e.getKey())));
         }
 
         private static String scores(CAHGame g) {
@@ -335,7 +337,7 @@ public class CAHCommands extends CommandGroup {
                         toEmbed(),
                         user.getOrCreatePMChannel(),
                         (m, u, e) -> {
-                            if (choice > -2 && !submitted) {
+                            if (game.getCzar() != userID && choice > -2 && !submitted) {
                                 if (LEFT.equals(e)) {
                                     choice--;
                                     if (choice < 0) {
@@ -351,7 +353,7 @@ public class CAHCommands extends CommandGroup {
                                         submittedText = getChoiceCard().getText();
                                         game.chooseCard(userID, removeChoiceCard());
                                         submitted = true;
-                                        game.triggerUpdate(m.getChannel());
+                                        CAHCommand.triggerUpdate(game);
                                     }
                                 }
                                 Utilities4D4J.edit(m, toEmbed());
