@@ -109,8 +109,8 @@ public class CAHCommands extends CommandGroup {
                         } else if (g.getPlayers().size() < g.minPlayers) {
                             msgp.reply("There aren't enough players to start! You need at least " + g.minPlayers + " to begin.");
                         } else {
-                            g.start();
                             takeTurn(msgp.getChannel(), g);
+                            g.start();
                         }
                     } else {
                         msgp.reply("Unknown command " + msgp.getArg(1) + "! Use `cah` for help.");
@@ -172,7 +172,7 @@ public class CAHCommands extends CommandGroup {
                 blackDeck = new ArrayList<>();
                 blackDiscard = new ArrayList<>();
                 whiteDiscard.addAll(WHITE_CARDS);
-                blackDiscard.addAll(WHITE_CARDS);
+                blackDiscard.addAll(BLACK_CARDS);
 
                 submitted = new HashMap<>();
             }
@@ -270,7 +270,7 @@ public class CAHCommands extends CommandGroup {
 
             private EmbedObject toEmbed() {
                 String[] fields = new String[submitted.size() * 2];
-                List<Card> c = new ArrayList(submitted.entrySet());
+                List<Card> c = new ArrayList<>(submitted.values());
                 for (int i = 0; i < c.size(); i++) {
                     fields[i * 2] = i == selected ? "**Card " + (i + 1) + "**" : "" + (i + 1);
                     fields[i * 2 + 1] = i == selected ? "**" + c.get(i).getText() + "**" : c.get(i).getText();
@@ -414,7 +414,7 @@ public class CAHCommands extends CommandGroup {
                         fields[i * 2] = i == getChoice() ? "**Card " + (i + 1) + "**" : "Card " + (i + 1);
                         fields[i * 2 + 1] = i == getChoice() ? "**" + c.get(i).getText() + "**" : c.get(i).getText();
                     }
-                    return Utilities4D4J.makeEmbed("Your CAH Hand", "Black card: " + game.currentBlack + "\nSubmitted card: " + submittedText, true, fields);
+                    return Utilities4D4J.makeEmbed("Your CAH Hand", "Black card: " + (game.currentBlack == null ? "" : game.currentBlack.getText()) + "\nSubmitted card: " + (submittedText == null ? "" : submittedText), true, fields);
                 }
             }
         }
