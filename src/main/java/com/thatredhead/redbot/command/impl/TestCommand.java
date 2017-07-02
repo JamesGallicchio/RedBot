@@ -8,8 +8,6 @@ import com.thatredhead.redbot.permission.PermissionContext;
 import com.vdurmont.emoji.Emoji;
 import com.vdurmont.emoji.EmojiManager;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class TestCommand extends Command {
@@ -29,7 +27,7 @@ public class TestCommand extends Command {
         lastMessage = Utilities4D4J.sendReactionUI(num.toString(), msgp.getChannel(), (m, u, e) -> {
             if (RAISE.equals(e)) {
                 num.incrementAndGet();
-            } else {
+            } else if (LOWER.equals(e)) {
                 num.decrementAndGet();
             }
             Utilities4D4J.edit(m, num.toString());

@@ -21,6 +21,7 @@ import sx.blah.discord.util.RequestBuffer;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -117,17 +118,18 @@ public class RedBot {
         }
 
         new Reflections("com.thatredhead.redbot", new MethodAnnotationsScanner()).getMethodsAnnotatedWith(EventSubscriber.class).stream()
-                .map(method -> {
+                .map(Method::getDeclaringClass).distinct().map(clazz -> {
                     try {
-                        if (method.getDeclaringClass().equals(CommandHandler.class)) {
-                            return (cmdh = (CommandHandler) method.getDeclaringClass().newInstance());
-                        } else
-                            return method.getDeclaringClass().newInstance();
+                        if (clazz.equals(CommandHandler.class)) {
+                            return (cmdh = (CommandHandler) clazz.newInstance());
+                        } else {
+                            return clazz.newInstance();
+                        }
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                     return null;
-                }).filter(Objects::nonNull).distinct().forEach(client.getDispatcher()::registerListener);
+                }).filter(Objects::nonNull).forEach(client.getDispatcher()::registerListener);
     }
 
     @EventSubscriber

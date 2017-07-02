@@ -208,24 +208,26 @@ public class Utilities4D4J {
     }
 
     public interface ReactionListener {
-        default void onReactionAdd(IMessage msg, IUser user, Emoji emoji) {
-        }
+        void onReactionAdd(IMessage msg, IUser user, Emoji emoji);
 
-        default void onReactionRemove(IMessage msg, IUser user, Emoji emoji) {
-        }
+        void onReactionRemove(IMessage msg, IUser user, Emoji emoji);
 
-        default void onReactionToggle(IMessage msg, IUser user, Emoji emoji) {
-        }
+        void onReactionToggle(IMessage msg, IUser user, Emoji emoji);
     }
 
     @FunctionalInterface
     public interface ReactionToggleListener extends ReactionListener {
-        @Override
         void onReactionToggle(IMessage msg, IUser user, Emoji emoji);
+
+        @Override
+        default void onReactionAdd(IMessage msg, IUser user, Emoji emoji) {}
+
+        @Override
+        default void onReactionRemove(IMessage msg, IUser user, Emoji emoji) {}
     }
 
     public static IMessage sendReactionUI(String msg, IChannel channel, ReactionToggleListener listener, Emoji... emojis) {
-        return sendReactionUI(msg, channel, (ReactionListener) listener);
+        return sendReactionUI(msg, channel, (ReactionListener) listener, emojis);
     }
 
     public static IMessage sendReactionUI(EmbedObject msg, IChannel channel, ReactionToggleListener listener, Emoji... emojis) {
@@ -262,6 +264,7 @@ public class Utilities4D4J {
 
     @EventSubscriber
     public void onReactionAdd(ReactionAddEvent e) {
+        System.out.println("ReactionAdd: " + e.getReaction().getUnicodeEmoji().toString());
         ReactionListener l = reactions.get(e.getMessage().getLongID());
         if (l != null && !e.getUser().equals(RedBot.getClient().getOurUser())) {
             l.onReactionAdd(e.getMessage(), e.getUser(), e.getReaction().getUnicodeEmoji());
@@ -271,6 +274,7 @@ public class Utilities4D4J {
 
     @EventSubscriber
     public void onReactionRemove(ReactionRemoveEvent e) {
+        System.out.println("ReactionRemove: " + e.getReaction().getUnicodeEmoji().toString());
         ReactionListener l = reactions.get(e.getMessage().getLongID());
         if (l != null && !e.getUser().equals(RedBot.getClient().getOurUser())) {
             l.onReactionRemove(e.getMessage(), e.getUser(), e.getReaction().getUnicodeEmoji());
