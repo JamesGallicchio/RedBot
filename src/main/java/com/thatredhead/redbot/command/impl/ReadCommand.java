@@ -13,6 +13,7 @@ import sx.blah.discord.handle.obj.IMessage;
 
 import java.io.IOException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -32,10 +33,13 @@ public class ReadCommand extends Command {
             StringBuilder sb = new StringBuilder();
             for (IMessage.Attachment a : att) {
                 try {
-                    sb.append(IOUtils.toString(new URL(a.getUrl()), "UTF-8")).append("\n");
+                    URLConnection c = new URL(a.getUrl()).openConnection();
+                    c.addRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36");
+                    sb.append(IOUtils.toString(c.getInputStream(), "UTF-8")).append("\n");
                 } catch (IOException e) {
                     RedBot.reportError(e);
                     msgp.reply("Something went wrong reading this attachment! Check RedBot's support guild for further information.");
+                    return;
                 }
             }
             if (sb.length() < 1) {
@@ -73,11 +77,11 @@ public class ReadCommand extends Command {
         if (idx + 2000 > s.length()) {
             return s.length();
         } else {
-            String sub = s.substring(idx, 2000);
+            String sub = s.substring(idx, idx + 2000);
             int i;
             for (char c : CHECKS) {
                 i = sub.lastIndexOf(c);
-                if (i != 0) return i + idx;
+                if (i >= 0) return i + idx + 1;
             }
             return idx + 2000;
         }
