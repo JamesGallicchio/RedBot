@@ -45,19 +45,19 @@ public class ReadCommand extends Command {
             if (sb.length() < 1) {
                 msgp.reply("There's no content in the attached file(s)!");
             } else if (sb.length() > 20000) {
-                msgp.reply("The content of these files will require more than " + (int) Math.ceil(sb.length()/2000.0) + " messages to display. Respond with \"Yes\" in the next 10 seconds to confirm.");
+                msgp.reply("The content of these files will require more than " + (int) Math.ceil(sb.length()/2000.0) + " messages to display. Respond with \"Yes\" in the next 20 seconds to confirm.");
 
                 IListener l = e -> {
                     if (e instanceof MessageReceivedEvent) {
                         IMessage m = ((MessageReceivedEvent) e).getMessage();
-                        if (m.getAuthor().equals(msgp.getAuthor()) && m.getContent().equalsIgnoreCase("yes")) {
+                        if (m.getAuthor().equals(msgp.getAuthor()) && m.getChannel().equals(msgp.getChannel()) && m.getContent().equalsIgnoreCase("yes")) {
                             print(msgp.getChannel(), sb.toString().trim());
                             RedBot.getClient().getDispatcher().unregisterListener(this);
                         }
                     }
                 };
                 RedBot.getClient().getDispatcher().registerListener(l);
-                Executors.newSingleThreadScheduledExecutor().schedule(() -> RedBot.getClient().getDispatcher().unregisterListener(l), 10, TimeUnit.SECONDS);
+                Executors.newSingleThreadScheduledExecutor().schedule(() -> RedBot.getClient().getDispatcher().unregisterListener(l), 20, TimeUnit.SECONDS);
             } else {
                 print(msgp.getChannel(), sb.toString().trim());
             }
