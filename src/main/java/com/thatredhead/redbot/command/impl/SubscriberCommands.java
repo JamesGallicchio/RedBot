@@ -45,7 +45,6 @@ public class SubscriberCommands extends CommandGroup {
                 for (Subscription sub : subscriptions) {
                     List<SyndEntry> entries = sub.getNewEntries();
                     if (entries != null && !entries.isEmpty()) {
-                        RedBot.LOGGER.debug("New entries for " + sub.getFeed().getTitle());
                         EmbedBuilder embed = new EmbedBuilder()
                                 .withAuthorName(sub.feed.getTitle())
                                 .withTimestamp(sub.lastUpdate);
@@ -92,7 +91,7 @@ public class SubscriberCommands extends CommandGroup {
             try {
                 sub = new Subscription(msgp.getArg(1), msgp.getChannel());
             } catch (RuntimeException e) {
-                msgp.reply("Invalid URL: " + msgp.getArg(1));
+                msgp.reply("Invalid RSS Feed: " + msgp.getArg(1));
                 return;
             }
 
@@ -124,7 +123,7 @@ public class SubscriberCommands extends CommandGroup {
             for (Subscription sub : subscriptions)
                 if (id == sub.channelId) {
                     has = true;
-                    sb.append("[").append(count++).append("]: ").append(sub.getFeed().getTitle()).append("\n");
+                    sb.append("[").append(count++).append("]: ").append(sub.getFeed() == null ? "<UNKNOWN>" : sub.getFeed().getTitle()).append("\n");
                 }
 
             msgp.reply(has ? sb.append("```").toString() : "There are no subscriptions in this channel.");
@@ -152,7 +151,7 @@ public class SubscriberCommands extends CommandGroup {
             int count = -1;
             int idx = 0;
             for (; idx < subscriptions.size(); idx++) {
-                if (id == subscriptions.get(0).channelId)
+                if (id == subscriptions.get(idx).channelId)
                     count++;
                 if (count == target)
                     break;
@@ -162,7 +161,7 @@ public class SubscriberCommands extends CommandGroup {
 
             save();
 
-            msgp.reply("Removed subscription to " + sub.feed.getTitle());
+            msgp.reply("Removed subscription to " + sub.feed == null ? "<UNKNOWN>" : sub.feed.getTitle());
         }
     }
 
@@ -192,8 +191,11 @@ public class SubscriberCommands extends CommandGroup {
         }
 
         public SyndFeed getFeed() {
-            if (feed == null)
-                checkFeed();
+            if (feed == null) {
+                try {
+                    checkFeed();
+                } catch (RuntimeException ignored) {}
+            }
 
             return feed;
         }
@@ -217,18 +219,22 @@ public class SubscriberCommands extends CommandGroup {
         }
 
         public boolean hasUpdate() {
-            checkFeed();
-            if (feed.getPublishedDate() == null)
-                return true;
-            return feed.getPublishedDate().after(new Date(lastUpdate));
+            try {
+                checkFeed();
+                if (feed.getPublishedDate() == null)
+                    return true;
+                return feed.getPublishedDate().after(new Date(lastUpdate));
+            } catch (RuntimeException e) {
+                return false;
+            }
         }
 
         private void checkFeed() {
             try {
                 feed = new SyndFeedInput().build(new XmlReader(new URL(subscriptionUrl)));
-            } catch (MalformedURLException e) {
+            } catch (MalformedURLException | FeedException e) {
                 throw new RuntimeException();
-            } catch (IOException | FeedException e) {
+            } catch (IOException e) {
                 RedBot.reportError(e);
             }
         }
