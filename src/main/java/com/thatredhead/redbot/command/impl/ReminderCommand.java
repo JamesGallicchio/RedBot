@@ -99,9 +99,9 @@ public class ReminderCommand extends Command {
         public final long c;
         public final long t;
         public final Map<RepeatTime, Long> r;
-        public final ZoneId z;
+        public final String z;
 
-        public RemindObj(long channelID, String message, long time, Map<RepeatTime, Long> repeat, ZoneId zone) {
+        public RemindObj(long channelID, String message, long time, Map<RepeatTime, Long> repeat, String zone) {
             c = channelID;
             t = time;
             m = message;
@@ -114,7 +114,7 @@ public class ReminderCommand extends Command {
         }
 
         public RemindObj next() {
-            ZonedDateTime time = Instant.ofEpochSecond(t).atZone(z);
+            ZonedDateTime time = Instant.ofEpochSecond(t).atZone(ZoneId.of(z, ZoneId.SHORT_IDS));
             for (Map.Entry<RepeatTime, Long> e : r.entrySet()) {
                 switch(e.getKey()) {
                     case SECONDS: time = time.plusSeconds(e.getValue());
