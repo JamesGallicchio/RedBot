@@ -11,6 +11,7 @@ import sx.blah.discord.util.EmbedBuilder;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class RedBotCommands extends CommandGroup {
@@ -66,17 +67,44 @@ public class RedBotCommands extends CommandGroup {
             if (cmds == null)
                 cmds = RedBot.getCommandHandler().getStandaloneCommands();
 
-            EmbedBuilder help = new EmbedBuilder();
-            help.withTitle("RedBot Help for " + msgp.getChannel().mention());
+            if (msgp.getArgCount() > 1) {
+                String cmdName = msgp.getArg(1);
+                Optional<Command> comm = cmds.stream().filter(c -> c.getKeyword().equalsIgnoreCase(cmdName)).findFirst();
+                if (comm.isPresent()) {
+                    Command cmd = comm.get();
+                    Utilities4D4J.sendEmbed(msgp.getChannel(), "RedBot Help for " + cmd.getKeyword(),
+                            "Usage: `" + cmd.getDescription() + "`", false);
+                } else {
+                    Utilities4D4J.sendEmbed(msgp.getChannel(), "RedBot Help", "Couldn't find that command. `%help` for a list of commands!", false);
+                }
+            } else {
+                EmbedBuilder help = new EmbedBuilder();
+                help.withTitle("RedBot Help for " + msgp.getChannel().mention());
 
-            for (CommandGroup cg : cmdGroups.stream()
-                    .filter(cg -> cg.getCommands().stream()
-                            .anyMatch(c -> RedBot.getPermHandler().hasPermission(c, msgp.getAuthor(), msgp.getChannel())))
-                    .collect(Collectors.toList())) {
+                for (CommandGroup cg : cmdGroups.stream()
+                        .filter(cg -> cg.getCommands().stream()
+                                .anyMatch(c -> RedBot.getPermHandler().hasPermission(c, msgp.getAuthor(), msgp.getChannel())))
+                        .collect(Collectors.toList())) {
+
+                    StringBuilder sb = new StringBuilder();
+
+                    for (Command c : cg.getCommands().stream()
+                            .filter(it -> RedBot.getPermHandler().hasPermission(it, msgp.getAuthor(), msgp.getChannel()))
+                            .collect(Collectors.toList())) {
+                        sb.append(c.getKeyword());
+                        sb.append(": *");
+                        sb.append(c.getUsage());
+                        sb.append("* - ");
+                        sb.append(c.getDescription());
+                        sb.append("\n");
+                    }
+
+                    help.appendField(cg.getName(), sb.toString(), true);
+                }
 
                 StringBuilder sb = new StringBuilder();
 
-                for (Command c : cg.getCommands().stream()
+                for (Command c : cmds.stream()
                         .filter(it -> RedBot.getPermHandler().hasPermission(it, msgp.getAuthor(), msgp.getChannel()))
                         .collect(Collectors.toList())) {
                     sb.append(c.getKeyword());
@@ -86,27 +114,12 @@ public class RedBotCommands extends CommandGroup {
                     sb.append(c.getDescription());
                     sb.append("\n");
                 }
-
-                help.appendField(cg.getName(), sb.toString(), true);
+                if (sb.length() != 0) {
+                    help.appendField("Miscellaneous", sb.toString(), true);
+                }
+                Utilities4D4J.sendPrivateMessage(help.build(), msgp.getAuthor());
+                Utilities4D4J.sendTemporaryMessage("Check your PMs!", msgp.getChannel());
             }
-
-            StringBuilder sb = new StringBuilder();
-
-            for (Command c : cmds.stream()
-                    .filter(it -> RedBot.getPermHandler().hasPermission(it, msgp.getAuthor(), msgp.getChannel()))
-                    .collect(Collectors.toList())) {
-                sb.append(c.getKeyword());
-                sb.append(": *");
-                sb.append(c.getUsage());
-                sb.append("* - ");
-                sb.append(c.getDescription());
-                sb.append("\n");
-            }
-            if (sb.length() != 0) {
-                help.appendField("Miscellaneous", sb.toString(), true);
-            }
-            Utilities4D4J.sendPrivateMessage(help.build(), msgp.getAuthor());
-            Utilities4D4J.sendTemporaryMessage("Check your PMs!", msgp.getChannel());
         }
     }
 

@@ -23,7 +23,21 @@ public class DnDCommands extends CommandGroup {
 
     public static class Roll extends Command {
 
-        private static final String pattern = "([+-])?(?:(?:(\\d+)\\*)?(\\d+)?d(\\d+)(!)?(?:\\(([kKrR])(\\d+)([hHlL])\\))?|(\\d+))";
+        private static final String pattern =
+                        "([+-])?" + // plus minus
+                        "(?:" +
+                            "(\\d+)" +         // A normal number OR
+                        "|" +
+                            "(?:(\\d+)\\*)?" + // [multiplier*]
+                            "(\\d+)?" +        // [number of dice]
+                            "d(\\d+)" +        // d<size>
+                            "(!)?" +           // [!]
+                            "(?:\\(?" +            // [
+                                "([kKrR])" +   //   keep/remove
+                                "(\\d+)" +     //   count
+                                "([hHlL])" +   //   high/low
+                            "\\)?)?" +             // ]
+                        ")";
 
         public Roll() {
             super("roll", "Rolls a die in TTRPG fashion",
