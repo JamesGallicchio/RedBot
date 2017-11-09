@@ -161,7 +161,7 @@ public class SubscriberCommands extends CommandGroup {
 
             save();
 
-            msgp.reply("Removed subscription to " + sub.feed == null ? "<UNKNOWN>" : sub.feed.getTitle());
+            msgp.reply("Removed subscription to " + (sub.feed == null ? "<UNKNOWN>" : sub.feed.getTitle()));
         }
     }
 

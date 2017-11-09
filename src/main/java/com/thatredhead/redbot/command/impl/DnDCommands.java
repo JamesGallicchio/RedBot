@@ -26,17 +26,19 @@ public class DnDCommands extends CommandGroup {
         private static final String pattern =
                         "([+-])?" + // plus minus
                         "(?:" +
-                            "(\\d+)" +         // A normal number OR
-                        "|" +
                             "(?:(\\d+)\\*)?" + // [multiplier*]
                             "(\\d+)?" +        // [number of dice]
                             "d(\\d+)" +        // d<size>
                             "(!)?" +           // [!]
-                            "(?:\\(?" +            // [
+                            "(?:" +
+                                "\\(?" +       // [
                                 "([kKrR])" +   //   keep/remove
                                 "(\\d+)" +     //   count
                                 "([hHlL])" +   //   high/low
-                            "\\)?)?" +             // ]
+                                "\\)?" +       // ]
+                            ")?" +
+                        "|" +
+                             "(\\d+)" +     // OR a normal number
                         ")";
 
         public Roll() {
