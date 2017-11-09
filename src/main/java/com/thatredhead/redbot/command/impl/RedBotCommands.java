@@ -9,6 +9,7 @@ import com.thatredhead.redbot.helpers4d4j.Utilities4D4J;
 import com.thatredhead.redbot.permission.PermissionContext;
 import sx.blah.discord.util.EmbedBuilder;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -54,6 +55,7 @@ public class RedBotCommands extends CommandGroup {
     public static class HelpCommand extends Command {
 
         private List<CommandGroup> cmdGroups;
+        private List<Command> cmdAlone;
         private List<Command> cmds;
 
         public HelpCommand() {
@@ -64,8 +66,12 @@ public class RedBotCommands extends CommandGroup {
         public void invoke(MessageParser msgp) throws CommandException {
             if (cmdGroups == null)
                 cmdGroups = RedBot.getCommandHandler().getCommandGroups();
-            if (cmds == null)
-                cmds = RedBot.getCommandHandler().getStandaloneCommands();
+            if (cmdAlone == null)
+                cmdAlone = RedBot.getCommandHandler().getStandaloneCommands();
+            if (cmds == null) {
+                cmds = cmdGroups.stream().flatMap(g -> g.getCommands().stream()).collect(Collectors.toList());
+                cmds.addAll(cmdAlone);
+            }
 
             if (msgp.getArgCount() > 1) {
                 String cmdName = msgp.getArg(1);
@@ -104,7 +110,7 @@ public class RedBotCommands extends CommandGroup {
 
                 StringBuilder sb = new StringBuilder();
 
-                for (Command c : cmds.stream()
+                for (Command c : cmdAlone.stream()
                         .filter(it -> RedBot.getPermHandler().hasPermission(it, msgp.getAuthor(), msgp.getChannel()))
                         .collect(Collectors.toList())) {
                     sb.append(c.getKeyword());
