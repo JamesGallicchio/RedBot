@@ -78,8 +78,9 @@ public class RedBotCommands extends CommandGroup {
                 Optional<Command> comm = cmds.stream().filter(c -> c.getKeyword().equalsIgnoreCase(cmdName)).findFirst();
                 if (comm.isPresent()) {
                     Command cmd = comm.get();
-                    Utilities4D4J.sendEmbed(msgp.getChannel(), "RedBot Help for " + cmd.getKeyword(),
-                            "Usage: `" + cmd.getDescription() + "`", false);
+                    Utilities4D4J.sendEmbed(msgp.getChannel(), cmd.getKeyword(),
+                            cmd.getDescription() + "\n" +
+                            "Usage: `" + cmd.getUsage() + "`", false);
                 } else {
                     Utilities4D4J.sendEmbed(msgp.getChannel(), "RedBot Help", "Couldn't find that command. `%help` for a list of commands!", false);
                 }
