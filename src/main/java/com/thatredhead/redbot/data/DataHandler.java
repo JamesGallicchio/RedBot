@@ -2,7 +2,9 @@ package com.thatredhead.redbot.data;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import com.thatredhead.redbot.RedBot;
+import com.thatredhead.redbot.command.impl.SubscriberCommands;
 
 import java.io.*;
 import java.lang.reflect.Type;
@@ -15,6 +17,7 @@ public class DataHandler {
 
     private Gson gson = new GsonBuilder()
             .enableComplexMapKeySerialization()
+            .registerTypeAdapter(SubscriberCommands.SubscriptionFeed.class, SubscriberCommands.SubscriptionFeed.DESERIALIZER)
             .create();
 
     /**
