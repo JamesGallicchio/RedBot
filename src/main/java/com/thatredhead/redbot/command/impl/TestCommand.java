@@ -1,5 +1,10 @@
 package com.thatredhead.redbot.command.impl;
 
+import com.rometools.rome.feed.synd.SyndEntry;
+import com.rometools.rome.feed.synd.SyndFeed;
+import com.rometools.rome.io.FeedException;
+import com.rometools.rome.io.SyndFeedInput;
+import com.rometools.rome.io.XmlReader;
 import com.thatredhead.redbot.command.Command;
 import com.thatredhead.redbot.command.CommandException;
 import com.thatredhead.redbot.helpers4d4j.MessageParser;
@@ -8,13 +13,12 @@ import com.thatredhead.redbot.permission.PermissionContext;
 import com.vdurmont.emoji.Emoji;
 import com.vdurmont.emoji.EmojiManager;
 
+import java.io.IOException;
+import java.net.URL;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class TestCommand extends Command {
-    public static final Emoji LOWER = EmojiManager.getByUnicode("\u2796");
-    public static final Emoji RAISE = EmojiManager.getByUnicode("\u2795");
-
-    private long lastMessage;
 
     public TestCommand() {
         super("test", "TESTY COMMAND", PermissionContext.BOT_OWNER);
@@ -22,15 +26,20 @@ public class TestCommand extends Command {
 
     @Override
     public void invoke(MessageParser msgp) throws CommandException {
-        Utilities4D4J.removeReactionUI(lastMessage);
-        AtomicInteger num = new AtomicInteger();
-        lastMessage = Utilities4D4J.sendReactionUI(num.toString(), msgp.getChannel(), (m, u, e) -> {
-            if (RAISE.equals(e)) {
-                num.incrementAndGet();
-            } else if (LOWER.equals(e)) {
-                num.decrementAndGet();
+        String subUrl = msgp.getContentAfter(1);
+
+        try {
+            URL url = new URL(subUrl);
+
+            SyndFeed feed = new SyndFeedInput().build(new XmlReader(url));
+
+            for (int i = 5; i < feed.getEntries().size(); i++) {
+                List<SyndEntry> entries = feed.getEntries().subList(i, i+1);
+
+                msgp.getChannel().sendMessage(new SubscriberCommands.FeedEmbed(feed, entries).toEmbed());
             }
-            Utilities4D4J.edit(m, num.toString());
-        }, LOWER, RAISE).getLongID();
+        } catch (IOException | FeedException e) {
+            e.printStackTrace();
+        }
     }
 }

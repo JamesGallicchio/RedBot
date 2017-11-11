@@ -17,6 +17,10 @@ import com.thatredhead.redbot.command.CommandGroup;
 import com.thatredhead.redbot.helpers4d4j.MessageParser;
 import com.thatredhead.redbot.helpers4d4j.Utilities4D4J;
 import com.thatredhead.redbot.permission.PermissionContext;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Element;
+import org.jsoup.nodes.Node;
+import org.jsoup.nodes.TextNode;
 import org.xml.sax.XMLReader;
 import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.handle.impl.obj.Embed;
@@ -213,7 +217,7 @@ public class SubscriberCommands extends CommandGroup {
             List<SyndEntry> newEntries = newEntries();
 
             if (!newEntries.isEmpty()) {
-                EmbedObject toSend = embedify(feed, newEntries);
+                EmbedObject toSend = new FeedEmbed(feed, newEntries).toEmbed();
 
                 channels.forEach(id -> Utilities4D4J.sendEmbed(toSend, RedBot.getClient().getChannelByID(id)));
             }
@@ -233,45 +237,112 @@ public class SubscriberCommands extends CommandGroup {
                 return true;
             return false;
         }
+    }
 
-        private static EmbedObject embedify(SyndFeed feed, List<SyndEntry> entries) {
-            EmbedBuilder embed = new EmbedBuilder()
-                    .withAuthorName(feed.getTitle())
-                    .withTimestamp(System.currentTimeMillis());
+    static class FeedEmbed {
+        private EmbedBuilder embed;
+
+        private String img = "";
+        private String alt = "";
+
+        public FeedEmbed(SyndFeed feed, List<SyndEntry> entries) {
+            embed = new EmbedBuilder()
+                    .withAuthorName(feed.getTitle());
 
             if (feed.getImage() != null)
                 embed.withThumbnail(feed.getImage().getUrl());
 
             if (entries.size() > 1) {
-                for (SyndEntry entry : entries) {
-                    String content = HTMLEmbed.toMarkdown(entry.getDescription().getValue());
-
-                    if (!(entry.getLink() == null || entry.getLink().isEmpty())) {
-                        content = "[" + content + "](" + entry.getLink() + ")";
-                    }
-
-                    embed.appendField(entry.getTitle(), content, false);
+                for (SyndEntry e : entries) {
+                    embed.appendField(e.getTitle(),
+                            limitLink(
+                                    build(e.getDescription().getValue()),
+                                    e.getLink(), EmbedBuilder.FIELD_CONTENT_LIMIT
+                            ),true);
                 }
+                embed.withImage(img)
+                        .withFooterText(alt);
             } else {
-                embed.withTitle(entries.get(0).getTitle());
-
-                new HTMLEmbed(entries.get(0).getDescription().getValue()).toEmbed(embed);
+                embed.withTitle(entries.get(0).getTitle())
+                        .withDescription(
+                                limitLink(
+                                        build(entries.get(0).getDescription().getValue()),
+                                        entries.get(0).getLink(), EmbedBuilder.DESCRIPTION_CONTENT_LIMIT
+                                )
+                        )
+                        .withFooterText(alt)
+                        .withImage(img)
+                        .withTimestamp(entries.get(0).getPublishedDate().toInstant().toEpochMilli());
             }
+        }
+
+        private String build(String html) {
+            return rec(Jsoup.parseBodyFragment(html).body());
+        }
+
+        private String rec(List<Node> nodes) {
+            StringBuilder txt = new StringBuilder();
+            for (Node n : nodes) txt.append(rec(n));
+            return txt.toString();
+        }
+
+        private String rec(Node node) {
+            if (node instanceof TextNode) {
+                return ((TextNode) node).text();
+
+            } else {
+                String inner = rec(node.childNodes());
+
+                if (node instanceof Element) {
+                    switch (((Element) node).tagName()) {
+                        case "img":
+                            setBig(node.attributes().get("src"), node.attributes().get("title"));
+                            return "";
+                        case "a":
+                            String link = node.attributes().get("href");
+                            if (link == null || link.isEmpty() || inner == null || inner.isEmpty()) return "";
+                            return "[" + inner + "](" + link + ")";
+                        case "b":
+                            return "**" + inner + "**";
+                        case "u":
+                            return "__" + inner + "__";
+                        case "i":
+                            return "*" + inner + "*";
+                        case "h1":
+                        case "h2":
+                        case "h3":
+                        case "h4":
+                        case "h5":
+                            return "\n\n**" + inner + "**\n";
+                        case "p":
+                            return "\n\n";
+                        case "br":
+                            return "\n";
+                    }
+                }
+
+                return inner;
+            }
+        }
+
+        private void setBig(String img, String alt) {
+            if (img == null || img.isEmpty()) return;
+
+            if (this.img == null || this.img.isEmpty()) {
+                this.img = img;
+                this.alt = alt;
+            }
+        }
+
+        public EmbedObject toEmbed() {
             return embed.build();
         }
-    }
 
-    static class HTMLEmbed {
-        public HTMLEmbed(String HTML) {
+        private static String limitLink(String text, String link, int length) {
+            if (text.length() > length-8)
+                text = text.substring(0, length-8);
 
-        }
-
-        public void toEmbed(EmbedBuilder embed) {
-
-        }
-
-        public static String toMarkdown(String html) {
-
+            return text + "... [more](" + link + ")";
         }
     }
 }
