@@ -163,7 +163,6 @@ public class SubscriberCommands extends CommandGroup {
             JsonObject obj = jsonElement.getAsJsonObject();
             String sub = obj.getAsJsonPrimitive("subUrl").getAsString();
             JsonArray channels = obj.getAsJsonArray("channels");
-            long wait = obj.getAsJsonPrimitive("wait").getAsLong();
 
             try {
                 SubscriptionFeed feed = new SubscriptionFeed(sub);
