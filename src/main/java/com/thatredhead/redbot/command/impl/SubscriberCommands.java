@@ -40,6 +40,7 @@ import java.util.stream.Collectors;
 public class SubscriberCommands extends CommandGroup {
 
     List<SubscriptionFeed> subscriptions;
+    private ScheduledExecutorService exec = Executors.newScheduledThreadPool(4);
 
     public SubscriberCommands() {
         super("Subscriber Commands", "Commands for subscribing to RSS/Atom feeds", "subscriber", null);
@@ -50,6 +51,16 @@ public class SubscriberCommands extends CommandGroup {
 
         subscriptions = RedBot.getDataHandler().get("subscriptions", new TypeToken<List<SubscriptionFeed>>() {
         }.getType(), new ArrayList<>());
+
+        subscriptions.forEach(this::schedule);
+    }
+
+    private void schedule(SubscriptionFeed s) {
+        if (subscriptions.contains(s))
+            exec.schedule(() -> {
+                s.tick();
+                schedule(s);
+            }, s.wait, TimeUnit.SECONDS);
     }
 
     private SubscriptionFeed getOrAdd(String url) throws MalformedURLException {
@@ -60,6 +71,8 @@ public class SubscriberCommands extends CommandGroup {
 
         SubscriptionFeed feed = new SubscriptionFeed(url);
         subscriptions.add(feed);
+        schedule(feed);
+
         return feed;
     }
 
@@ -177,12 +190,10 @@ public class SubscriberCommands extends CommandGroup {
 
         final String subUrl;
         final Set<Long> channels = new HashSet<>();
+	final int wait = 5000;
 
         private transient URL url;
         private transient SyndFeed feed;
-
-        private transient long lastCheck = System.currentTimeMillis();
-        private transient ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
 
         public SubscriptionFeed(String sub) throws MalformedURLException {
             subUrl = sub;
@@ -190,7 +201,6 @@ public class SubscriberCommands extends CommandGroup {
             url = new URL(subUrl);
 
             updateFeed();
-            tick();
         }
 
         private void updateFeed() {
@@ -220,8 +230,6 @@ public class SubscriberCommands extends CommandGroup {
 
                 channels.forEach(id -> Utilities4D4J.sendEmbed(toSend, RedBot.getClient().getChannelByID(id)));
             }
-
-            exec.schedule(this::tick, START_WAIT, TimeUnit.MILLISECONDS);
         }
 
         private static boolean entryEqual(SyndEntry e1, SyndEntry e2) {
