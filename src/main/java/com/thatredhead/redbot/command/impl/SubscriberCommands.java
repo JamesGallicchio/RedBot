@@ -167,9 +167,9 @@ public class SubscriberCommands extends CommandGroup {
     }
 
     public static class SubscriptionFeed {
-        public static final long MIN_WAIT =     5*60*1000;
-        public static final long MAX_WAIT = 24*60*60*1000;
-        public static final long START_WAIT =   5*60*1000;
+        public static final long MIN_WAIT =     5*60;
+        public static final long MAX_WAIT = 24*60*60;
+        public static final long START_WAIT =   5*60;
 
         public static final JsonDeserializer<SubscriptionFeed> DESERIALIZER = (jsonElement, type, jsonDeserializationContext) -> {
 
@@ -190,7 +190,7 @@ public class SubscriberCommands extends CommandGroup {
 
         final String subUrl;
         final Set<Long> channels = new HashSet<>();
-	final int wait = 5000;
+	final int wait = START_WAIT;
 
         private transient URL url;
         private transient SyndFeed feed;
