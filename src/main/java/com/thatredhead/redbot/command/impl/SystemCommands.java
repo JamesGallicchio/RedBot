@@ -210,7 +210,7 @@ public class SystemCommands extends CommandGroup {
                 return;
             }
             Utilities4D4J.sendEmbed(msgp.getChannel(), "RedBot Script Executor", "", false,
-                    "Success!", "```\n" + o.toString() + "```");
+                    "Success!", o == null? "" : "```\n" + o.toString() + "```");
         }
     }
 }
