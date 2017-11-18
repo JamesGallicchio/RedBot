@@ -1,11 +1,12 @@
 package com.thatredhead.redbot.command.impl;
 
-import com.google.gson.*;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import com.rometools.rome.feed.synd.SyndEntry;
-import com.rometools.rome.feed.synd.SyndEntryImpl;
 import com.rometools.rome.feed.synd.SyndFeed;
-import com.rometools.rome.feed.synd.SyndFeedImpl;
 import com.rometools.rome.io.FeedException;
 import com.rometools.rome.io.SyndFeedInput;
 import com.rometools.rome.io.XmlReader;
@@ -21,14 +22,10 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
 import org.jsoup.nodes.TextNode;
-import org.xml.sax.XMLReader;
 import sx.blah.discord.api.internal.json.objects.EmbedObject;
-import sx.blah.discord.handle.impl.obj.Embed;
-import sx.blah.discord.handle.obj.IEmbed;
 import sx.blah.discord.util.EmbedBuilder;
 
 import java.io.IOException;
-import java.lang.reflect.Type;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
@@ -39,7 +36,7 @@ import java.util.stream.Collectors;
 
 public class SubscriberCommands extends CommandGroup {
 
-    List<SubscriptionFeed> subscriptions;
+    public List<SubscriptionFeed> subscriptions;
     private ScheduledExecutorService exec = Executors.newScheduledThreadPool(4);
 
     public SubscriberCommands() {
@@ -156,6 +153,7 @@ public class SubscriberCommands extends CommandGroup {
 
                 SubscriptionFeed sub = subs.get(target);
                 sub.channels.remove(id);
+                if (sub.channels.isEmpty()) subscriptions.remove(sub);
                 save();
 
                 msgp.reply("Removed subscription to " + (sub.feed == null ? "<UNKNOWN>" : sub.feed.getTitle()));
@@ -190,7 +188,7 @@ public class SubscriberCommands extends CommandGroup {
 
         final String subUrl;
         final Set<Long> channels = new HashSet<>();
-	final int wait = START_WAIT;
+	    final int wait = START_WAIT;
 
         private transient URL url;
         private transient SyndFeed feed;
@@ -353,203 +351,3 @@ public class SubscriberCommands extends CommandGroup {
         }
     }
 }
-
-//        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
-//            try {
-//                for (Subscription sub : subscriptions) {
-//                    List<SyndEntry> entries = sub.getNewEntries();
-//                    if (entries != null && !entries.isEmpty()) {
-//                        EmbedBuilder embed = new EmbedBuilder()
-//                                .withAuthorName(sub.feed.getTitle())
-//                                .withTimestamp(sub.lastUpdate);
-//
-//                        if (sub.feed.getImage() != null)
-//                            embed.withThumbnail(sub.feed.getImage().getUrl());
-//
-//                        if (entries.size() > 1)
-//                            for (SyndEntry entry : entries)
-//                                embed.appendField(
-//                                        entry.getTitle(),
-//                                        entry.getLink() != null && !entry.getLink().isEmpty() ?
-//                                                link(removeHtml(entry.getDescription().getValue()), entry.getLink()) :
-//                                                removeHtml(entry.getDescription().getValue()), false);
-//                        else {
-//                            String html = entries.get(0).getDescription().getValue();
-//                            embed.withTitle(entries.get(0).getTitle())
-//                                    .withDesc(removeHtml(html));
-//                            List<String> imgs = getImages(html);
-//                            if (!imgs.isEmpty())
-//                                embed.withImage(imgs.get(0));
-//                        }
-//
-//                        Utilities4D4J.sendEmbed(embed.build(), sub.getChannel());
-//                    }
-//                }
-//            } catch (Exception e) {
-//                RedBot.reportError(e);
-//            }
-//        }, 0, 5, TimeUnit.MINUTES);
-//    }
-//
-//    private static class Subscription {
-//
-//        private long channelId;
-//        private String subscriptionUrl;
-//        private long lastUpdate;
-//
-//        private transient SyndFeed feed;
-//        private transient List<SyndEntry> lastEntries;
-//        private transient IChannel channel;
-//
-//
-//        public Subscription(String url, IChannel channel) {
-//            channelId = channel.getLongID();
-//            this.channel = channel;
-//            subscriptionUrl = url;
-//            checkFeed();
-//        }
-//
-//        public IChannel getChannel() {
-//            if (channel == null)
-//                channel = RedBot.getClient().getChannelByID(channelId);
-//
-//            return channel;
-//        }
-//
-//        public SyndFeed getFeed() {
-//            if (feed == null) {
-//                try {
-//                    checkFeed();
-//                } catch (RuntimeException ignored) {}
-//            }
-//
-//            return feed;
-//        }
-//
-//        public List<SyndEntry> getNewEntries() {
-//
-//            if (!hasUpdate()) return new ArrayList<>();
-//
-//            List<SyndEntry> newEntries = new ArrayList<>();
-//
-//            if (lastEntries != null) {
-//                for (SyndEntry entry : feed.getEntries())
-//                    if (!feedHas(lastEntries, entry))
-//                        newEntries.add(entry);
-//            }
-//
-//            lastEntries = feed.getEntries();
-//            lastUpdate = feed.getPublishedDate() == null ? 0 : feed.getPublishedDate().getTime();
-//
-//            return newEntries;
-//        }
-//
-//        public boolean hasUpdate() {
-//            try {
-//                checkFeed();
-//                if (feed.getPublishedDate() == null)
-//                    return true;
-//                return feed.getPublishedDate().after(new Date(lastUpdate));
-//            } catch (RuntimeException e) {
-//                return false;
-//            }
-//        }
-//
-//        private void checkFeed() {
-//            try {
-//                feed = new SyndFeedInput().build(new XmlReader(new URL(subscriptionUrl)));
-//            } catch (MalformedURLException | FeedException e) {
-//                throw new RuntimeException();
-//            } catch (IOException e) {
-//                RedBot.reportError(e);
-//            }
-//        }
-//
-//        @Override
-//        public boolean equals(Object o) {
-//            return o instanceof Subscription && this.equals((Subscription) o);
-//        }
-//
-//        boolean equals(Subscription sub) {
-//            return channelId == sub.channelId && subscriptionUrl.equals(sub.subscriptionUrl);
-//        }
-//
-//        private boolean feedHas(List<SyndEntry> old, SyndEntry entry) {
-//            for (SyndEntry oldEntry : old) if (entriesSame(oldEntry, entry)) return true;
-//            return false;
-//        }
-//
-//        private boolean entriesSame(SyndEntry entry1, SyndEntry entry2) {
-//            String link1 = entry1.getLink();
-//            String link2 = entry2.getLink();
-//            if (link1 != null && link2 != null && link1.equals(link2))
-//                return true;
-//
-//            String title1 = entry1.getTitle();
-//            String title2 = entry2.getTitle();
-//            if (title1 != null && title2 != null && title1.equals(title2))
-//                return true;
-//
-//            return false;
-//        }
-//    }
-//
-//    private static final Pattern IMG_PATT = Pattern.compile("<[\\s]*img\\b.*src[\\s]*=[\\s]*\"([^\"]+)\"[^/]*/>");
-//
-//    private static List<String> getImages(String html) {
-//        if (html == null) return Collections.singletonList("");
-//
-//        Matcher m = IMG_PATT.matcher(html);
-//
-//        List<String> images = new ArrayList<>();
-//        while (m.find()) {
-//            if (m.group().contains("height=\"1\"") || m.group().contains("width=\"1\"")) continue;
-//            images.add(m.group(1));
-//        }
-//
-//        return images;
-//    }
-//
-//    private static final Pattern HTML_PATT = Pattern.compile("<[\\s]*(\\w+)(?:(.*))?(?:/[\\s]*>|>([\\s\\S]*?)<[\\s]*/[\\s]*\\1[\\s]*>)");
-//    private static final Pattern LINK_PATT = Pattern.compile("[\\s]*href[\\s]*=[\\s]*\"([^\"]+)\"");
-//    private static final Pattern SRC_PATT = Pattern.compile("src[\\s]*=[\\s]*\"([^\"]+)\"");
-//
-//    private static String removeHtml(String html) {
-//        if (html == null) return "";
-//
-//        StringBuilder sb = new StringBuilder();
-//        Matcher m = HTML_PATT.matcher(html);
-//
-//        int idx = 0;
-//        while (m.find(idx)) {
-//            // Append everything from the last parsed area to the new start
-//            sb.append(html.substring(idx, m.start()).trim());
-//
-//            switch (m.group(1).toLowerCase()) {
-//                case "br":
-//                    sb.append('\n');
-//                    break;
-//                case "p":
-//                    sb.append(removeHtml(m.group(3))).append("\n\n");
-//                    break;
-//                case "b":
-//                    sb.append("**").append(removeHtml(m.group(3))).append("**");
-//                    break;
-//                case "u":
-//                    sb.append("__").append(removeHtml(m.group(3))).append("__");
-//                    break;
-//                case "i":
-//                    sb.append("*").append(removeHtml(m.group(3))).append("*");
-//                    break;
-//                case "a":
-//                    Matcher link = LINK_PATT.matcher(m.group(2));
-//                    if (link.find()) {
-//                        sb.append(link(removeHtml(m.group(3)), link.group(1)));
-//                    } else sb.append(removeHtml(m.group(3)));
-//            }
-//            idx = m.end();
-//        }
-//
-//        return sb.append(html.substring(idx).trim()).toString();
-//    }
-//}
