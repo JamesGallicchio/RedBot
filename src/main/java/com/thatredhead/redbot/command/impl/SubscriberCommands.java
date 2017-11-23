@@ -29,14 +29,13 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class SubscriberCommands extends CommandGroup {
 
-    public List<SubscriptionFeed> subscriptions;
+    public Map<SubscriptionFeed, ScheduledFuture> subscriptions = new HashMap<>();
     private ScheduledExecutorService exec = Executors.newScheduledThreadPool(4);
 
     public SubscriberCommands() {
@@ -46,35 +45,31 @@ public class SubscriberCommands extends CommandGroup {
                 new SubscriptionsCommand(),
                 new UnsubscribeCommand());
 
-        subscriptions = RedBot.getDataHandler().get("subscriptions", new TypeToken<List<SubscriptionFeed>>() {
-        }.getType(), new ArrayList<>());
-
-        subscriptions.forEach(this::schedule);
+        RedBot.getDataHandler().get("subscriptions", new TypeToken<List<SubscriptionFeed>>(){}.getType(), new ArrayList<SubscriptionFeed>())
+                .forEach(this::schedule);
     }
 
     private void schedule(SubscriptionFeed s) {
-        if (subscriptions.contains(s))
-            exec.schedule(() -> {
-                s.tick();
-                schedule(s);
-            }, s.wait, TimeUnit.SECONDS);
+        subscriptions.put(s, exec.schedule(() -> {
+            s.tick();
+            schedule(s);
+        }, s.wait, TimeUnit.SECONDS));
     }
 
     private SubscriptionFeed getOrAdd(String url) throws MalformedURLException {
         URL url2 = new URL(url);
 
-        Optional<SubscriptionFeed> sub = subscriptions.stream().filter(f -> f.url.sameFile(url2)).findFirst();
+        Optional<SubscriptionFeed> sub = subscriptions.keySet().stream().filter(f -> f.url.sameFile(url2)).findFirst();
         if (sub.isPresent()) return sub.get();
 
         SubscriptionFeed feed = new SubscriptionFeed(url);
-        subscriptions.add(feed);
         schedule(feed);
 
         return feed;
     }
 
     private List<SubscriptionFeed> channelSubs(long id) {
-        return subscriptions.stream().filter(f -> f.channels.contains(id)).collect(Collectors.toList());
+        return subscriptions.keySet().stream().filter(f -> f.channels.contains(id)).collect(Collectors.toList());
     }
 
     private void save() {
@@ -153,7 +148,6 @@ public class SubscriberCommands extends CommandGroup {
 
                 SubscriptionFeed sub = subs.get(target);
                 sub.channels.remove(id);
-                if (sub.channels.isEmpty()) subscriptions.remove(sub);
                 save();
 
                 msgp.reply("Removed subscription to " + (sub.feed == null ? "<UNKNOWN>" : sub.feed.getTitle()));
@@ -165,9 +159,7 @@ public class SubscriberCommands extends CommandGroup {
     }
 
     public static class SubscriptionFeed {
-        public static final int MIN_WAIT =     5*60;
-        public static final int MAX_WAIT = 24*60*60;
-        public static final int START_WAIT =   5*60;
+        public static final int START_WAIT =   2*60;
 
         public static final JsonDeserializer<SubscriptionFeed> DESERIALIZER = (jsonElement, type, jsonDeserializationContext) -> {
 
@@ -188,7 +180,7 @@ public class SubscriberCommands extends CommandGroup {
 
         final String subUrl;
         final Set<Long> channels = new HashSet<>();
-	    final int wait = START_WAIT;
+	    int wait = randomWait();
 
         private transient URL url;
         private transient SyndFeed feed;
@@ -228,6 +220,12 @@ public class SubscriberCommands extends CommandGroup {
 
                 channels.forEach(id -> Utilities4D4J.sendEmbed(toSend, RedBot.getClient().getChannelByID(id)));
             }
+
+            wait = randomWait();
+        }
+
+        private static int randomWait() {
+            return START_WAIT + (int) ((Math.random() - 0.5) * 60);
         }
 
         private static boolean entryEqual(SyndEntry e1, SyndEntry e2) {
