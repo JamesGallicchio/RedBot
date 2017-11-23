@@ -30,7 +30,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class SubscriberCommands extends CommandGroup {
@@ -236,9 +235,7 @@ public class SubscriberCommands extends CommandGroup {
 
             String title1 = e1.getTitle();
             String title2 = e2.getTitle();
-            if (title1 != null && title2 != null && title1.equals(title2))
-                return true;
-            return false;
+            return title1 != null && title2 != null && title1.equals(title2);
         }
     }
 
@@ -303,7 +300,7 @@ public class SubscriberCommands extends CommandGroup {
                             return "";
                         case "a":
                             String link = node.attributes().get("href");
-                            if (link == null || link.isEmpty() || inner == null || inner.isEmpty()) return "";
+                            if (link == null || link.isEmpty() || inner.isEmpty()) return "";
                             return "[" + inner + "](" + link + ")";
                         case "b":
                             return "**" + inner + "**";
