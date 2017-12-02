@@ -34,7 +34,9 @@ import java.util.stream.Collectors;
 
 public class SubscriberCommands extends CommandGroup {
 
-    public Map<SubscriptionFeed, ScheduledFuture> subscriptions = new HashMap<>();
+    public static final int UPDATE_PERIOD = 2*60*1000;
+
+    public List<SubscriptionFeed> subscriptions;
     private ScheduledExecutorService exec = Executors.newScheduledThreadPool(4);
 
     public SubscriberCommands() {
@@ -44,31 +46,33 @@ public class SubscriberCommands extends CommandGroup {
                 new SubscriptionsCommand(),
                 new UnsubscribeCommand());
 
-        RedBot.getDataHandler().get("subscriptions", new TypeToken<List<SubscriptionFeed>>(){}.getType(), new ArrayList<SubscriptionFeed>())
-                .forEach(this::schedule);
-    }
+        subscriptions = RedBot.getDataHandler().get("subscriptions", new TypeToken<List<SubscriptionFeed>>(){}.getType(),
+                new ArrayList<SubscriptionFeed>());
 
-    private void schedule(SubscriptionFeed s) {
-        subscriptions.put(s, exec.schedule(() -> {
-            s.tick();
-            schedule(s);
-        }, s.wait, TimeUnit.SECONDS));
+        exec.scheduleAtFixedRate(() -> {
+            int pause = UPDATE_PERIOD/subscriptions.size();
+            int wait = 0;
+            for (SubscriptionFeed s : subscriptions) {
+                wait += pause;
+                exec.schedule(s::tick, wait, TimeUnit.MILLISECONDS);
+            }
+        }, 0, UPDATE_PERIOD, TimeUnit.MILLISECONDS);
     }
 
     private SubscriptionFeed getOrAdd(String url) throws MalformedURLException {
         URL url2 = new URL(url);
 
-        Optional<SubscriptionFeed> sub = subscriptions.keySet().stream().filter(f -> f.url.sameFile(url2)).findFirst();
+        Optional<SubscriptionFeed> sub = subscriptions.stream().filter(f -> f.url.sameFile(url2)).findFirst();
         if (sub.isPresent()) return sub.get();
 
         SubscriptionFeed feed = new SubscriptionFeed(url);
-        schedule(feed);
+        subscriptions.add(feed);
 
         return feed;
     }
 
     private List<SubscriptionFeed> channelSubs(long id) {
-        return subscriptions.keySet().stream().filter(f -> f.channels.contains(id)).collect(Collectors.toList());
+        return subscriptions.stream().filter(f -> f.channels.contains(id)).collect(Collectors.toList());
     }
 
     private void save() {
@@ -179,7 +183,6 @@ public class SubscriberCommands extends CommandGroup {
 
         final String subUrl;
         final Set<Long> channels = new HashSet<>();
-	    int wait = randomWait();
 
         private transient URL url;
         private transient SyndFeed feed;
@@ -219,8 +222,6 @@ public class SubscriberCommands extends CommandGroup {
 
                 channels.forEach(id -> Utilities4D4J.sendEmbed(toSend, RedBot.getClient().getChannelByID(id)));
             }
-
-            wait = randomWait();
         }
 
         private static int randomWait() {
