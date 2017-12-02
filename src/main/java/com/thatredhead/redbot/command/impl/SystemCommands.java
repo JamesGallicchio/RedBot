@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.script.jsr223.KotlinJsr223JvmLocalScriptEngineFactor
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.handle.obj.*;
 
+import javax.rmi.CORBA.Util;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 import java.io.IOException;
@@ -25,7 +26,7 @@ public class SystemCommands extends CommandGroup {
     public SystemCommands() {
         super("System Commands", "Commands for administrative purposes (for ThatRedhead)", "system",
                 Arrays.asList(new RebuildCommand(), new RestartCommand(), new ShutdownCommand(), new SysInfoCommand(),
-                        new PingCommand(), new GetByIDCommand(), new AnnounceCommand(), new ExecCommand()));
+                        new PingCommand(), new GetByIDCommand(), new AnnounceCommand(), new ExecCommand(), new SayCommand()));
     }
 
     public static class SysInfoCommand extends Command {
@@ -62,6 +63,31 @@ public class SystemCommands extends CommandGroup {
             long responseTime = msgp.getMsg().getShard().getResponseTime();
 
             Utilities4D4J.edit(msg, "Request ping: " + diff / 1000.0 + "s\nHeartbeat ping: " + responseTime / 1000.0 + "s");
+        }
+    }
+
+    public static class SayCommand extends Command {
+        public SayCommand() {
+            super("say", "Gets RedBot to say something", PermissionContext.BOT_OWNER);
+        }
+
+        public void invoke(MessageParser msgp) {
+            if (msgp.getArgCount() > 1) {
+                try {
+                    long id = Long.parseUnsignedLong(msgp.getArg(1));
+
+                    IChannel c = RedBot.getClient().getChannelByID(id);
+                    if (c != null) {
+                        Utilities4D4J.sendMessage(msgp.getContentAfter(2), c);
+                        return;
+                    }
+
+                } catch (NumberFormatException e) {}
+
+                msgp.reply(msgp.getContentAfter(1));
+            } else {
+                msgp.reply("I don't know what to say.");
+            }
         }
     }
 
