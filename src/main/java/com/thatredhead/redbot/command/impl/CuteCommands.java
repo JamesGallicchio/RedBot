@@ -57,8 +57,9 @@ public class CuteCommands extends CommandGroup {
         @Override
         public void invoke(MessageParser msgp) {
 
-            if (!safeties.containsKey(msgp.getChannel().getLongID())) {
-                safeties.put(msgp.getChannel().getLongID(), "high");
+            long id = Utilities4D4J.stableChannelId(msgp.getChannel());
+            if (!safeties.containsKey(id)) {
+                safeties.put(id, "high");
                 datah.save(safeties, "cutesafety");
             }
             cuteSearch(msgp.getContentAfter(0), msgp.getChannel());
@@ -81,7 +82,7 @@ public class CuteCommands extends CommandGroup {
             if (!("off".equals(level) || "medium".equals(level) || "high".equals(level)))
                 throw new CommandArgumentException(1, level, "Safety level must be off, medium, or high!");
 
-            safeties.put(msgp.getChannel().getLongID(), level);
+            safeties.put(Utilities4D4J.stableChannelId(msgp.getChannel()), level);
             RedBot.getDataHandler().save(safeties, "cutesafety");
 
             msgp.reply("Set this channel's safety level to " + level + "!");
@@ -124,7 +125,7 @@ public class CuteCommands extends CommandGroup {
 
     private void cuteSearch(String msg, IChannel channel) {
         StringBuilder message = new StringBuilder(msg.toUpperCase());
-        String safe = safeties.get(channel.getLongID());
+        String safe = safeties.get(Utilities4D4J.stableChannelId(channel));
         String type;
         if (message.toString().endsWith("GIF")) {
             type = "&fileType=gif";

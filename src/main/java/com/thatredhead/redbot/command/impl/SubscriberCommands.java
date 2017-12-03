@@ -96,10 +96,11 @@ public class SubscriberCommands extends CommandGroup {
                 throw new CommandException("Invalid RSS Feed: " + msgp.getArg(1));
             }
 
-            if (sub.channels.contains(msgp.getChannel().getLongID()))
+            long id = Utilities4D4J.stableChannelId(msgp.getChannel());
+            if (sub.channels.contains(id))
                 throw new CommandException("This channel is already subscribed to that URL!");
 
-            sub.channels.add(msgp.getChannel().getLongID());
+            sub.channels.add(id);
 
             save();
 
@@ -115,7 +116,7 @@ public class SubscriberCommands extends CommandGroup {
 
         @Override
         public void invoke(MessageParser msgp) {
-            long id = msgp.getChannel().getLongID();
+            long id = Utilities4D4J.stableChannelId(msgp.getChannel());
 
             List<SubscriptionFeed> subs = channelSubs(id);
 
@@ -141,7 +142,7 @@ public class SubscriberCommands extends CommandGroup {
 
         @Override
         public void invoke(MessageParser msgp) {
-            long id = msgp.getChannel().getLongID();
+            long id = Utilities4D4J.stableChannelId(msgp.getChannel());
 
             try {
                 int target = Integer.parseInt(msgp.getArg(1));
@@ -162,7 +163,6 @@ public class SubscriberCommands extends CommandGroup {
     }
 
     public static class SubscriptionFeed {
-        public static final int START_WAIT =   2*60;
 
         public static final JsonDeserializer<SubscriptionFeed> DESERIALIZER = (jsonElement, type, jsonDeserializationContext) -> {
 
@@ -220,12 +220,8 @@ public class SubscriberCommands extends CommandGroup {
             if (!newEntries.isEmpty()) {
                 EmbedObject toSend = new FeedEmbed(feed, newEntries).toEmbed();
 
-                channels.forEach(id -> Utilities4D4J.sendEmbed(toSend, RedBot.getClient().getChannelByID(id)));
+                channels.forEach(id -> Utilities4D4J.sendEmbed(toSend, Utilities4D4J.fromStableChannelId(id)));
             }
-        }
-
-        private static int randomWait() {
-            return START_WAIT + (int) ((Math.random() - 0.5) * 60);
         }
 
         private static boolean entryEqual(SyndEntry e1, SyndEntry e2) {

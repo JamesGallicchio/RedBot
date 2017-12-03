@@ -36,8 +36,8 @@ public class VoteCommands extends CommandGroup {
 
         @Override
         public void invoke(MessageParser msgp) throws CommandException {
-            if (votes.containsKey(msgp.getChannel().getLongID())) {
-                votes.get(msgp.getChannel().getLongID()).castBallot(msgp);
+            if (votes.containsKey(Utilities4D4J.stableChannelId(msgp.getChannel()))) {
+                votes.get(Utilities4D4J.stableChannelId(msgp.getChannel())).castBallot(msgp);
                 RedBot.getDataHandler().save(votes, "saves");
             } else
                 msgp.reply("There's no active vote in this channel.");
@@ -52,11 +52,11 @@ public class VoteCommands extends CommandGroup {
 
         @Override
         public void invoke(MessageParser msgp) throws CommandException {
-            Vote current = votes.get(msgp.getChannel().getLongID());
+            Vote current = votes.get(Utilities4D4J.stableChannelId(msgp.getChannel()));
             if (current != null && !current.isDone())
                 msgp.reply("Please end the current vote first!");
             else {
-                votes.put(msgp.getChannel().getLongID(), new Vote(msgp));
+                votes.put(Utilities4D4J.stableChannelId(msgp.getChannel()), new Vote(msgp));
                 RedBot.getDataHandler().save(votes, "saves");
             }
         }
@@ -70,7 +70,7 @@ public class VoteCommands extends CommandGroup {
 
         @Override
         public void invoke(MessageParser msgp) throws CommandException {
-            Vote current = votes.get(msgp.getChannel().getLongID());
+            Vote current = votes.get(Utilities4D4J.stableChannelId(msgp.getChannel()));
             if (current == null) msgp.reply("There is no vote in this channel to end.");
             else if (current.isDone()) msgp.reply("This channel's vote has already ended.");
             else {

@@ -62,7 +62,7 @@ public class ReminderCommand extends Command {
     private void schedule(RemindObj r) {
         ex.schedule(() -> {
 
-            Utilities4D4J.sendMessage(r.m, RedBot.getClient().getChannelByID(r.c));
+            Utilities4D4J.sendMessage(r.m, Utilities4D4J.fromStableChannelId(r.c));
             queued.remove(r);
 
             if (r.repeats())
@@ -86,7 +86,7 @@ public class ReminderCommand extends Command {
     @Override
     public void invoke(MessageParser msgp) {
         addNew(new RemindObj(
-                msgp.getChannel().getLongID(),
+                Utilities4D4J.stableChannelId(msgp.getChannel()),
                 msgp.getContentAfter(2),
                 Instant.now().plusSeconds(Integer.parseInt(msgp.getArg(1))).getEpochSecond(),
                 null,

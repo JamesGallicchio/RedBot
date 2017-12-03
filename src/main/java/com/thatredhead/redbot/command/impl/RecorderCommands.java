@@ -75,7 +75,7 @@ public class RecorderCommands extends CommandGroup {
         @Override
         public void invoke(MessageParser msgp) throws CommandException {
 
-            Pair<Long, Long> key = Pair.of(msgp.getChannel().getLongID(), msgp.getAuthor().getLongID());
+            Pair<Long, Long> key = Pair.of(Utilities4D4J.stableChannelId(msgp.getChannel()), msgp.getAuthor().getLongID());
             if (startMessages.containsKey(key)) {
                 msgp.reply("You already have a recording going on! Use `endrecord` to stop the current recording.");
             } else {
@@ -94,7 +94,7 @@ public class RecorderCommands extends CommandGroup {
         @Override
         public void invoke(MessageParser msgp) throws CommandException {
 
-            Pair<Long, Long> key = Pair.of(msgp.getChannel().getLongID(), msgp.getAuthor().getLongID());
+            Pair<Long, Long> key = Pair.of(Utilities4D4J.stableChannelId(msgp.getChannel()), msgp.getAuthor().getLongID());
             if (startMessages.containsKey(key)) {
                 long start = startMessages.remove(key);
                 long end = msgp.getMsg().getLongID();

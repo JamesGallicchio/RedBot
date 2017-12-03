@@ -156,17 +156,17 @@ public class Utilities4D4J {
     public static void sendMessageToGuild(String message, IGuild g) {
         IChannel channel = g.getGeneralChannel();
 
-        if (!weHaveSendMessagePerm(channel)) {
+        if (!weHavePerm(channel, Permissions.SEND_MESSAGES)) {
             List<IChannel> channels = g.getChannels();
 
             channel = channels.stream()
-                    .filter(c -> c.getName().equals("general") && weHaveSendMessagePerm(c))
+                    .filter(c -> c.getName().equals("general") && weHavePerm(c, Permissions.SEND_MESSAGES))
                     .findFirst().orElseGet(() ->
                             channels.stream()
-                                    .filter(c -> c.getName().contains("general") && weHaveSendMessagePerm(c))
+                                    .filter(c -> c.getName().contains("general") && weHavePerm(c, Permissions.SEND_MESSAGES))
                                     .findFirst().orElseGet(() ->
                                     channels.stream()
-                                            .filter(Utilities4D4J::weHaveSendMessagePerm)
+                                            .filter(c -> weHavePerm(c, Permissions.SEND_MESSAGES))
                                             .findFirst()
                                             .orElse(null)));
         }
@@ -174,8 +174,8 @@ public class Utilities4D4J {
         if (channel != null) sendMessage(message, channel);
     }
 
-    public static boolean weHaveSendMessagePerm(IChannel c) {
-        return c.getModifiedPermissions(RedBot.getClient().getOurUser()).contains(Permissions.SEND_MESSAGES);
+    public static boolean weHavePerm(IChannel c, Permissions p) {
+        return c.getModifiedPermissions(RedBot.getClient().getOurUser()).contains(p);
     }
 
     public static void sendEmbedToGuild(EmbedObject embed, IGuild g) {
@@ -406,12 +406,12 @@ public class Utilities4D4J {
         }
 
         public SerializableMessage(IMessage msg) {
-            channelID = msg.getChannel().getLongID();
+            channelID = Utilities4D4J.stableChannelId(msg.getChannel());
             messageID = msg.getLongID();
         }
 
         public IMessage get() {
-            return RedBot.getClient().getChannelByID(channelID).getMessageByID(messageID);
+            return fromStableChannelId(channelID).getMessageByID(messageID);
         }
 
         public long getID() {
@@ -428,6 +428,21 @@ public class Utilities4D4J {
                 if (msg != null) return msg;
             }
         }
+
+        return null;
+    }
+
+    public static long stableChannelId(IChannel c) {
+        if (c instanceof IPrivateChannel) return ((IPrivateChannel) c).getRecipient().getLongID();
+        else return c.getLongID();
+    }
+
+    public static IChannel fromStableChannelId(long id) {
+        IChannel c = RedBot.getClient().getChannelByID(id);
+        if (c != null) return c;
+
+        IUser u = RedBot.getClient().getUserByID(id);
+        if (u != null) return u.getOrCreatePMChannel();
 
         return null;
     }

@@ -76,7 +76,7 @@ public class SystemCommands extends CommandGroup {
                 try {
                     long id = Long.parseUnsignedLong(msgp.getArg(1));
 
-                    IChannel c = RedBot.getClient().getChannelByID(id);
+                    IChannel c = Utilities4D4J.fromStableChannelId(id);
                     if (c != null) {
                         Utilities4D4J.sendMessage(msgp.getContentAfter(2), c);
                         return;
