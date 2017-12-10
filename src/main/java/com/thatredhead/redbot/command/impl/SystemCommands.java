@@ -40,10 +40,17 @@ public class SystemCommands extends CommandGroup {
             long total = Runtime.getRuntime().totalMemory();
             long free = Runtime.getRuntime().freeMemory();
 
+            int seconds = RedBot.getUptime();
+            String uptime = String.format("%d days %dh %dm %ds",
+                    seconds / 60 / 60 / 24,
+                    seconds / 60 / 60 % 24,
+                    seconds / 60 % 60,
+                    seconds % 60);
+
             msgp.reply(Utilities4D4J.makeEmbed("System Info", "", false,
                     "Guild count", "" + RedBot.getClient().getGuilds().size(),
                     "User count", "" + RedBot.getClient().getUsers().size(),
-                    "Current uptime", RedBot.getUptime(),
+                    "Current uptime", uptime,
                     "Thread count", "" + Thread.activeCount(),
                     "Memory usage", "Usage: " + (total - free) / 1024 / 1024 + " MB\nTotal: " + total / 1024 / 1024 + " MB",
                     "Version", RedBot.getVersion()));

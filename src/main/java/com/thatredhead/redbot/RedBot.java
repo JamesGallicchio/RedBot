@@ -198,17 +198,13 @@ public class RedBot {
     }
 
     /**
-     * Gets the length of time this RedBot instance has been online
+     * Gets the number of seconds this RedBot instance has been online
      *
-     * @return uptime in H..H:MM:SS format
+     * @return uptime in seconds
      */
-    public static String getUptime() {
+    public static int getUptime() {
         if (ready.get()) {
-            int seconds = (int) ((System.currentTimeMillis() - startup) / 1000);
-            return String.format("%d:%02d:%02d",
-                    seconds / 3600,
-                    seconds / 60 % 60,
-                    seconds % 60);
+            return (int) ((System.currentTimeMillis() - startup) / 1000);
         }
         throw new NotReadyException();
     }
