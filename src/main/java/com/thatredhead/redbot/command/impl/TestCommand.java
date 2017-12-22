@@ -12,6 +12,8 @@ import com.thatredhead.redbot.helpers4d4j.Utilities4D4J;
 import com.thatredhead.redbot.permission.PermissionContext;
 import com.vdurmont.emoji.Emoji;
 import com.vdurmont.emoji.EmojiManager;
+import sx.blah.discord.handle.obj.IChannel;
+import sx.blah.discord.util.RequestBuffer;
 
 import java.io.IOException;
 import java.net.URL;
