@@ -16,6 +16,7 @@
     </repositories>
 
     <dependencies>
+
         <dependency>
             <groupId>org.mariuszgromada.math</groupId>
             <artifactId>MathParser.org-mXparser</artifactId>

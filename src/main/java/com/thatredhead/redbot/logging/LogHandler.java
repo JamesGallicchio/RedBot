@@ -1,4 +1,4 @@
-package com.thatredhead.redbot;
+package com.thatredhead.redbot.logging;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
@@ -7,6 +7,7 @@ import ch.qos.logback.classic.spi.IThrowableProxy;
 import ch.qos.logback.classic.spi.ThrowableProxy;
 import ch.qos.logback.core.filter.Filter;
 import ch.qos.logback.core.spi.FilterReply;
+import com.thatredhead.redbot.RedBot;
 import org.eclipse.jetty.io.EofException;
 import org.slf4j.LoggerFactory;
 import sx.blah.discord.Discord4J;

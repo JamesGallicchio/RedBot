@@ -3,6 +3,8 @@ package com.thatredhead.redbot;
 import com.thatredhead.redbot.command.CommandHandler;
 import com.thatredhead.redbot.data.DataHandler;
 import com.thatredhead.redbot.econ.Economy;
+import com.thatredhead.redbot.logging.Hastebin;
+import com.thatredhead.redbot.logging.LogHandler;
 import com.thatredhead.redbot.permission.PermissionHandler;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -230,21 +232,27 @@ public class RedBot {
      * @param e exception to report
      */
     public static void reportError(Throwable e) {
-        String stacktrace = ExceptionUtils.getStackTrace(e);
-        LOGGER.error(stacktrace);
-        if (client.isReady()) {
-            RequestBuffer.request(() -> {
-                IChannel c = client.getChannelByID(ERROR_CHANNEL_ID);
-                if (c == null) c = client.getChannelByID(TEST_ERROR_CHANNEL_ID);
-                c.sendMessage("```\n" + limit(stacktrace, 1990) + "```");
-            });
-        }
+        reportError(e, "");
     }
 
-    private static String limit(String s, int chars) {
-        if (s.length() > chars)
-            return s.substring(0, chars);
-        return s;
+    public static void reportError(Throwable e, String context) {
+
+        String stacktrace = ExceptionUtils.getStackTrace(e);
+        LOGGER.error(stacktrace);
+
+        if (client.isReady()) {
+            RequestBuffer.request(() -> {
+
+                IChannel c = client.getChannelByID(ERROR_CHANNEL_ID);
+                if (c == null) c = client.getChannelByID(TEST_ERROR_CHANNEL_ID);
+
+                String where = e.getStackTrace()[0].toString();
+
+                c.sendMessage("__**ERROR!**__ " + where +
+                        "\n__Stacktrace:__ " + Hastebin.paste(stacktrace) +
+                        "\n__Context:__ " + context);
+            });
+        }
     }
 
     public static void shutdown() {
