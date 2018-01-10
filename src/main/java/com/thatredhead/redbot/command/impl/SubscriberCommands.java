@@ -199,7 +199,9 @@ public class SubscriberCommands extends CommandGroup {
             try {
                 feed = io.build(new XmlReader(url));
             } catch (IOException | FeedException e) {
-                RedBot.reportError(e);
+                RedBot.reportError(e,
+                        "URL: " + subUrl +
+                        "\nChannels: " + channels.stream().map(Long::toUnsignedString).collect(Collectors.joining()));
             }
         }
 
