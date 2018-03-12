@@ -62,7 +62,7 @@ public class SubscriberCommands extends CommandGroup {
     private SubscriptionFeed getOrAdd(String url) throws MalformedURLException {
         URL url2 = new URL(url);
 
-        Optional<SubscriptionFeed> sub = subscriptions.stream().filter(f -> f.url.sameFile(url2)).findFirst();
+        Optional<SubscriptionFeed> sub = subscriptions.stream().filter(f -> f.subUrl.equals(url)).findFirst();
         if (sub.isPresent()) return sub.get();
 
         SubscriptionFeed feed = new SubscriptionFeed(url);
