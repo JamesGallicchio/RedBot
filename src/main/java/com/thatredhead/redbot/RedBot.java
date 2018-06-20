@@ -3,6 +3,7 @@ package com.thatredhead.redbot;
 import com.thatredhead.redbot.command.CommandHandler;
 import com.thatredhead.redbot.data.DataHandler;
 import com.thatredhead.redbot.econ.Economy;
+import com.thatredhead.redbot.helpers4d4j.MessageParser;
 import com.thatredhead.redbot.logging.Hastebin;
 import com.thatredhead.redbot.logging.LogHandler;
 import com.thatredhead.redbot.permission.PermissionHandler;
@@ -24,6 +25,7 @@ import sx.blah.discord.util.RequestBuffer;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -229,30 +231,52 @@ public class RedBot {
     /**
      * Reports an error to both console log and PM to owner
      *
-     * @param e exception to report
+     * @param s error to report
      */
-    public static void reportError(Throwable e) {
-        reportError(e, "");
-    }
-
-    public static void reportError(Throwable e, String context) {
-
-        String stacktrace = ExceptionUtils.getStackTrace(e);
-        LOGGER.error(stacktrace);
-
+    public static void reportError(String s) {
+        LOGGER.error(s);
         if (client.isReady()) {
             RequestBuffer.request(() -> {
 
                 IChannel c = client.getChannelByID(ERROR_CHANNEL_ID);
                 if (c == null) c = client.getChannelByID(TEST_ERROR_CHANNEL_ID);
 
-                String where = e.getStackTrace()[0].toString();
-
-                c.sendMessage("__**ERROR!**__ " + where +
-                        "\n__Stacktrace:__ " + Hastebin.paste(stacktrace) +
-                        "\n__Context:__ " + context);
+                c.sendMessage(s);
             });
         }
+    }
+
+    public static void reportError(Throwable e) {
+        reportError(errorMessage(e));
+    }
+
+    public static void reportError(Throwable e, String context) {
+        reportError(errorMessage(e, context));
+    }
+
+    public static void reportError(Throwable e, String context, MessageParser msgp) {
+        reportError(errorMessage(e, context, msgp));
+        msgp.reply("**Oops!** Something went wrong trying to execute that command." +
+                "\nCheck RedBot's support guild for more information. (`%info` for an invite!)");
+    }
+
+    private static String errorMessage(Throwable e) {
+        String stacktrace = ExceptionUtils.getStackTrace(e);
+
+        String where = Arrays.stream(e.getStackTrace()).
+                map(StackTraceElement::toString).
+                filter(s -> s.contains("com.thatredhead.redbot")).
+                findFirst().orElse(e.getStackTrace()[0].toString());
+
+        return "__**ERROR!**__ " + e.getMessage() + "\n@ " + where + "\n__Stacktrace:__ " + Hastebin.paste(stacktrace);
+    }
+
+    private static String errorMessage(Throwable e, String context) {
+        return errorMessage(e) + "\n__Context:__ " + context;
+    }
+
+    private static String errorMessage(Throwable e, String context, MessageParser msgp) {
+        return errorMessage(e, context) + "\nCommand: " + msgp.getMsg().getStringID() + " in " + msgp.getChannel().mention();
     }
 
     public static void shutdown() {

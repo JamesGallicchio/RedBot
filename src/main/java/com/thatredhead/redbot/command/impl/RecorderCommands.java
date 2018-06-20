@@ -56,10 +56,16 @@ public class RecorderCommands extends CommandGroup {
                     pattern = "[%TIME%] %USER%: %CONTENT%";
                 }
 
-                File f = makeFile(pattern, start, end, msgp.getChannel(), true);
-                Utilities4D4J.sendFile(f, msgp.getChannel()).get();
+                try {
+                    File f = makeFile(pattern, start, end, msgp.getChannel());
 
-                f.delete();
+                    Utilities4D4J.sendFile(f, msgp.getChannel()).get();
+
+                    f.delete();
+                } catch (IOException e) {
+                    RedBot.reportError(e, "Writing to a file a message archive between messages: " +
+                            Long.toUnsignedString(start) + " - " + Long.toUnsignedString(end), msgp);
+                }
             } catch (NumberFormatException e) {
                 msgp.reply("Your IDs are not valid numbers!");
             }
@@ -103,18 +109,23 @@ public class RecorderCommands extends CommandGroup {
                     pattern = "[%TIME%] %USER%: %CONTENT%";
                 }
 
-                File f = makeFile(pattern, start, end, msgp.getChannel(), false);
-                Utilities4D4J.sendFile(f, msgp.getChannel()).get();
+                try {
+                    File f = makeFile(pattern, start, end, msgp.getChannel());
+                    Utilities4D4J.sendFile(f, msgp.getChannel()).get();
 
-                f.delete();
+                    f.delete();
 
+                } catch (IOException e) {
+                    RedBot.reportError(e, "Writing to a file a message archive between messages: " +
+                            Long.toUnsignedString(start) + " - " + Long.toUnsignedString(end), msgp);
+                }
             } else {
                 msgp.reply("You don't have a recording going on! Use `record` to start a recording.");
             }
         }
     }
 
-    private static File makeFile(String pattern, long start, long end, IChannel c, boolean include) {
+    private static File makeFile(String pattern, long start, long end, IChannel c) throws IOException {
         File f = new File("data/records/record.txt");
         int count = 0;
         while (f.exists()) {
@@ -127,8 +138,6 @@ public class RecorderCommands extends CommandGroup {
                 w.write(format(msg, pattern));
                 w.newLine();
             }
-        } catch (IOException e) {
-            RedBot.reportError(e);
         }
 
         return f;

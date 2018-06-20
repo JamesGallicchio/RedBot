@@ -5,6 +5,7 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
+import com.rometools.rome.feed.atom.Feed;
 import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.io.FeedException;
@@ -17,6 +18,8 @@ import com.thatredhead.redbot.command.CommandException;
 import com.thatredhead.redbot.command.CommandGroup;
 import com.thatredhead.redbot.helpers4d4j.MessageParser;
 import com.thatredhead.redbot.helpers4d4j.Utilities4D4J;
+import com.thatredhead.redbot.logging.Hastebin;
+import com.thatredhead.redbot.logging.LogHandler;
 import com.thatredhead.redbot.permission.PermissionContext;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
@@ -30,6 +33,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 public class SubscriberCommands extends CommandGroup {
@@ -50,17 +54,22 @@ public class SubscriberCommands extends CommandGroup {
                 new ArrayList<SubscriptionFeed>());
 
         exec.scheduleAtFixedRate(() -> {
-            int pause = UPDATE_PERIOD/subscriptions.size();
-            int wait = 0;
-            for (SubscriptionFeed s : subscriptions) {
-                wait += pause;
-                exec.schedule(s::tick, wait, TimeUnit.MILLISECONDS);
-            }
+            int pause = UPDATE_PERIOD / subscriptions.size();
+            AtomicInteger wait = new AtomicInteger(0);
+
+            subscriptions = subscriptions.stream().filter(s -> {
+                if (s.channels.isEmpty())
+                    return false;
+                else {
+                    exec.schedule(s::tick, wait.addAndGet(pause), TimeUnit.MILLISECONDS);
+                    return true;
+                }
+            }).collect(Collectors.toList());
+
         }, 0, UPDATE_PERIOD, TimeUnit.MILLISECONDS);
     }
 
-    private SubscriptionFeed getOrAdd(String url) throws MalformedURLException {
-        URL url2 = new URL(url);
+    private SubscriptionFeed getOrAdd(String url) throws IOException, FeedException {
 
         Optional<SubscriptionFeed> sub = subscriptions.stream().filter(f -> f.subUrl.equals(url)).findFirst();
         if (sub.isPresent()) return sub.get();
@@ -94,6 +103,9 @@ public class SubscriberCommands extends CommandGroup {
                 sub = getOrAdd(msgp.getArg(1));
             } catch (MalformedURLException e) {
                 throw new CommandException("Invalid RSS Feed: " + msgp.getArg(1));
+            } catch (IOException | FeedException e) {
+                RedBot.reportError(e, "Attempting to subscribe to URL: " + msgp.getArg(1), msgp);
+                return;
             }
 
             long id = Utilities4D4J.stableChannelId(msgp.getChannel());
@@ -176,7 +188,10 @@ public class SubscriberCommands extends CommandGroup {
                     feed.channels.add(e.getAsLong());
                 }
                 return feed;
-            } catch (MalformedURLException e) { return null; }
+            } catch (IOException | FeedException e) {
+                RedBot.reportError(e, "During initialization of subscription from JSON: " + Hastebin.paste(jsonElement.toString()));
+                return null;
+            }
         };
 
         private static SyndFeedInput io = new SyndFeedInput();
@@ -187,7 +202,7 @@ public class SubscriberCommands extends CommandGroup {
         private transient URL url;
         private transient SyndFeed feed;
 
-        public SubscriptionFeed(String sub) throws MalformedURLException {
+        public SubscriptionFeed(String sub) throws IOException, FeedException {
             subUrl = sub;
 
             url = new URL(subUrl);
@@ -195,17 +210,11 @@ public class SubscriberCommands extends CommandGroup {
             updateFeed();
         }
 
-        private void updateFeed() {
-            try {
-                feed = io.build(new XmlReader(url));
-            } catch (IOException | FeedException e) {
-                RedBot.reportError(e,
-                        "URL: " + subUrl +
-                        "\nChannels: " + channels.stream().map(Long::toUnsignedString).collect(Collectors.joining()));
-            }
+        private void updateFeed() throws IOException, FeedException {
+            feed = io.build(new XmlReader(url));
         }
 
-        private List<SyndEntry> newEntries() {
+        private List<SyndEntry> newEntries() throws IOException, FeedException {
             List<SyndEntry> old = feed.getEntries();
             updateFeed();
             return feed.getEntries().stream().filter(e -> {
@@ -217,12 +226,16 @@ public class SubscriberCommands extends CommandGroup {
         }
 
         private void tick() {
-            List<SyndEntry> newEntries = newEntries();
+            try {
+                List<SyndEntry> newEntries = newEntries();
 
-            if (!newEntries.isEmpty()) {
-                EmbedObject toSend = new FeedEmbed(feed, newEntries).toEmbed();
+                if (!newEntries.isEmpty()) {
+                    EmbedObject toSend = new FeedEmbed(feed, newEntries).toEmbed();
 
-                channels.forEach(id -> Utilities4D4J.sendEmbed(toSend, Utilities4D4J.fromStableChannelId(id)));
+                    channels.forEach(id -> Utilities4D4J.sendEmbed(toSend, Utilities4D4J.fromStableChannelId(id)));
+                }
+            } catch (IOException | FeedException e) {
+                RedBot.reportError(e, "Trying to update feed at URL: " + subUrl);
             }
         }
 

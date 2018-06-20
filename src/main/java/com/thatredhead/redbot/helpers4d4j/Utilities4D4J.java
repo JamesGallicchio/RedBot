@@ -138,7 +138,7 @@ public class Utilities4D4J {
             try {
                 message.get().delete();
             } catch (DiscordException | MissingPermissionsException e) {
-                RedBot.reportError(e);
+                RedBot.reportError(e, "Attempting to delete temporary message in " + channel.mention());
             }
         }), milliDelay, TimeUnit.MILLISECONDS);
     }

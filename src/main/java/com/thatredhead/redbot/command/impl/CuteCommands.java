@@ -62,10 +62,92 @@ public class CuteCommands extends CommandGroup {
                 safeties.put(id, "high");
                 datah.save(safeties, "cutesafety");
             }
-            cuteSearch(msgp.getContentAfter(0), msgp.getChannel());
+
+            String msg = msgp.getContentAfter(0);
+            IChannel channel = msgp.getChannel();
+
+            StringBuilder message = new StringBuilder(msg.toUpperCase());
+            String safe = safeties.get(Utilities4D4J.stableChannelId(channel));
+            String type;
+            if (message.toString().endsWith("GIF")) {
+                type = "&fileType=gif";
+                message.delete(message.length() - 4, message.length());
+            } else {
+                type = "";
+            }
+            message.delete(0, 4);
+            StringBuilder response;
+            if (message.toString().isEmpty()) {
+                response = new StringBuilder("CUTE");
+            } else {
+                response = new StringBuilder(message.toString());
+            }
+
+            response.append(" *");
+            response.append(Integer.toHexString(new Random().nextInt()).toUpperCase());
+            response.append("*");
+            if (message.toString().contains(".")) {
+                String[] pieces = message.toString().split(".");
+                message.setLength(0);
+                for (String piece : pieces)
+                    message.append("%2E").append(piece);
+            }
+
+            String encoded = "";
+            try {
+                encoded = URLEncoder.encode(message.toString(), "UTF-8");
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+
+            int startAt = new Random().nextInt(100);
+
+            int startEng = keyNum;
+            while (true) {
+                String urlString = "https://www.googleapis.com/customsearch/v1?" +
+                        "q=cute" + encoded +
+                        "&cx=" + engine +
+                        type +
+                        "&filter=1" +
+                        "&num=1" +
+                        "&safe=" + safe +
+                        "&searchType=image" +
+                        "&start=" + startAt +
+                        "&fields=items%2Flink" +
+                        "&key=" + keys.get(keyNum);
+                URL googleURL = null;
+                try {
+                    googleURL = new URL(urlString);
+                    String jsonString = IOUtils.toString(new InputStreamReader(googleURL.openStream()));
+                    Pattern pattern = Pattern.compile("\"link\": \"(.+)\"", Pattern.DOTALL);
+                    Matcher matcher = pattern.matcher(jsonString);
+                    if (matcher.find()) {
+                        response.append("\n");
+                        response.append(matcher.group(1));
+                    } else {
+                        response.setLength(0);
+                        response.append("Your request turned up no results.");
+                    }
+                    break;
+                } catch (IOException e) {
+
+                    if (startEng != nextKey())
+                        continue;
+
+                    response.setLength(0);
+                    if (e.getMessage().contains("50"))
+                        response.append("\nGoogle's servers are probably down. Try again in a minute.");
+                    else if (e.getMessage().contains("40"))
+                        response.append("\nProbably reached daily request limit. :(");
+                    else {
+                        response.append("\nError getting an image. Try again in a bit.");
+                        RedBot.reportError(e, "Request URL: " + googleURL, msgp);
+                    }
+                    break;
+                }
+            }
+            Utilities4D4J.sendMessage(response.toString(), channel);
         }
-
-
     }
 
     public class CuteSafetyCommand extends Command {
@@ -121,89 +203,6 @@ public class CuteCommands extends CommandGroup {
             reported.delete();
             msgp.reply("Removed image *" + id + "* successfully!");
         }
-    }
-
-    private void cuteSearch(String msg, IChannel channel) {
-        StringBuilder message = new StringBuilder(msg.toUpperCase());
-        String safe = safeties.get(Utilities4D4J.stableChannelId(channel));
-        String type;
-        if (message.toString().endsWith("GIF")) {
-            type = "&fileType=gif";
-            message.delete(message.length() - 4, message.length());
-        } else {
-            type = "";
-        }
-        message.delete(0, 4);
-        StringBuilder response;
-        if (message.toString().isEmpty()) {
-            response = new StringBuilder("CUTE");
-        } else {
-            response = new StringBuilder(message.toString());
-        }
-
-        response.append(" *");
-        response.append(Integer.toHexString(new Random().nextInt()).toUpperCase());
-        response.append("*");
-        if (message.toString().contains(".")) {
-            String[] pieces = message.toString().split(".");
-            message.setLength(0);
-            for (String piece : pieces)
-                message.append("%2E" + piece);
-        }
-
-        String encoded = "";
-        try {
-            encoded = URLEncoder.encode(message.toString(), "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-
-        int startAt = new Random().nextInt(100);
-
-        int startEng = keyNum;
-        while (true) {
-            try {
-                String urlString = "https://www.googleapis.com/customsearch/v1?" +
-                        "q=cute" + encoded +
-                        "&cx=" + engine +
-                        type +
-                        "&filter=1" +
-                        "&num=1" +
-                        "&safe=" + safe +
-                        "&searchType=image" +
-                        "&start=" + startAt +
-                        "&fields=items%2Flink" +
-                        "&key=" + keys.get(keyNum);
-                URL googleURL = new URL(urlString);
-                String jsonString = IOUtils.toString(new InputStreamReader(googleURL.openStream()));
-                Pattern pattern = Pattern.compile("\"link\": \"(.+)\"", Pattern.DOTALL);
-                Matcher matcher = pattern.matcher(jsonString);
-                if (matcher.find()) {
-                    response.append("\n");
-                    response.append(matcher.group(1));
-                } else {
-                    response.setLength(0);
-                    response.append("Your request turned up no results.");
-                }
-                break;
-            } catch (IOException e) {
-
-                if (startEng != nextKey())
-                    continue;
-
-                response.setLength(0);
-                if (e.getMessage().contains("50"))
-                    response.append("\nGoogle's servers are probably down. Try again in a minute.");
-                else if (e.getMessage().contains("40"))
-                    response.append("\nProbably reached daily request limit. :(");
-                else {
-                    response.append("\nError getting an image. Try again in a bit.");
-                    RedBot.reportError(e);
-                }
-                break;
-            }
-        }
-        Utilities4D4J.sendMessage(response.toString(), channel);
     }
 
     private int nextKey() {

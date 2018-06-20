@@ -10,7 +10,7 @@ public class TriviaCommand {
         super();
     }
 
-    
+
     public void invoke(MessageParser msgp) throws CommandException {
 
     }
