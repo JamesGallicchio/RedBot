@@ -1,0 +1,2 @@
+examplebot EXAMPLE.TOKEN.HERE
+example2bot EXAMPLE2.TOKEN.HERE
