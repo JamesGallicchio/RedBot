@@ -10,11 +10,21 @@ trait ConversationBot extends BaseBot {
   // Map from (TextChannel, User) snowflakes to
   val convos = scala.collection.mutable.Map.empty[(Snowflake, Snowflake), StateMachine[Message]]
 
-  override def consumeEvents(evFlux: Flux[Event]) =
+  override def consumeEvents(evFlux: Flux[Event]): Unit =
     for {
-      ev <- evFlux.flatMapIterable { case e: MessageCreateEvent => Some(e) ; case _ => None }
-
-    } convos
+      e <- evFlux
+      if e.isInstanceOf[MessageCreateEvent]
+      msg = e.asInstanceOf[MessageCreateEvent]).getMessage
+      if msg.getType == msg.Type.DEFAULT
+      uid <- msg.getAuthor
+      if msg.
+      cid = msg.getChannelId
+      key = (cid, uid)
+    } {
+      sm = convos.removeOrDefault(key, newConversation)
+      
+      case _ => val sm = newConversation
+    }
 
   def newConversation: StateMachine[Message]
 }
