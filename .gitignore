@@ -1,5 +1,7 @@
-token.txt
+tokens.txt
 
 /.idea/
 
 target/
+
+ssh*
