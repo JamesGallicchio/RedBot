@@ -1,14 +1,19 @@
 package redbot.bots
 
-import redbot.cmd.{ChannelMention, Command, Mention, UserMention}
+import redbot.cmd._
 import redbot.discord.Client
 
 case class RedBot(client: Client) extends CommandBot {
-  override def handler: Command => Unit = {case cmd @ Command(args, _, _) => args match {
-    case "ping" :: _ => cmd.reply("pong")
-    case "showid" :: mention :: _ => mention match {
-      case ChannelMention(id) | UserMention(id2) => cmd.reply(id.toString)
-    }
-    case _ => cmd.reply("Unrecognized command!")
-  }}
+  override def handler: PartialFunction[Command, String] = {case cmd @ Command(args, _, _) =>
+    import redbot.cmd.Regexes._
+    args match {
+
+      case "ping" :: _ => "pong"
+      case "showid" :: rest => rest match {
+        case ChannelMention(id) :: _ => id.toString
+        case UserMention(id) :: _ => id.toString
+        case RoleMention(id) :: _ => id.toString
+      }
+      case _ => "Unrecognized command!"
+    }}
 }

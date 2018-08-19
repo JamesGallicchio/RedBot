@@ -5,13 +5,11 @@ import java.util.Optional
 import reactor.core.publisher
 import reactor.core.scala.publisher.{Flux, Mono, PimpMyPublisher}
 
-import scala.concurrent.Future
-
 object JavaConversions {
-  implicit class Optj2s[T](val op: Optional[T]) extends AnyVal {
-    def toScala: Option[T] = op.map(Some.apply(_)).orElse(None)
+  implicit class Optj2s[T >: Null](val op: Optional[T]) extends AnyVal {
+    def toScala: Option[T] = Option(op.orElse(null))
   }
-  implicit class Opts2j[T](val op: Option[T]) extends AnyVal {
+  implicit class Opts2j[T >: Null](val op: Option[T]) extends AnyVal {
     def toJava: Optional[T] = Optional.ofNullable(op.orNull)
   }
   implicit class FluxJ2S[T](val flux: publisher.Flux[T]) extends AnyVal {

@@ -1,10 +1,6 @@
 package redbot.bots
 
-import discord4j.core.`object`.entity.{Channel, Message, User}
-import discord4j.core.event.domain.message.MessageCreateEvent
-import reactor.core.scala.publisher.PimpMyPublisher
 import redbot.cmd.Command
-import redbot.discord.ReactorMonadics
 import redbot.utils.StateMachine
 
 import scala.collection.mutable
@@ -24,7 +20,7 @@ trait ConversationBot extends CommandBot {
   // Map from channel and user snowflakes (XOR'd) to conversation state machines
   private val convos = mutable.LongMap.empty[StateMachine[Command]]
 
-  override def handler: Command => Unit = {case cmd @ Command(args, msg, cli) =>
+  override def handler: PartialFunction[Command, Unit] = {case cmd @ Command(args, msg, cli) =>
     // Map key
     val key = msg.channel ^ cmd.user
 

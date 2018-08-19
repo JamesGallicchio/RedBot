@@ -5,11 +5,13 @@ import redbot.discord.Snowflake.Snowflake
 import scala.concurrent.Future
 
 object Snowflake {
-  private trait SnowflakeTag
+  sealed trait SnowflakeTag
   type Snowflake = Long with SnowflakeTag
 }
 
 abstract class Client(val token: String) {
+  def login(): Unit
+
   def getSelfId: User.Id
 
   def getUser(id: User.Id): Future[User]
@@ -17,39 +19,46 @@ abstract class Client(val token: String) {
   def setPresence(presence: String): Unit
 
   def sendMessage(channel: Channel.Id, content: String): Unit
-  def addMessageListener(handler: Message => Any): Unit
+  def addMessageListener(handler: Message => Unit): Unit
 }
 
-trait Message {
+trait Message extends Any {
   def id: Message.Id
   def content: Option[String]
   def author: Option[User.Id]
   def channel: Channel.Id
 }
 object Message {
-  private trait MessageTag
+  sealed trait MessageTag
   type Id = Snowflake with MessageTag
 }
 
-trait User {
+trait User extends Any {
   def id: User.Id
   def username: String
   def isBot: Boolean
 }
 object User {
-  private trait UserTag
+  sealed trait UserTag
   type Id = Snowflake with UserTag
+
+  def mention(u: User): String = mention(u.id)
+  def mention(u: User.Id): String = s"<@$u>"
 }
 
 object Channel {
-  private trait ChannelTag
+  sealed trait ChannelTag
   type Id = Snowflake with ChannelTag
+
+  def mention(c: Channel.Id): String = s"<@$c>"
 }
 object Role {
-  private trait RoleTag
+  sealed trait RoleTag
   type Id = Snowflake with RoleTag
+
+  def mention(r: Role.Id): String = s"<@$r>"
 }
 object Guild {
-  private trait GuildTag
+  sealed trait GuildTag
   type Id = Snowflake with GuildTag
 }
