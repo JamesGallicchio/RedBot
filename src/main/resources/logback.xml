@@ -7,7 +7,7 @@
         <!--<filter class="redbot.Logger"/>-->
         <file>logs/latest.log</file>
         <encoder>
-            <pattern>%d{MM-dd HH:mm:ss} [%t] %-5level %msg%n</pattern>
+            <pattern>%d{MM-dd HH:mm:ss} [%t{10}] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
 
@@ -16,7 +16,7 @@
             <level>INFO</level>
         </filter>
         <encoder>
-            <pattern>%d{HH:mm:ss.SS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <pattern>%d{HH:mm:ss.SS} %-5level %msg%n</pattern>
         </encoder>
     </appender>
 
@@ -25,5 +25,5 @@
         <appender-ref ref="STDOUT"/>
     </root>
 
-    <logger name="scala-execution-context-global-34" level="NONE"/>
+    <logger name="..." level="NONE"/>
 </configuration>

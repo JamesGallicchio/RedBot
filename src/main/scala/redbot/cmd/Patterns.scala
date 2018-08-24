@@ -3,7 +3,7 @@ package redbot.cmd
 import scala.util.Try
 import scala.util.matching.Regex
 
-object Regexes {
+object Patterns {
 
   object ChannelMention {
 
@@ -47,4 +47,5 @@ object Regexes {
   object Integer {
     def unapply(arg: String): Option[Int] = Try(arg.toInt).toOption
   }
+
 }

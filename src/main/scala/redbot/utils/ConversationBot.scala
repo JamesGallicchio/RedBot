@@ -1,6 +1,6 @@
 package redbot.bots
 
-import redbot.cmd.Command
+import redbot.cmd.CommandMessage
 import redbot.utils.StateMachine
 
 import scala.collection.mutable
@@ -18,9 +18,9 @@ import scala.collection.mutable
 trait ConversationBot extends CommandBot {
 
   // Map from channel and user snowflakes (XOR'd) to conversation state machines
-  private val convos = mutable.LongMap.empty[StateMachine[Command]]
+  private val convos = mutable.LongMap.empty[StateMachine[CommandMessage]]
 
-  override def handler: PartialFunction[Command, Unit] = {case cmd @ Command(args, msg, cli) =>
+  override def handler: PartialFunction[CommandMessage, Unit] = {case cmd @ Command(args, msg, cli) =>
     // Map key
     val key = msg.channel ^ cmd.user
 
@@ -34,5 +34,5 @@ trait ConversationBot extends CommandBot {
     convos.put(key, sm)
   }
 
-  def newConvo: StateMachine[Command]
+  def newConvo: StateMachine[CommandMessage]
 }

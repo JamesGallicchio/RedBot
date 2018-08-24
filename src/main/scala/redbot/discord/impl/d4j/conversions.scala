@@ -2,6 +2,7 @@ package redbot.discord.impl.d4j
 
 import java.util.Optional
 
+import discord4j.core.`object`.util.Snowflake
 import reactor.core.publisher
 import reactor.core.scala.publisher.{Flux, Mono, PimpMyPublisher}
 
@@ -27,13 +28,19 @@ object JavaConversions {
 }
 
 object ReactorMonadics {
-  implicit class FluxMonadic[T](private val f: Flux[T]) extends AnyVal {
+  implicit class FluxMonadic[T](val f: Flux[T]) extends AnyVal {
     def withFilter(pred: T => Boolean): Flux[T] = f.filter(pred)
     def foreach[U](func: T => U): Unit = f.subscribe(t => func(t))
     def map[U](func: T => U): Unit = f.map(func)
   }
-  implicit class MonoMonadic[T](private val m: Mono[T]) extends AnyVal {
+  implicit class MonoMonadic[T](val m: Mono[T]) extends AnyVal {
     def withFilter(pred: T => Boolean): Mono[T] = m.filter(pred)
     def foreach[U](func: T => U): Unit = m.subscribe(t => func(t))
+  }
+}
+
+object SnowflakeConversions {
+  implicit class Snowflake2Mine(val s: Snowflake) extends AnyVal {
+    def as[T <: redbot.discord.Snowflake.Snowflake]: T = s.asLong.asInstanceOf[T]
   }
 }

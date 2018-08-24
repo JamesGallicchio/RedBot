@@ -1,6 +1,6 @@
 package redbot.bots
 
-import redbot.cmd.Command
+import redbot.cmd.CommandMessage
 import redbot.discord.Client
 import redbot.utils.StateMachine
 
@@ -25,5 +25,5 @@ case class FeedBot(client: Client) extends ConversationBot {
       |
      """.stripMargin
 
-  override def newConvo: StateMachine[Command] = ???
+  override def newConvo: StateMachine[CommandMessage] = ???
 }

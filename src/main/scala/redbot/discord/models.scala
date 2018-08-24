@@ -20,6 +20,8 @@ abstract class Client(val token: String) {
 
   def sendMessage(channel: Channel.Id, content: String): Unit
   def addMessageListener(handler: Message => Unit): Unit
+
+  def hasPermission(u: User.Id, c: Channel.Id, ps: Permission*): Future[Boolean]
 }
 
 trait Message extends Any {
@@ -31,6 +33,9 @@ trait Message extends Any {
 object Message {
   sealed trait MessageTag
   type Id = Snowflake with MessageTag
+
+  def unapply(arg: Message): Option[(Message.Id,Channel.Id,Option[String],Option[User.Id])] =
+    Some(arg.id, arg.channel, arg.content, arg.author)
 }
 
 trait User extends Any {
@@ -61,4 +66,9 @@ object Role {
 object Guild {
   sealed trait GuildTag
   type Id = Snowflake with GuildTag
+}
+
+sealed trait Permission
+object Permission {
+  case object ManageChannels extends Permission
 }

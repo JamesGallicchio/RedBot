@@ -1,4 +1,4 @@
-package redbot
+package redbot.utils
 
 object DataStore {
   def store[T](name: String, data: T): Unit = {

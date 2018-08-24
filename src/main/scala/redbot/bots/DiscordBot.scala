@@ -1,6 +1,5 @@
 package redbot.bots
 
-
 /**
   * Discord bot top class.
   */
