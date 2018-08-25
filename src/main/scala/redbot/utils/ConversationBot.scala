@@ -15,20 +15,20 @@ import scala.collection.mutable
   *
   * @author JamesGallicchio
   */
-trait ConversationBot extends CommandBot {
+trait ConversationBot {
 
   // Map from channel and user snowflakes (XOR'd) to conversation state machines
   private val convos = mutable.LongMap.empty[StateMachine[CommandMessage]]
 
-  override def handler: PartialFunction[CommandMessage, Unit] = {case cmd @ Command(args, msg, cli) =>
+  def handler: PartialFunction[CommandMessage, Unit] = {case msg =>
     // Map key
-    val key = msg.channel ^ cmd.user
+    val key = msg.channelId ^ msg.user.id
 
     // State machine for the conversation
     val sm = convos.remove(key).getOrElse(newConvo)
 
     // Throw the command in
-    sm(cmd)
+    sm(msg)
 
     // Put the state machine back
     convos.put(key, sm)

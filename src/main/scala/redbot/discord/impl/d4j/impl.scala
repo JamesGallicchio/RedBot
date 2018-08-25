@@ -1,7 +1,7 @@
 package redbot.discord.impl.d4j
 
 import discord4j.core.`object`.presence.{Activity, Presence}
-import discord4j.core.`object`.util.Snowflake
+import discord4j.core.`object`.util.{Permission, Snowflake}
 import discord4j.core.`object`.{entity => d4j}
 import discord4j.core.event.domain.message.MessageCreateEvent
 import discord4j.core.spec.MessageCreateSpec
@@ -10,6 +10,7 @@ import redbot.discord.impl.d4j.JavaConversions._
 import redbot.discord.impl.d4j.SnowflakeConversions._
 import redbot.{discord => red}
 
+import scala.collection.JavaConverters._
 import scala.concurrent.Future
 
 final class Client(private val tok: String) extends red.Client(tok) {
@@ -26,7 +27,8 @@ final class Client(private val tok: String) extends red.Client(tok) {
     .as[red.User.Id]
 
   override def getUser(id: red.User.Id): Future[red.User] =
-    client.getUserById(Snowflake.of(id)).toScala.map(new User(_)).toFuture
+    client.getUserById(Snowflake.of(id)).toScala.map(new User(_))
+      .toFuture
 
   override def sendMessage(channel: red.Channel.Id, content: String): Unit =
     client.getTextChannelById(Snowflake.of(channel)).flatMap(
@@ -35,13 +37,20 @@ final class Client(private val tok: String) extends red.Client(tok) {
 
   override def addMessageListener(handler: red.Message => Unit): Unit =
     client.getEventDispatcher.on(classOf[MessageCreateEvent])
-    .subscribe{e => handler(new Message(e.getMessage))}
+      .subscribe{e => handler(new Message(e.getMessage))}
 
   override def setPresence(presence: String): Unit =
-    client.updatePresence(Presence.online(Activity.playing(presence))).subscribe()
+    client.updatePresence(Presence.online(Activity.playing(presence)))
+      .subscribe()
 
-  override def hasPermission(u: red.User.Id, c: red.Channel.Id, ps: red.Permission*): Future[Boolean] =
-    ???
+  override def hasPermission(u: red.User.Id, c: red.Channel.Id, ps: red.Permission*): Future[Boolean] = {
+    val d4jPermList = ps.map {
+      case red.Permission.ManageChannels => Permission.MANAGE_CHANNELS
+    }.asJava
+    client.getGuildChannelById(Snowflake.of(c)).toScala.flatMap(_.getEffectivePermissions(Snowflake.of(u)).toScala)
+      .map(_.containsAll(d4jPermList))
+      .toFuture
+  }
 }
 
 final class Message(private val msg: d4j.Message) extends AnyVal with red.Message {

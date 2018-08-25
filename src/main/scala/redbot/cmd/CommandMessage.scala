@@ -4,28 +4,32 @@ import redbot.discord._
 
 import scala.concurrent.Future
 
+import scala.concurrent.ExecutionContext.Implicits.global
+
 case class CommandMessage private(client: Client, msg: Message, user: User, content: String) {
-  lazy val channel: Channel.Id = msg.channel
+  lazy val channelId: Channel.Id = msg.channel
 
   def reply(content: String): Unit =
     client.sendMessage(msg.channel, User.mention(user) + " " + content)
 
   def hasPerms(ps: Permission*): Future[Boolean] =
-    client.hasPermission(user.id, channel, ps:_*)
+    client.hasPermission(user.id, channelId, ps:_*)
 
   lazy val args: List[String] = content.toLowerCase.split("\\s+").toList
 }
 
 object CommandMessage {
-  def apply(client: Client, msg: Message, prefix: String): Option[CommandMessage] =
-    for {
-      a <- msg.author              // Ensure has author
-      cont <- msg.content          // Ensure has content
+  def apply(client: Client, msg: Message, prefix: String): Future[Option[CommandMessage]] =
+    (for {
+      a <- msg.author // Ensure has author
+      cont <- msg.content // Ensure has content
       pidx = cont.indexOf(prefix)
-      if pidx >= 0                 // Ensure uses prefix
+      if pidx >= 0 // Ensure uses prefix
+    } yield for {
       u <- client.getUser(a)
-      if !u.isBot                  // Ensure isn't a bot
-    } yield new CommandMessage(client, msg, u, cont.substring(pidx).trim)
+      if !u.isBot // Ensure isn't a bot
+    } yield new CommandMessage(client, msg, u, cont.substring(pidx).trim))
+      .map(_.map(Some(_))).getOrElse(Future.successful(None)) // Flip inner and outer monads
 
   def unapply(arg: CommandMessage): Option[(Client, Message, User, Channel.Id, String)] =
     Some((arg.client, arg.msg, arg.user, arg.msg.channel, arg.content))
