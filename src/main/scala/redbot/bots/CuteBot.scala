@@ -1,7 +1,7 @@
 package redbot.bots
+import java.io.IOException
 import java.net.URLEncoder
 import java.util.concurrent.atomic.AtomicInteger
-import java.util.concurrent.{Executors, TimeUnit}
 
 import redbot.bots.CuteBot.SafetyLevel
 import redbot.bots.CuteBot.SafetyLevel.{High, Medium, Off}
@@ -11,10 +11,10 @@ import redbot.utils.{DataStore, Logger, TimerUtils}
 import regex.Grinch
 
 import scala.collection.mutable
-import scala.concurrent.{Future, blocking}
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 import scala.io.Source
 import scala.util.{Failure, Random, Success, Try}
-import scala.concurrent.ExecutionContext.Implicits.global
 
 case class CuteBot(client: Client) extends CommandBot {
   private val dataIdent = "cutesafety"
@@ -30,12 +30,9 @@ case class CuteBot(client: Client) extends CommandBot {
 
   override val commands: Seq[Command] = Vector(
     Command("cute <search term(s)> [gif]", "Sends a random cute image; appending gif will limit the search to gifs")(cmd => {
-      case gr"cute $terms(.+)" =>
+      case msg if msg.startsWith("cute") => val terms = msg.drop(4).trim
         CuteBot.search(terms, getSafety(cmd.msg.channel)).onComplete {
-          case Success(linkOpt) => cmd.reply(linkOpt match {
-            case Left(link) => s"CUTE ${terms.toUpperCase}: $link"
-            case Right(error) => error
-          })
+          case Success(link) => cmd.reply(s"CUTE ${terms.toUpperCase}: $link")
           case Failure(e) => cmd.reply(e.getMessage)
         }
     }),
@@ -45,7 +42,7 @@ case class CuteBot(client: Client) extends CommandBot {
         cmd.reply(s"Safety level for ${Channel.mention(ch)}: ${getSafety(ch).desc}")
     }),
 
-    Command("setsafety <off, medium, high [default]>", "Sets this channel's safety level (\"off\" won't filter NSFW content)")(cmd => {
+    Command("setsafety <off, medium, [high]>", "Sets this channel's safety level (\"off\" won't filter NSFW content)")(cmd => {
       case gr"setsafety $level(off|medium|high)" =>
         cmd.hasPerms(Permission.ManageChannels) collect {
           case true => val ch = cmd.channelId
@@ -83,9 +80,10 @@ object CuteBot {
     }
   }
 
+  case class CuteException(override val getMessage: String) extends RuntimeException
 
 
-  val engine: String = Source.fromResource("cuteengine.text").mkString
+  val engine: String = Source.fromResource("cuteengine.txt").mkString
 
   val keys: IndexedSeq[String] = Source.fromResource("cutekeys.txt").getLines().toIndexedSeq
   private val len = keys.length
@@ -102,10 +100,10 @@ object CuteBot {
     baseSearchUrl + s"&q=cute+$encodedTerms${if (isGif) "&type=gif" else ""}&safe=$safety&start=$start&key="
 
 
-  def search(terms: String, safetyLevel: SafetyLevel): Future[Either[String, String]] = {
+  def search(terms: String, safetyLevel: SafetyLevel): Future[String] = {
     val isGif = terms.toLowerCase.endsWith("gif")
 
-    val encoded = Try(URLEncoder.encode(terms.replaceAll(".","%2E"), "UTF-8")).get
+    val encoded = Try(URLEncoder.encode(terms, "UTF-8").replaceAll("\\.","%2E")).get
 
     val startingPoint = Random.nextInt(100)
 
@@ -114,27 +112,36 @@ object CuteBot {
 
     import scala.concurrent.duration._
 
-    TimerUtils.tryWithBackoff(10.millis,1.second) {
+    TimerUtils.tryWithBackoff[String](100.millis,2.second)({
       Future {
         val url = noKeyUrl + nextKey()
-        Source.fromURL(url).mkString match {
-          case gr""""link":\s*"$link(.+)"""" => Left(link: String)
-          case str => Right("This search turned up no results!")
+        Source.fromURL(url).filter(!Character.isWhitespace(_)).mkString match {
+          case gr""".*"link":"${link: String}(.+)".*""" => link
+          case other =>
+            Logger.log("Weird response from Google")("Response" -> other)
+            throw CuteException("This search turned up no results!")
         }
-      }.recoverWith {
-        // If got a 40x response -- probably means key has been used too much
-        case e if e.getMessage.contains("40") =>
-          Future.failed(new RuntimeException()) // Failure will cause retry
-
-        // If got a 50x response
-        case e if e.getMessage.contains("50") =>
-          Future.successful(Right("Google's servers are probably down. Try again in a minute."))
-
-        // Otherwise log the error
-        case e =>
-          Logger.log(e)("URL" -> noKeyUrl)
-          Future.successful(Right("Unhandled exception occurred. Check RedBot support server for more information."))
       }
-    }.recover { case e => Right("Probably reached daily limit :(") }
+    }, {
+      // Retry on a 40x response
+      case Failure(e: IOException) if e.getMessage.contains("40") => true
+
+    }).transform(identity, {
+      // Forward cute exceptions
+      case e: CuteException => e
+
+      // If got a 40x response
+      case e: IOException if e.getMessage.contains("40") =>
+        CuteException("Probably reached daily limit :(")
+
+      // If got a 50x response
+      case e: IOException if e.getMessage.contains("50") =>
+        CuteException("Google's servers are probably down. Try again in a minute.")
+
+      // Otherwise log the error
+      case e =>
+        Logger.log(e)("URL" -> noKeyUrl)
+        CuteException("Unhandled exception occurred. Check RedBot support server for more information.")
+    })
   }
 }

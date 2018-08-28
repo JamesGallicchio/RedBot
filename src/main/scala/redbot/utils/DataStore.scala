@@ -1,6 +1,6 @@
 package redbot.utils
 
-object DataStore {
+object DataStore { //TODO: entire class
   def store[T](name: String, data: T): Unit = {
 
   }

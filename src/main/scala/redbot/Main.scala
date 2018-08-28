@@ -14,7 +14,7 @@ object Main {
       .flatMap(tokenRegex.findFirstMatchIn).map(m => m.group(1) -> m.group(2)).toMap
 
     val bots = ParSeq(
-      {RedBot.apply _} -> "test",
+      //{RedBot.apply _} -> "test",
       {CuteBot.apply _} -> "cute"
     )
 

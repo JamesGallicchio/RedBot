@@ -25,11 +25,11 @@ object CommandMessage {
       cont <- msg.content // Ensure has content
       pidx = cont.indexOf(prefix)
       if pidx >= 0 // Ensure uses prefix
-    } yield for {
-      u <- client.getUser(a)
-      if !u.isBot // Ensure isn't a bot
-    } yield new CommandMessage(client, msg, u, cont.substring(pidx).trim))
-      .map(_.map(Some(_))).getOrElse(Future.successful(None)) // Flip inner and outer monads
+    } yield client.getUser(a).map {
+      case u if !u.isBot => // Ensure isn't a bot
+        Some(new CommandMessage(client, msg, u, cont.substring(pidx+prefix.length).trim))
+      case _ => None
+    }).getOrElse(Future.successful(None)) // Reduce outer monad
 
   def unapply(arg: CommandMessage): Option[(Client, Message, User, Channel.Id, String)] =
     Some((arg.client, arg.msg, arg.user, arg.msg.channel, arg.content))

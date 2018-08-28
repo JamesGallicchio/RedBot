@@ -7,6 +7,10 @@ import scala.concurrent.Future
 object Snowflake {
   sealed trait SnowflakeTag
   type Snowflake = Long with SnowflakeTag
+
+  implicit class Long2Snowflake(val s: Long) extends AnyVal {
+    def asId[T <: redbot.discord.Snowflake.Snowflake]: T = s.asInstanceOf[T]
+  }
 }
 
 abstract class Client(val token: String) {
@@ -55,13 +59,13 @@ object Channel {
   sealed trait ChannelTag
   type Id = Snowflake with ChannelTag
 
-  def mention(c: Channel.Id): String = s"<@$c>"
+  def mention(c: Channel.Id): String = s"<#$c>"
 }
 object Role {
   sealed trait RoleTag
   type Id = Snowflake with RoleTag
 
-  def mention(r: Role.Id): String = s"<@$r>"
+  def mention(r: Role.Id): String = s"<&$r>"
 }
 object Guild {
   sealed trait GuildTag

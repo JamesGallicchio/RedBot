@@ -12,7 +12,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 abstract class CommandBot extends DiscordBot {
   def commands: Seq[Command]
 
-  lazy val help: String = commands.map{ cmd => s"${cmd.format} - ${cmd.description}" }
+  lazy val help: String = commands.map{ cmd => s"${cmd.format}\n    ${cmd.description}" }
     .foldLeft(new StringBuilder("Commands: \n```\n"))(_ ++= _ ++= "\n").append("```").toString
 
   lazy val helpCommand: Command =
@@ -28,9 +28,9 @@ abstract class CommandBot extends DiscordBot {
     """.stripMargin
 
   def handle(msg: CommandMessage): Unit =
-    allCommands.map(_.action(msg))            // Get the action for the command
-      .filter(_.isDefinedAt(msg.content))     // Make sure the action is defined
-      .map(_.apply(msg.content))              // Give the action the message content
+    allCommands.map(_.action(msg)) // Get the action for the command
+      .filter { _.isDefinedAt(msg.content) } // Make sure the action is defined
+      .map { _.apply(msg.content) } // Give the action the message content
       .headOption.getOrElse(msg.reply(undefinedResponse)) // If no commands matched, respond
 
   lazy val prefix: String = User.mention(client.getSelfId)

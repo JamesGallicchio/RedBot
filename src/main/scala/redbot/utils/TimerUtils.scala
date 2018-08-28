@@ -5,23 +5,26 @@ import java.util.concurrent.Executors
 import scala.concurrent.{Future, Promise}
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.util.Try
 
 object TimerUtils {
   private val scheduler = Executors.newSingleThreadScheduledExecutor()
 
+  private val isFailureDefault: PartialFunction[Try[_], Boolean] = {case x => x.isFailure}
+
   def tryWithBackoff[T](initialBackoff: FiniteDuration,
                         maxBackoff: Duration,
-                        backoffIncrement: Long => Long = _*2,
-                        accumulatedTime: Long = 0)
-                       (operation: => Future[T]): Future[T] =
-    operation.recoverWith {
-      case ex if maxBackoff.toMillis > accumulatedTime =>
-        val next = backoffIncrement(
-          if (accumulatedTime == 0) initialBackoff.toMillis
-          else accumulatedTime)
+                        backoffIncrement: Long => Long = _*2)
+                       (operation: => Future[T],
+                        isFailure: PartialFunction[Try[T], Boolean] = isFailureDefault): Future[T] =
+    operation.andThen {
+      case res if isFailure.isDefinedAt(res) && isFailure(res) =>
+        case _ if maxBackoff.toMillis > initialBackoff.toMillis =>
+          val next = backoffIncrement(initialBackoff.toMillis)
 
-        timer(next.millis).flatMap(_ =>
-          tryWithBackoff(initialBackoff, maxBackoff, backoffIncrement, next)(operation))
+          timer(next.millis).flatMap(_ =>
+            tryWithBackoff(next.millis, maxBackoff, backoffIncrement)(operation,isFailure))
+      case res => Future.fromTry(res)
     }
 
   def timer(at: FiniteDuration): Future[Unit] = {
