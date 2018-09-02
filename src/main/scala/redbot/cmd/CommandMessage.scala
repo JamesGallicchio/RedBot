@@ -15,6 +15,13 @@ case class CommandMessage private(client: Client, msg: Message, user: User, cont
   def hasPerms(ps: Permission*): Future[Boolean] =
     client.hasPermission(user.id, channelId, ps:_*)
 
+  def checkPerms(ps: Permission*)(onSuccess: => ()) =
+    hasPerms(ps:_*) collect {
+      case true => onSuccess
+      case false => val permList = ps.map(_.getClass.getSimpleName).mkString(",")
+        reply(s"You don't have permission to do that. Requires: $permList")
+    }
+
   lazy val args: List[String] = content.toLowerCase.split("\\s+").toList
 }
 

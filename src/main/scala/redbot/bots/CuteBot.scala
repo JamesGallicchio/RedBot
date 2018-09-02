@@ -28,7 +28,7 @@ case class CuteBot(client: Client) extends CommandBot {
     CuteBot.SafetyLevel.High
   })
 
-  override val commands: Seq[Command] = Vector(
+  override val commands: Seq[Command[_]] = Vector(
     Command("cute <search term(s)> [gif]", "Sends a random cute image; appending gif will limit the search to gifs")(cmd => {
       case msg if msg.startsWith("cute") => val terms = msg.drop(4).trim
         CuteBot.search(terms, getSafety(cmd.msg.channel)).onComplete {
@@ -44,17 +44,15 @@ case class CuteBot(client: Client) extends CommandBot {
 
     Command("setsafety <off, medium, [high]>", "Sets this channel's safety level (\"off\" won't filter NSFW content)")(cmd => {
       case gr"setsafety $level(off|medium|high)" =>
-        cmd.hasPerms(Permission.ManageChannels) collect {
-          case true => val ch = cmd.channelId
-            safeties.update(ch, level match {
-              case "off" => Off
-              case "medium" => Medium
-              case "high" => High
-            })
-            saveData()
-            cmd.reply(s"Safety level for ${Channel.mention(ch)}: ${getSafety(ch).desc}")
-          case false =>
-            cmd.reply("Only someone with the MANAGE_CHANNELS permission can edit the channel safety!")
+        cmd.checkPerms(Permission.ManageChannels) {
+          val ch = cmd.channelId
+          safeties.update(ch, level match {
+            case "off" => Off
+            case "medium" => Medium
+            case "high" => High
+          })
+          saveData()
+          cmd.reply(s"Safety level for ${Channel.mention(ch)}: ${getSafety(ch).desc}")
         }
     })
   )

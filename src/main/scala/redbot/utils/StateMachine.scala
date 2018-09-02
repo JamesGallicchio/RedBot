@@ -10,13 +10,13 @@ trait StateMachine[A] extends PartialFunction[A, Unit] {
 
   case class Transition(name: String, f: PartialFunction[A, Transition]) extends PartialFunction[A, Transition] {
     def apply(a: A) = f(a)
-    def isDefinedAt(a: A) = f.isDefinedAt(a)
+    def isDefinedAt(a: A): Boolean = f.isDefinedAt(a)
     def orElse(t: Transition) = Transition(name + "+" + t.name, f orElse t)
 
-    override def toString = name
+    override def toString: String = name
   }
-  def transition(f: PartialFunction[A, Transition]) = {
-    val name = new Exception().getStackTrace.drop(3).take(1).map(caller => caller.getFileName + ":" + caller.getLineNumber).mkString("\n")
+  def transition(f: PartialFunction[A, Transition]): Transition = {
+    val name = new Exception().getStackTrace.slice(3, 4).map(caller => caller.getFileName + ":" + caller.getLineNumber).mkString("\n")
     Transition(name, f)
   }
   def namedTransition(name: String)(f: PartialFunction[A, Transition]) = Transition(name, f)
@@ -32,18 +32,18 @@ trait StateMachine[A] extends PartialFunction[A, Unit] {
       case e: MatchError => throw new MatchError(e.getMessage + " not handled by state " + curr.name)
     }
   }
-  def applyIfDefined(a: A) = if (isDefinedAt(a)) apply(a)
-  def isDefinedAt(a: A) = curr.isDefinedAt(a)
+  def applyIfDefined(a: A): Unit = if (isDefinedAt(a)) apply(a)
+  def isDefinedAt(a: A): Boolean = curr.isDefinedAt(a)
 
   /**
     * @return the current transition
     */
-  def current = curr
+  def current: Transition = curr
   /**
     * Imperative change of state. Discouraged but unavoidable sometimes.
     */
   @deprecated
-  def switchTo(t: Transition) = curr = t
+  def switchTo(t: Transition): Unit = curr = t
 
   /**
     * Done state, which is defined for no payload

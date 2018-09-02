@@ -1,9 +1,19 @@
 package redbot.utils
 
 object InputUtils {
-  def levDistance(s1: String, s2: String): Int = {
-    if (s1.length < s2.length) return levDistance(s2, s1)
+  def distance(s1: String, s2: String): Int =
+    if (s1.length > s2.length)
+      levDistance(s1, s2)
+    else
+      levDistance(s2, s1)
 
+  def certainty(s1: String, s2: String): Int =
+    if (s1.length > s2.length)
+      s1.length - levDistance(s1, s2)
+    else
+      s2.length - levDistance(s2, s1)
+
+  private def levDistance(s1: String, s2: String): Int = {
     var firstRow = (0 to s2.length).toArray
     var secondRow = new Array[Int](firstRow.length)
 
@@ -24,9 +34,5 @@ object InputUtils {
     }
 
     firstRow(firstRow.length-1)
-  }
-
-  def closestMatch(input: String, potentials: Seq[String]): (Int, Int) = {
-    potentials.map(levDistance(input, _)).zipWithIndex.minBy{case (dist, _) => dist}
   }
 }

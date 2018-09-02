@@ -10,28 +10,30 @@ import scala.util.{Failure, Success}
 import scala.concurrent.ExecutionContext.Implicits.global
 
 abstract class CommandBot extends DiscordBot {
-  def commands: Seq[Command]
+  def commands: Seq[Command[_]]
 
-  lazy val help: String = commands.map{ cmd => s"${cmd.format}\n    ${cmd.description}" }
+  val help: String = commands.map{ cmd => s"${cmd.format}\n    ${cmd.description}" }
     .foldLeft(new StringBuilder("Commands: \n```\n"))(_ ++= _ ++= "\n").append("```").toString
 
-  lazy val helpCommand: Command =
+  val helpCommand: Command[_] =
     Command("help", "Lists commands this bot includes")(cmd => {
       case "help" => cmd.reply(help)
     })
 
-  lazy val allCommands: Seq[Command] = commands :+ helpCommand
+  val allCommands: Seq[Command[_]] = commands :+ helpCommand
 
   lazy val undefinedResponse: String =
     s"""Use '$prefix help' to get a list of commands you can use. Commands are case-sensitive!
        |Join the RedBot support server to see what other bots are available: ${GlobalRefs.ServerInvite}
     """.stripMargin
 
+
   def handle(msg: CommandMessage): Unit =
     allCommands.map(_.action(msg)) // Get the action for the command
       .filter { _.isDefinedAt(msg.content) } // Make sure the action is defined
       .map { _.apply(msg.content) } // Give the action the message content
-      .headOption.getOrElse(msg.reply(undefinedResponse)) // If no commands matched, respond
+      .headOption
+      .getOrElse { msg.reply(undefinedResponse) } // If no commands matched, respond
 
   lazy val prefix: String = User.mention(client.getSelfId)
 
