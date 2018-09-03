@@ -1,7 +1,11 @@
 package redbot.discord
 
-import redbot.discord.Snowflake.Snowflake
+import java.time.Instant
 
+import redbot.discord.Snowflake.Snowflake
+import redbot.utils.OptParams.?
+
+import scala.collection.TraversableOnce
 import scala.concurrent.Future
 
 object Snowflake {
@@ -23,6 +27,8 @@ abstract class Client(val token: String) {
   def setPresence(presence: String): Unit
 
   def sendMessage(channel: Channel.Id, content: String): Unit
+  def sendEmbed(channel: Channel.Id, embed: Embed): Unit
+
   def addMessageListener(handler: Message => Unit): Unit
 
   def hasPermission(u: User.Id, c: Channel.Id, ps: Permission*): Future[Boolean]
@@ -76,3 +82,30 @@ sealed trait Permission
 object Permission {
   case object ManageChannels extends Permission
 }
+
+case class Embed(title: ?[String] = ?,
+                 description: ?[String] = ?,
+                 url: ?[String] = ?,
+                 timestamp: ?[Instant] = ?,
+                 color: ?[Integer] = ?,
+                 footer: ?[EmbedFooter] = ?,
+                 imageUrl: ?[String] = ?,
+                 thumbnailUrl: ?[String] = ?,
+                 author: ?[EmbedAuthor] = ?,
+                 fields: Traversable[EmbedField] = Traversable.empty
+                ) {
+  def copy(title: ?[String] = title,
+           description: ?[String] = description,
+           url: ?[String] = url,
+           timestamp: ?[Instant] = timestamp,
+           color: ?[Integer] = color,
+           footer: ?[EmbedFooter] = footer,
+           imageUrl: ?[String] = imageUrl,
+           thumbnailUrl: ?[String] = thumbnailUrl,
+           author: ?[EmbedAuthor] = author,
+           fields: Traversable[EmbedField] = fields
+          ): Embed = Embed(title, description, url, timestamp, color, footer, imageUrl, thumbnailUrl, author, fields)
+}
+case class EmbedFooter(text: String, iconUrl: ?[String] = ?)
+case class EmbedAuthor(name: String, url: ?[String] = ?, iconUrl: ?[String] = ?)
+case class EmbedField(name: String, value: String, inline: Boolean)

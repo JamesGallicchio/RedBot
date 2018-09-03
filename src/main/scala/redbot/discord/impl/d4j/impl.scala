@@ -1,11 +1,15 @@
 package redbot.discord.impl.d4j
 
+import java.awt.Color
+
 import discord4j.core.`object`.presence.{Activity, Presence}
 import discord4j.core.`object`.util.{Permission, Snowflake}
 import discord4j.core.`object`.{entity => d4j}
 import discord4j.core.event.domain.message.MessageCreateEvent
-import discord4j.core.spec.MessageCreateSpec
+import discord4j.core.spec.{EmbedCreateSpec, MessageCreateSpec}
 import discord4j.core.{DiscordClient, DiscordClientBuilder}
+import redbot.discord.Channel.Id
+import redbot.discord.Embed
 import redbot.discord.impl.d4j.JavaConversions._
 import redbot.discord.impl.d4j.SnowflakeConversions._
 import redbot.{discord => red}
@@ -32,8 +36,25 @@ final class Client(private val tok: String) extends red.Client(tok) {
 
   override def sendMessage(channel: red.Channel.Id, content: String): Unit =
     client.getTextChannelById(Snowflake.of(channel)).flatMap(
-      _.createMessage(new MessageCreateSpec().setContent(content))
+      _.createMessage(content)
     ).subscribe()
+
+  override def sendEmbed(channel: Id, embed: Embed): Unit =
+    client.getTextChannelById(Snowflake.of(channel))
+      .flatMap(_.createMessage(new MessageCreateSpec().setEmbed {
+        val spec = new EmbedCreateSpec()
+        embed.title.map(spec.setTitle)
+        embed.description.map(spec.setDescription)
+        embed.url.map(spec.setUrl)
+        embed.timestamp.map(spec.setTimestamp)
+        embed.color.map(c => spec.setColor(new Color(c)))
+        embed.footer.map(f => spec.setFooter(f.text, f.iconUrl.orNull))
+        embed.imageUrl.map(spec.setImage)
+        embed.thumbnailUrl.map(spec.setThumbnail)
+        embed.author.map(a => spec.setAuthor(a.name, a.url.orNull, a.iconUrl.orNull))
+        embed.fields.map(f => spec.addField(f.name, f.value, f.inline))
+        spec
+      }))
 
   override def addMessageListener(handler: red.Message => Unit): Unit =
     client.getEventDispatcher.on(classOf[MessageCreateEvent])
