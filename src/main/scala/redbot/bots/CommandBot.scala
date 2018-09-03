@@ -12,7 +12,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 abstract class CommandBot extends DiscordBot {
   def commands: Seq[Command[_]]
 
-  val help: String = commands.map{ cmd => s"${cmd.format}\n    ${cmd.description}" }
+  lazy val help: String = commands.map{ cmd => s"${cmd.format}\n    ${cmd.description}" }
     .foldLeft(new StringBuilder("Commands: \n```\n"))(_ ++= _ ++= "\n").append("```").toString
 
   val helpCommand: Command[_] =
@@ -20,7 +20,7 @@ abstract class CommandBot extends DiscordBot {
       case "help" => cmd.reply(help)
     })
 
-  val allCommands: Seq[Command[_]] = commands :+ helpCommand
+  lazy val allCommands: Seq[Command[_]] = commands :+ helpCommand
 
   lazy val undefinedResponse: String =
     s"""Use '$prefix help' to get a list of commands you can use. Commands are case-sensitive!

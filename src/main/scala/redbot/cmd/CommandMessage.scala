@@ -15,7 +15,7 @@ case class CommandMessage private(client: Client, msg: Message, user: User, cont
   def hasPerms(ps: Permission*): Future[Boolean] =
     client.hasPermission(user.id, channelId, ps:_*)
 
-  def checkPerms(ps: Permission*)(onSuccess: => ()) =
+  def checkPerms(ps: Permission*)(onSuccess: => Any) =
     hasPerms(ps:_*) collect {
       case true => onSuccess
       case false => val permList = ps.map(_.getClass.getSimpleName).mkString(",")
