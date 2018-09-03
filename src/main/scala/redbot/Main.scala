@@ -1,6 +1,6 @@
 package redbot
 
-import redbot.bots.{CuteBot, RedBot}
+import redbot.bots.{CuteBot, FeedBot, RedBot}
 import redbot.discord.impl.d4j.Client
 
 import scala.collection.parallel.ParSeq
@@ -15,6 +15,7 @@ object Main {
 
     val bots = ParSeq(
       {RedBot.apply _} -> "test",
+      {FeedBot.apply _} -> "feed",
       {CuteBot.apply _} -> "cute"
     )
 
