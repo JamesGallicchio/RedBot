@@ -1,8 +1,9 @@
 package redbot.bots
 import java.io.IOException
-import java.net.URLEncoder
+import java.net.{URL, URLEncoder}
 import java.util.concurrent.atomic.AtomicInteger
 
+import better.files._
 import redbot.bots.CuteBot.SafetyLevel
 import redbot.bots.CuteBot.SafetyLevel.{High, Medium, Off}
 import redbot.cmd.Command
@@ -13,7 +14,6 @@ import regex.Grinch
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import scala.io.Source
 import scala.util.{Failure, Random, Success, Try}
 
 case class CuteBot(client: Client) extends CommandBot {
@@ -81,9 +81,9 @@ object CuteBot {
   case class CuteException(override val getMessage: String) extends RuntimeException
 
 
-  val engine: String = Source.fromResource("cuteengine.txt").mkString
+  val engine: String = Resource.getAsString("cuteengine.txt")
 
-  val keys: IndexedSeq[String] = Source.fromResource("cutekeys.txt").getLines().toIndexedSeq
+  val keys: IndexedSeq[String] = Resource.getAsStream("cutekeys.txt").lines.toIndexedSeq
   private val len = keys.length
   private val idx = new AtomicInteger(0)
   private def nextKey() = keys(idx.getAndUpdate(i => (i+1)%len))
@@ -113,7 +113,7 @@ object CuteBot {
     TimerUtils.tryWithBackoff[String](100.millis,2.second)({
       Future {
         val url = noKeyUrl + nextKey()
-        Source.fromURL(url).filter(!Character.isWhitespace(_)).mkString match {
+        new URL(url).openStream().asString().filter(!Character.isWhitespace(_)) match {
           case gr""".*"link":"${link: String}(.+)".*""" => link
           case other =>
             Logger.log("Weird response from Google")("Response" -> other)
