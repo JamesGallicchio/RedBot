@@ -250,7 +250,7 @@ object FeedBot {
 
     val base = Embed(
       author = EmbedAuthor(feed.getTitle),
-      thumbnailUrl = Option(feed.getImage) map (_.getUrl)
+      thumbnailUrl = feed.getImage? (_.getUrl)
     )
 
     if (entries.size > 1) {
