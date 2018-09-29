@@ -43,7 +43,7 @@ case class FeedBot(client: Client) extends CommandBot {
       case gr"unsubscribe $terms(.+)" => msg.checkPerms(ManageChannels) {
 
         while (
-          Try(replaceByTerms(terms, _.replaceChannels(_ + msg.channelId))) match {
+          Try(replaceByTerms(terms, _.replaceChannels(_ - msg.channelId))) match {
             case Success(None) => true // Retry
             case Success(Some(sub)) => msg.reply(s"Unsubscribed from ${sub.feed.getTitle}"); false // Exit loop
             case Failure(_) =>
