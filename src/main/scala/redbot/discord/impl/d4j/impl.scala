@@ -54,7 +54,7 @@ final class Client(private val tok: String) extends red.Client(tok) {
         embed.author.map(a => spec.setAuthor(a.name, a.url.orNull, a.iconUrl.orNull))
         embed.fields.map(f => spec.addField(f.name, f.value, f.inline))
         spec
-      }))
+      })).subscribe()
 
   override def addMessageListener(handler: red.Message => Unit): Unit =
     client.getEventDispatcher.on(classOf[MessageCreateEvent])
