@@ -28,7 +28,7 @@ case class FeedBot(client: Client) extends CommandBot {
       case gr"subscribe $terms(.+)" => msg.checkPerms(ManageChannels){
 
         while (
-          Try(replaceByTerms(terms, _.replaceChannels(_ + msg.channelId))) match {
+          Try(replaceByTerms(terms.trim, _.replaceChannels(_ + msg.channelId))) match {
             case Success(None) => true // Retry
             case Success(Some(sub)) => msg.reply(s"Subscribed to ${sub.feed.getTitle}"); false // Exit loop
             case Failure(_) =>
@@ -43,7 +43,7 @@ case class FeedBot(client: Client) extends CommandBot {
       case gr"unsubscribe $terms(.+)" => msg.checkPerms(ManageChannels) {
 
         while (
-          Try(replaceByTerms(terms, _.replaceChannels(_ - msg.channelId))) match {
+          Try(replaceByTerms(terms.trim, _.replaceChannels(_ - msg.channelId))) match {
             case Success(None) => true // Retry
             case Success(Some(sub)) => msg.reply(s"Unsubscribed from ${sub.feed.getTitle}"); false // Exit loop
             case Failure(_) =>
@@ -74,7 +74,7 @@ case class FeedBot(client: Client) extends CommandBot {
     })
   )
 
-  import DataStore.Implicits._
+  import DataStore.Implicits.OptJsSuccessOps
   import redbot.discord.Snowflake._
 
   private implicit val urlFormat: Format[URL] = Format(
@@ -97,6 +97,11 @@ case class FeedBot(client: Client) extends CommandBot {
       "channels" -> o.channels
     ))
 
+  private implicit val subsFormat: Format[subsType] = Format(
+    Reads.ArrayReads[Subscription].map(arr => TrieMap(arr.toSeq.map(s => s.url.## -> s):_*)),
+    (o: subsType) => Writes.arrayWrites[Subscription].writes(o.values.toArray)
+  )
+
   // Map[URL hash -> Feed]
   private val subsIdent = "feed_subs"
   private type subsType = TrieMap[Int, Subscription]
@@ -118,7 +123,7 @@ case class FeedBot(client: Client) extends CommandBot {
 
       case Some(sub) =>
         // Replace subscription with new one that has new channel sub'd (atomic op in case subs changed in between)
-        if (subs.replace(sub.##, sub, func(sub))) {
+        if (subs.replace(sub.url.##, sub, func(sub))) {
           saveSubs()
           Some(sub) // Successful (don't retry)
         } else None // Unsuccessful inserting into subs (need to retry)
@@ -166,29 +171,31 @@ case class FeedBot(client: Client) extends CommandBot {
 
 
 
-  { // Every 2 seconds, update all the subs
-    println("Setting up SUB TIMERS")
+  { // Every 2 minutes, update all the subs
     import scala.concurrent.duration._
-    val UPDATE_PERIOD = 2.seconds
+    val UPDATE_PERIOD = 2.minute
 
     val exec = Executors.newScheduledThreadPool(8)
     exec.scheduleAtFixedRate(() => {
-      println("Executing 2 min timer")
+
+      // Time between updating subs (distributes updates across entire UPDATE_PERIOD rather than all at once)
       val pause = (UPDATE_PERIOD/subs.size).toMillis
 
       subs.foldLeft(0L){ case (wait, (key, sub)) =>
-        println(s"Scheduling an update in $wait millis for ${sub.url}")
-        exec.schedule(() => {
-          println(s"Updating ${sub.url}")
-          sub.updated collect {
-            case (feed, entries) =>
+        // Schedule to update this sub in $wait milliseconds
+        exec.schedule((() => {
+          // Get an updated feed
+          sub.updated match {
+            case Success((feed, entries)) =>
               // Send out new entries to all the subscribed channels
-
-              sub.channels.foreach(client.sendEmbed(_, makeEmbed(feed, entries)))
+              val embed = makeEmbed(feed, entries)
+              sub.channels.foreach(client.sendEmbed(_, embed))
 
               replaceIfExists(key, _.copy(feed = feed))
+
+            case Failure(e) => Logger.log(e)("Sub" -> sub) // Something went wrong updating the thread
           }
-        }, wait, MILLISECONDS)
+        }):Runnable, wait, MILLISECONDS)
 
         wait + pause
       }
@@ -203,23 +210,17 @@ object FeedBot {
     import Subscription._
 
     def updated: Try[(SyndFeed, Seq[SyndEntry])] =
-      getFeed(url).map { feed =>
-        (feed, feed.getEntries.asScala.filter(feed.getEntries.contains))
+      getFeed(url).map { newFeed =>
+        (newFeed, newFeed.getEntries.asScala.filterNot(feed.getEntries.contains))
       }
 
-    override lazy val toString: String = s"[${url.##.toHex}] **${feed.getTitle}** - *${channels.size}*\n    $url"
+    override lazy val toString: String = s"[${url.##.toHex}] **${feed.getTitle}** - *${channels.size} channels*\n    $url"
 
     def replaceChannels(func: Set[Channel.Id] => Set[Channel.Id]): Subscription =
       Subscription(url, func(channels), feed)
 
     def copy(url: URL = this.url, channels: Set[Channel.Id] = this.channels, feed: SyndFeed = this.feed) =
       Subscription(url, channels, feed)
-
-    override def hashCode(): Int = url.hashCode()
-    override def equals(o: scala.Any): Boolean = o match {
-      case Subscription(other, _, _) => url == other
-      case _ => false
-    }
   }
   object Subscription {
     def ofUrl(url: URL): Try[Subscription] =
