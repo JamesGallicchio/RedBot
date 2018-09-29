@@ -53,7 +53,7 @@ case class CuteBot(client: Client) extends CommandBot {
   private val safetiesIdent = "cute_safeties"
   private type safetiesType = mutable.Map[Channel.Id, SafetyLevel]
 
-  import DataStore.Implicits._
+  import DataStore.Implicits.{mutableMapReads, mutableMapWrites, uLongMapReads, uLongMapWrites}
 
   implicit val safetyLevelReads: Reads[SafetyLevel] = (json: JsValue) =>
     Reads.StringReads.reads(json).map(_.toLowerCase match {
