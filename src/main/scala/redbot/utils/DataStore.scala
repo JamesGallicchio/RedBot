@@ -21,7 +21,7 @@ object DataStore {
   def get[T](name: String)(implicit reader: Reads[T]): Option[T] = {
     val file = dataRoot/s"$name.txt"
 
-    if (file.exists)
+    if (file.exists && file.nonEmpty)
       file.inputStream
         .map(Json.parse)
         .map(Json.fromJson[T](_))
@@ -29,7 +29,7 @@ object DataStore {
     else None
   }
 
-  object Formats {
+  object Implicits {
     implicit def intMapReads[V](implicit valReads: Reads[V]): Reads[Map[Int, V]] = (json: JsValue) => JsSuccess(json.as[Map[String, V]].map {
       case (k, v) => Integer.parseInt(k) -> v
     })
@@ -50,5 +50,12 @@ object DataStore {
 
     implicit def mutableMapWrites[K, V](implicit mapWrites: Writes[Map[K, V]]): Writes[mutable.Map[K, V]] =
       (o: mutable.Map[K, V]) => mapWrites.writes(o.toMap)
+
+    implicit class OptJsSuccessOps[T](val opt: Option[T]) extends AnyVal {
+      def toJsResult(errMsg: String): JsResult[T] = opt match {
+        case Some(t) => JsSuccess(t)
+        case None => JsError(errMsg)
+      }
+    }
   }
 }

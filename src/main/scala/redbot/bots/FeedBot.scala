@@ -1,13 +1,13 @@
 package redbot.bots
 
 import java.net.URL
-import java.util.concurrent.Executors
+import java.util.concurrent.{Callable, Executors}
 
 import com.rometools.rome.feed.synd.{SyndEntry, SyndFeed}
 import com.rometools.rome.io.{SyndFeedInput, XmlReader}
+import com.sun.net.httpserver.Authenticator
 import org.jsoup.Jsoup
 import org.jsoup.nodes.{Element, Node, TextNode}
-import play.api.libs.json
 import play.api.libs.json._
 import redbot.bots.FeedBot._
 import redbot.cmd.Command
@@ -74,25 +74,28 @@ case class FeedBot(client: Client) extends CommandBot {
     })
   )
 
-  private implicit val urlReads: Reads[URL] = Reads.StringReads.map(new URL(_))
-  private implicit val urlWrites: Writes[URL] = (o: URL) => Writes.StringWrites.writes(o.toString)
+  import DataStore.Implicits._
+  import redbot.discord.Snowflake._
 
-  private implicit val setFormat: Format[Set[Channel.Id]] = implicitly
+  private implicit val urlFormat: Format[URL] = Format(
+    Reads.StringReads.map(new URL(_)),
+    (o: URL) => Writes.StringWrites.writes(o.toString))
 
-  private implicit val subReads: Reads[Subscription] = (json: JsValue) => (for {
-    url <- (json \ "url").asOpt[URL]
-    channels <- (json \ "channels").asOpt[Set[Channel.Id]]
-    feed <- Subscription.getFeed(url).toOption
-  } yield Subscription(url, channels, feed)) match {
-    case Some(s) => JsSuccess(s)
-    case None => JsError("Unable to deserialize subscription")
-  }
-  private implicit val subWrites: Writes[Subscription] = (o: Subscription) => Json.obj(
-    "url" -> o.url,
-    "channels" -> o.channels
-  )
+  private implicit val setFormat: Format[Set[Channel.Id]] = Format(
+    Reads.set(Reads.LongReads.map(_.asId[Channel.Id])),
+    Writes.set)
 
-  import DataStore.Formats._
+  private implicit val subFormat: Format[Subscription] = Format(
+    (json: JsValue) => (for {
+      url <- (json \ "url").asOpt[URL]
+      channels <- (json \ "channels").asOpt[Set[Channel.Id]]
+      feed <- Subscription.getFeed(url).toOption
+    } yield Subscription(url, channels, feed)).toJsResult(errMsg = "Unable to deserialize subscription"),
+
+    (o: Subscription) => Json.obj(
+      "url" -> o.url,
+      "channels" -> o.channels
+    ))
 
   // Map[URL hash -> Feed]
   private val subsIdent = "feed_subs"
