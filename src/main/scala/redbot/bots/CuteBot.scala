@@ -4,29 +4,22 @@ import java.net.{URL, URLEncoder}
 import java.util.concurrent.atomic.AtomicInteger
 
 import better.files._
+import play.api.libs.json._
 import redbot.bots.CuteBot.SafetyLevel
 import redbot.bots.CuteBot.SafetyLevel.{High, Medium, Off}
 import redbot.cmd.Command
 import redbot.discord.{Channel, Client, Permission}
+import redbot.discord.Snowflake._
 import redbot.utils.{DataStore, Logger, TimerUtils}
 import regex.Grinch
 
+import scala.collection.concurrent.TrieMap
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.{Failure, Random, Success, Try}
 
 case class CuteBot(client: Client) extends CommandBot {
-  private val dataIdent = "cutesafety"
-
-  private val safeties: mutable.Map[Channel.Id, SafetyLevel] =
-    DataStore.get(dataIdent).getOrElse(mutable.Map.empty)
-  private def saveData(): Unit = DataStore.store(dataIdent, safeties)
-  private def getSafety(ch: Channel.Id): SafetyLevel = safeties.getOrElse(ch, {
-    safeties.update(ch, CuteBot.SafetyLevel.High)
-    saveData()
-    CuteBot.SafetyLevel.High
-  })
 
   override val commands: Seq[Command[_]] = Vector(
     Command("cute <search term(s)> [gif]", "Sends a random cute image; appending gif will limit the search to gifs")(cmd => {
@@ -56,6 +49,37 @@ case class CuteBot(client: Client) extends CommandBot {
         }
     })
   )
+
+  private val safetiesIdent = "cute_safeties"
+  private type safetiesType = mutable.Map[Channel.Id, SafetyLevel]
+
+  import DataStore.Formats._
+
+  implicit val safetyLevelReads: Reads[SafetyLevel] = (json: JsValue) =>
+    Reads.StringReads.reads(json).map(_.toLowerCase match {
+      case "off" => Off
+      case "medium" => Medium
+      case "high" => High
+      case _ => throw new IllegalArgumentException("Invalid SafetyLevel name!")
+    })
+  implicit val safetyLevelWrites: Writes[SafetyLevel] = (o: SafetyLevel) => JsString(o.name)
+
+  private implicit val safetiesReads: Reads[safetiesType] =
+    implicitly[Reads[Map[Long, SafetyLevel]]] // Read a Map[Long, SafetyLevel]
+      .map(longMap => TrieMap( // Convert Map to TrieMap
+        longMap.toSeq.map{
+          case (l, sl) => (l.asId, sl) // Convert Long to Channel.Id
+        }:_*))
+
+  private val safeties: safetiesType = DataStore.get[safetiesType](safetiesIdent).getOrElse(mutable.Map.empty)
+  private def saveData(): Unit = DataStore.store(safetiesIdent, safeties)
+  private def getSafety(ch: Channel.Id): SafetyLevel = safeties.getOrElse(ch, {
+    safeties.update(ch, CuteBot.SafetyLevel.High)
+    saveData()
+    CuteBot.SafetyLevel.High
+  })
+
+
 }
 
 object CuteBot {

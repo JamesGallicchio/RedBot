@@ -11,6 +11,7 @@ libraryDependencies ++= Seq(
   "ch.qos.logback" % "logback-classic" % "1.1.7",
   "io.github.soc" %% "regextractor" % "0.2",
   "com.github.pathikrit" %% "better-files" % "3.6.0",
+  "com.typesafe.play" %% "play-json" % "2.6.10",
   "com.github.rometools" % "rome" % "1.7.1",
   "org.jsoup" % "jsoup" % "1.11.3"
 )

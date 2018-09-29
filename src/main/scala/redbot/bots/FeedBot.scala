@@ -5,18 +5,20 @@ import java.util.concurrent.Executors
 
 import com.rometools.rome.feed.synd.{SyndEntry, SyndFeed}
 import com.rometools.rome.io.{SyndFeedInput, XmlReader}
+import org.jsoup.Jsoup
+import org.jsoup.nodes.{Element, Node, TextNode}
+import play.api.libs.json
+import play.api.libs.json._
+import redbot.bots.FeedBot._
 import redbot.cmd.Command
 import redbot.discord.Permission.ManageChannels
 import redbot.discord._
+import redbot.utils.{DataStore, InputUtils, Logger}
 import regex.Grinch
 
+import scala.collection.JavaConverters._
 import scala.collection.concurrent.TrieMap
 import scala.util.{Failure, Success, Try}
-import scala.collection.JavaConverters._
-import FeedBot._
-import org.jsoup.Jsoup
-import org.jsoup.nodes.{Element, Node, TextNode}
-import redbot.utils.{InputUtils, Logger}
 
 case class FeedBot(client: Client) extends CommandBot {
 
@@ -72,25 +74,51 @@ case class FeedBot(client: Client) extends CommandBot {
     })
   )
 
+  private implicit val urlReads: Reads[URL] = Reads.StringReads.map(new URL(_))
+  private implicit val urlWrites: Writes[URL] = (o: URL) => Writes.StringWrites.writes(o.toString)
 
-  // URL hash to Feed
-  val subs = new TrieMap[Int, Subscription]()
+  private implicit val setFormat: Format[Set[Channel.Id]] = implicitly
 
-  private def replaceIfExists(key: Int, func: Subscription => Subscription): Unit =
+  private implicit val subReads: Reads[Subscription] = (json: JsValue) => (for {
+    url <- (json \ "url").asOpt[URL]
+    channels <- (json \ "channels").asOpt[Set[Channel.Id]]
+    feed <- Subscription.getFeed(url).toOption
+  } yield Subscription(url, channels, feed)) match {
+    case Some(s) => JsSuccess(s)
+    case None => JsError("Unable to deserialize subscription")
+  }
+  private implicit val subWrites: Writes[Subscription] = (o: Subscription) => Json.obj(
+    "url" -> o.url,
+    "channels" -> o.channels
+  )
+
+  import DataStore.Formats._
+
+  // Map[URL hash -> Feed]
+  private val subsIdent = "feed_subs"
+  private type subsType = TrieMap[Int, Subscription]
+
+  val subs: subsType = DataStore.get[subsType](subsIdent).getOrElse(new subsType())
+  private def saveSubs(): Unit = DataStore.store(subsIdent, subs)
+
+  private def replaceIfExists(key: Int, func: Subscription => Subscription): Unit = {
     while (! {
       subs.get(key).exists { sub =>
         subs.replace(key, sub, func(sub))
       }
     }) {}
+    saveSubs()
+  }
 
   private def replaceByTerms(terms: String, func: Subscription => Subscription): Option[Subscription] =
     findByTerms(terms) match {
 
       case Some(sub) =>
         // Replace subscription with new one that has new channel sub'd (atomic op in case subs changed in between)
-        if (subs.replace(sub.##, sub, func(sub)))
+        if (subs.replace(sub.##, sub, func(sub))) {
+          saveSubs()
           Some(sub) // Successful (don't retry)
-        else None // Unsuccessful inserting into subs (need to retry)
+        } else None // Unsuccessful inserting into subs (need to retry)
 
       case _ => throw new IllegalArgumentException // Unable to handle terms
     }
@@ -136,15 +164,19 @@ case class FeedBot(client: Client) extends CommandBot {
 
 
   { // Every 2 seconds, update all the subs
+    println("Setting up SUB TIMERS")
     import scala.concurrent.duration._
     val UPDATE_PERIOD = 2.seconds
 
     val exec = Executors.newScheduledThreadPool(8)
     exec.scheduleAtFixedRate(() => {
+      println("Executing 2 min timer")
       val pause = (UPDATE_PERIOD/subs.size).toMillis
 
       subs.foldLeft(0L){ case (wait, (key, sub)) =>
+        println(s"Scheduling an update in $wait millis for ${sub.url}")
         exec.schedule(() => {
+          println(s"Updating ${sub.url}")
           sub.updated collect {
             case (feed, entries) =>
               // Send out new entries to all the subscribed channels
