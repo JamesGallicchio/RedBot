@@ -1,11 +1,10 @@
 package redbot.bots
 
 import java.net.URL
-import java.util.concurrent.{Callable, Executors}
+import java.util.concurrent.Executors
 
 import com.rometools.rome.feed.synd.{SyndEntry, SyndFeed}
 import com.rometools.rome.io.{SyndFeedInput, XmlReader}
-import com.sun.net.httpserver.Authenticator
 import org.jsoup.Jsoup
 import org.jsoup.nodes.{Element, Node, TextNode}
 import play.api.libs.json._
@@ -173,7 +172,7 @@ case class FeedBot(client: Client) extends CommandBot {
 
   { // Every 2 minutes, update all the subs
     import scala.concurrent.duration._
-    val UPDATE_PERIOD = 2.minute
+    val UPDATE_PERIOD = 2 minutes
 
     val exec = Executors.newScheduledThreadPool(8)
     exec.scheduleAtFixedRate(() => {
@@ -185,7 +184,7 @@ case class FeedBot(client: Client) extends CommandBot {
         // Schedule to update this sub in $wait milliseconds
         exec.schedule((() => {
           // Get an updated feed
-          sub.updated match {
+          sub.fetchUpdate() match {
             case Success((feed, entries)) =>
               // Send out new entries to all the subscribed channels
               val embed = makeEmbed(feed, entries)
@@ -208,10 +207,21 @@ object FeedBot {
 
   case class Subscription(url: URL, channels: Set[Channel.Id], feed: SyndFeed) {
     import Subscription._
+    import redbot.utils.OptParams._
 
-    def updated: Try[(SyndFeed, Seq[SyndEntry])] =
+    def fetchUpdate(): Try[(SyndFeed, Seq[SyndEntry])] =
       getFeed(url).map { newFeed =>
-        (newFeed, newFeed.getEntries.asScala.filterNot(feed.getEntries.contains))
+        val oldEntries = feed.getEntries.asScala
+        val newEntries = newFeed.getEntries.asScala
+
+        // If title is the same, and content is the same, entry is the same
+        def entryEquals(e1: SyndEntry, e2: SyndEntry): Boolean =
+          ?(e1.getLink, e2.getLink).map{case (a, b) => a.equals(b)} orElse
+          ?(e1.getTitle, e2.getTitle).map{case (a, b) => a.equals(b)} getOrElse false
+
+        // Filter entries that existed in the old entry list
+        val updates = newEntries.filter(e => oldEntries.exists(entryEquals(_, e)))
+        (newFeed, newEntries -- oldEntries)
       }
 
     override lazy val toString: String = s"[${url.##.toHex}] **${feed.getTitle}** - *${channels.size} channels*\n    $url"
