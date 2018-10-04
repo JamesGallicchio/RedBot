@@ -214,14 +214,17 @@ object FeedBot {
         val oldEntries = feed.getEntries.asScala
         val newEntries = newFeed.getEntries.asScala
 
-        // If title is the same, and content is the same, entry is the same
-        def entryEquals(e1: SyndEntry, e2: SyndEntry): Boolean =
-          ?(e1.getLink, e2.getLink).map{case (a, b) => a.equals(b)} orElse
-          ?(e1.getTitle, e2.getTitle).map{case (a, b) => a.equals(b)} getOrElse false
+        def entryEquals(e1: SyndEntry, e2: SyndEntry): Boolean = {
+          // If links are equal (null-safe)
+          (e1.getLink.? zip e2.getLink.?).map(t => t._1==t._2)
+        } orElse {
+          // Else if titles are equal (null-safe)
+          (e1.getTitle.? zip e2.getTitle.?).map(t => t._1==t._2)
+        } getOrElse false // Else they're not equal
 
         // Filter entries that existed in the old entry list
         val updates = newEntries.filter(e => oldEntries.exists(entryEquals(_, e)))
-        (newFeed, newEntries -- oldEntries)
+        (newFeed, updates)
       }
 
     override lazy val toString: String = s"[${url.##.toHex}] **${feed.getTitle}** - *${channels.size} channels*\n    $url"
@@ -244,8 +247,8 @@ object FeedBot {
 
 
   def makeEmbed(feed: SyndFeed, entries: Seq[SyndEntry]): Embed = {
-    import redbot.utils.OptParams._
 
+    // Finds first <img> tag in the node structure
     def findImage(node: Node): Option[(String, Option[String])] = node match {
       case e: Element if e.tagName == "img" =>
         e.attr("src").checkEmpty map {
@@ -282,7 +285,7 @@ object FeedBot {
       case n => n.childNodes.asScala.map(discordify).mkString
     }
 
-
+    // Links text to link using [text](link) and prevents entire result from exceeding limit
     def limitLinked(text: String, link: String): String = {
       val limit = 1024
 
@@ -294,33 +297,37 @@ object FeedBot {
         s"[$text]($link)"
     }
 
-    val base = Embed(
-      author = EmbedAuthor(feed.getTitle),
-      thumbnailUrl = feed.getImage? (_.getUrl)
+    import redbot.utils.OptParams._
+    val base: Embed = Embed(
+      author = feed.getTitle.? map(EmbedAuthor(_)), // If feed title is nonnull, set it as embed author
+      thumbnailUrl = feed.getImage.? map(_.getUrl) // If feed image is nonnull, set as thumbnail
     )
 
+    // Multi entry format
     if (entries.size > 1) {
       val htmls = entries.map(e => (e, Jsoup.parseBodyFragment(e.getDescription.getValue)))
 
-      val img = htmls.map(_._2).map(findImage).reduceLeft { _ orElse _ }
+      // Get an image (if exists), and find first image from the updates
+      val imgOpt = htmls.map(_._2).map(findImage).reduceLeft { _ orElse _ }
 
       base copy (
         fields = htmls.map { case (entry, html) =>
           EmbedField(entry.getTitle, limitLinked(discordify(html), entry.getLink), inline = true)
         },
-        imageUrl = img map(_._1),
-        footer = img flatMap(_._2) map(EmbedFooter(_))
+        imageUrl = imgOpt.map(_._1),
+        footer = imgOpt.flatMap(_._2) map(EmbedFooter(_))
       )
-    } else {
+    } else { // Single entry format
       val e = entries.head
-      val html = Jsoup.parseBodyFragment(e.getDescription.getValue)
-      val img = findImage(html)
+      val htmlOpt = e.getDescription.getValue.checkEmpty.map(Jsoup.parseBodyFragment) // Get desc html-parsed
+      val imgOpt = htmlOpt.flatMap(findImage) // Find images in desc if they exist
+      val desc = htmlOpt.map(discordify).getOrElse("more") // Make description discord-friendly, default to "more"
 
       base copy(
         title = e.getTitle,
-        description = limitLinked(e.getDescription.getValue.checkEmpty.getOrElse("more"), e.getLink),
-        imageUrl = img map(_._1),
-        footer = img flatMap(_._2) map(EmbedFooter(_)),
+        description = limitLinked(desc, e.getLink),
+        imageUrl = imgOpt.map(_._1),
+        footer = imgOpt.flatMap(_._2).map(EmbedFooter(_)),
         timestamp = e.getPublishedDate.toInstant
       )
     }

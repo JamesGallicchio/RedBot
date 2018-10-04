@@ -5,7 +5,6 @@ import java.time.Instant
 import redbot.discord.Snowflake.Snowflake
 import redbot.utils.OptParams.?
 
-import scala.collection.TraversableOnce
 import scala.concurrent.Future
 
 object Snowflake {
@@ -83,29 +82,29 @@ object Permission {
   case object ManageChannels extends Permission
 }
 
-case class Embed(title: ?[String] = ?,
-                 description: ?[String] = ?,
-                 url: ?[String] = ?,
-                 timestamp: ?[Instant] = ?,
-                 color: ?[Integer] = ?,
-                 footer: ?[EmbedFooter] = ?,
-                 imageUrl: ?[String] = ?,
-                 thumbnailUrl: ?[String] = ?,
-                 author: ?[EmbedAuthor] = ?,
+case class Embed(title:        ?[String]       = None,
+                 description:  ?[String]       = None,
+                 url:          ?[String]       = None,
+                 timestamp:    ?[Instant]      = None,
+                 color:        ?[Integer]      = None,
+                 footer:       ?[EmbedFooter]  = None,
+                 imageUrl:     ?[String]       = None,
+                 thumbnailUrl: ?[String]       = None,
+                 author:       ?[EmbedAuthor]  = None,
                  fields: Traversable[EmbedField] = Traversable.empty
                 ) {
-  def copy(title: ?[String] = title,
-           description: ?[String] = description,
-           url: ?[String] = url,
-           timestamp: ?[Instant] = timestamp,
-           color: ?[Integer] = color,
-           footer: ?[EmbedFooter] = footer,
-           imageUrl: ?[String] = imageUrl,
-           thumbnailUrl: ?[String] = thumbnailUrl,
-           author: ?[EmbedAuthor] = author,
+  def copy(title:        ?[String]      = title,
+           description:  ?[String]      = description,
+           url:          ?[String]      = url,
+           timestamp:    ?[Instant]     = timestamp,
+           color:        ?[Integer]     = color,
+           footer:       ?[EmbedFooter] = footer,
+           imageUrl:     ?[String]      = imageUrl,
+           thumbnailUrl: ?[String]      = thumbnailUrl,
+           author:       ?[EmbedAuthor] = author,
            fields: Traversable[EmbedField] = fields
           ): Embed = Embed(title, description, url, timestamp, color, footer, imageUrl, thumbnailUrl, author, fields)
 }
-case class EmbedFooter(text: String, iconUrl: ?[String] = ?)
-case class EmbedAuthor(name: String, url: ?[String] = ?, iconUrl: ?[String] = ?)
+case class EmbedFooter(text: String, iconUrl: ?[String] = None)
+case class EmbedAuthor(name: String, url: ?[String] = None, iconUrl: ?[String] = None)
 case class EmbedField(name: String, value: String, inline: Boolean)
