@@ -29,6 +29,11 @@ class JoinMap[L, R] private (private val backingL: mutable.Map[L, Set[R]],
     backingL(left).filter(_ contains right).isDefined
   
   def flip(): JoinMap[R, L] = new JoinMap(backingR, backingL)
+  
+  def clone(): JoinMap[L, R] = new JoinMap(backingL.clone(), backingR.clone())
+  
+  def keyedLeft(): Map[L, Set[R]] = backingL.clone()
+  def keyedRight(): Map[R, Set[L]] = backingR.clone()
 }
 
 object JoinMap {
@@ -42,4 +47,22 @@ object JoinMap {
     } j.join(l, r)
     j
   }
+  
+  implicit def LeftKeyedFormat[A, B](implicit keyFormat: Format[A],
+                                              valuesFormat: Format[Set[B]]): Format[JoinMap[A, B]] = {
+    import play.api.libs.json.Reads._
+    import play.api.libs.json.Writes._
+    
+    Format(
+      Reads.ArrayReads[(A, Set[B])].map { case arr => JoinMap(arr.toMap) },
+      Writes.arrayWrites[(A, Set[B])].contramap[JoinMap[A, B]](_.keyedLeft())
+    )
+  }
+  
+  implicit def RightKeyedFormat[A, B](implicit keyFormat: Format[B],
+                                               valuesFormat: Format[Set[A]])): Format[JoinMap[A, B]] =
+    Format(
+      LeftKeyedFormat[A, B].map(_.flip()),
+      LeftKeyedFormat[A, B].contramap(_.flip())
+    )
 }
