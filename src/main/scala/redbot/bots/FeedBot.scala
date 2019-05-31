@@ -57,7 +57,10 @@ case class FeedBot(client: Client) extends CommandBot {
     Command("subs | subscriptions",
       "Lists subscriptions in the current channel.")(msg => {
       case "subs" | "subscriptions" =>
-        msg.reply(subs.getR(msg.channelId).map(_.flatMap(formatFeed).mkString("\n", "\n", "")).getOrEmpty)
+        msg.reply( (for {
+          url <- subs.getR(msg.channelId).getOrElse(Set.empty)
+          rf <- feeds.get(url)
+        } yield formatFeed(url, rf)).mkString("\n", "\n", ""))
     }),
     Command("catalog [PAGE] [SEARCH TERMS]",
       "Lists all feeds the bot is aware of, 10 per page. The listing is ordered by the number of subscribed channels, " +
@@ -68,12 +71,12 @@ case class FeedBot(client: Client) extends CommandBot {
             msg.reply(s"Page number must be between 1 and ${feeds.size/10 + 1}.")
           else
             msg.reply(orderByTerms(terms.trim).slice((page - 1) * 10, page * 10).
-              flatMap(rf => formatFeed(rf.url)).mkString("\n","\n",""))
+              map { case (url, rf) => formatFeed(url, rf)}.mkString("\n","\n",""))
         } getOrElse msg.reply("Invalid page number.")
 
       case gr"catalog${terms: String}(.*)" =>
         msg.reply(orderByTerms(terms.trim).take(10).
-          flatMap(rf => formatFeed(rf.url)).mkString("\n","\n",""))
+          map { case (url, rf) => formatFeed(url, rf)}.mkString("\n","\n",""))
     })
   )
 
@@ -87,11 +90,11 @@ case class FeedBot(client: Client) extends CommandBot {
   private val feeds: mutable.Map[String, ReducedFeed] = mutable.Map(DataStore.getOrElse("feed_cache", Map.empty[String, ReducedFeed]).toSeq:_*)
   private def saveFeeds(): Unit = DataStore.store("feed_cache", feeds)
 
-  private def formatFeed(url: String): Option[String] = feeds.get(url).map { feed =>
-    val hexHash = feed.url.##.toHex
+  private def formatFeed(url: String, feed: ReducedFeed): String = {
+    val channels = subs.getL(url).map(_.size).getOrElse(0)
+    val hexHash = url.##.toHex
     val title = feed.title.getOrElse("")
-    val channelCount = subs.getL(url).size
-    s"[$hexHash] **$title** - *$channelCount channels*\n    $url"
+    s"[$hexHash] **$title** - *$channels channels*\n    $url"
   }
 
   // Returns Some(Success(ReducedFeed)) if successfully subscribes, None if already subscribed, Failure if encountered error
@@ -139,13 +142,13 @@ case class FeedBot(client: Client) extends CommandBot {
     findKeyByUrl(terms) orElse
     findKeyByTitleFuzzy(terms)
 
-  private def orderByChannelCount: Seq[ReducedFeed] =
+  private def orderByChannelCount: Seq[(String, ReducedFeed)] =
     feeds.toSeq.sorted(Ordering.by[(String, ReducedFeed), Int] {
       case (key, _) => subs.getL(key).map(_.size).getOrElse(0)
-    }(Ordering.Int.reverse)).map(_._2)
-  private def orderByTerms(terms: String): Seq[ReducedFeed] =
-    orderByChannelCount.sorted(Ordering.by[ReducedFeed, Int]{ sub =>
-      InputUtils.closeness(sub.title.getOrEmpty, terms)
+    }(Ordering.Int.reverse))
+  private def orderByTerms(terms: String): Seq[(String, ReducedFeed)] =
+    orderByChannelCount.sorted(Ordering.by[(String, ReducedFeed), Int]{ sub =>
+      InputUtils.closeness(sub._2.title.getOrEmpty, terms)
     } (Ordering.Int.reverse) )
 
 
@@ -206,10 +209,9 @@ object FeedBot {
     def apply(entry: SyndEntry): ReducedEntry = new ReducedEntry(entry.getLink.?, entry.getTitle.?)
   }
 
-  private case class ReducedFeed(url: String, title: Option[String], entries: Seq[ReducedEntry])
+  private case class ReducedFeed(title: Option[String], entries: Seq[ReducedEntry])
   private object ReducedFeed {
     def apply(feed: SyndFeed): ReducedFeed = new ReducedFeed(
-      feed.getLink,
       feed.getTitle.?,
       feed.getEntries.asScala.map(ReducedEntry(_)))
   }
