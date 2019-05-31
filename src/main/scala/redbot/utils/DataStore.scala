@@ -9,17 +9,17 @@ import scala.collection.concurrent.TrieMap
 import scala.collection.mutable
 
 object DataStore {
-  val dataRoot = currentWorkingDirectory/"data"
+  private val dataRoot = currentWorkingDirectory/"data"
 
   def store[T](name: String, data: T)(implicit writer: Writes[T]): Unit = {
-    val file = dataRoot/s"$name.txt"
+    val file = dataRoot/s"$name.json"
 
     file.createIfNotExists()
       .clear()
       .write(Json.prettyPrint(Json.toJson(data)))
   }
   def get[T](name: String)(implicit reader: Reads[T]): Option[T] = {
-    val file = dataRoot/s"$name.txt"
+    val file = dataRoot/s"$name.json"
 
     if (file.exists && file.nonEmpty)
       file.inputStream
@@ -28,6 +28,7 @@ object DataStore {
         .get().asOpt
     else None
   }
+  def getOrElse[T](name: String, t: T)(implicit reads: Reads[T]): T = get(name).getOrElse(t)
 
   object Implicits {
     implicit def intMapReads[V](implicit valReads: Reads[V]): Reads[Map[Int, V]] = (json: JsValue) => JsSuccess(json.as[Map[String, V]].map {
