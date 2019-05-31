@@ -7,16 +7,16 @@ import com.rometools.rome.feed.synd.{SyndEntry, SyndFeed}
 import com.rometools.rome.io.{SyndFeedInput, XmlReader}
 import org.jsoup.Jsoup
 import org.jsoup.nodes.{Element, Node, TextNode}
-import play.api.libs.json._
 import redbot.bots.FeedBot._
 import redbot.cmd.Command
 import redbot.discord.Permission.ManageChannels
+import redbot.discord.Snowflake._
 import redbot.discord._
-import redbot.utils.{DataStore, InputUtils, Logger}
+import redbot.utils.{DataStore, InputUtils, JoinMap, Logger}
 import regex.Grinch
 
 import scala.collection.JavaConverters._
-import scala.collection.concurrent.TrieMap
+import scala.collection.mutable
 import scala.util.{Failure, Success, Try}
 
 case class FeedBot(client: Client) extends CommandBot {
@@ -26,173 +26,160 @@ case class FeedBot(client: Client) extends CommandBot {
       "Subscribes the current channel to the given URL, or to the feed matching NAME or ID in the catalog.")(msg => {
       case gr"subscribe $terms(.+)" => msg.checkPerms(ManageChannels){
 
-        while (
-          Try(replaceByTerms(terms.trim, _.replaceChannels(_ + msg.channelId))) match {
-            case Success(None) => true // Retry
-            case Success(Some(sub)) => msg.reply(s"Subscribed to ${sub.feed.getTitle}"); false // Exit loop
-            case Failure(_) =>
-              msg.reply("Unable to subscribe. Either URL was invalid, ID was not found, or NAME didn't match any existing subs close enough.")
-              false // Exit loop
-          }
-        ) {}
+        findKeyByTerms(terms) match {
+          case None =>
+            msg.reply("Unable to subscribe. Either URL was wrong, ID was not found, " +
+                                          "or NAME didn't match any existing subs well enough.")
+          case Some(key) =>
+            subscribe(key, msg.channelId) match {
+              case None => msg.reply("This channel is already subscribed to that feed.")
+              case Some(Success(f)) => msg.reply(s"Subscribed to feed `${f.title.getOrEmpty}`")
+              case Some(Failure(_)) => msg.reply("No feed found at that URL, or feed currently unavailable.")
+            }
+        }
       }
     }),
     Command("unsubscribe <URL | ID | NAME>",
       "Unsubscribes the current channel to the given URL, or to the feed matching NAME or ID in the catalog.")(msg => {
       case gr"unsubscribe $terms(.+)" => msg.checkPerms(ManageChannels) {
 
-        while (
-          Try(replaceByTerms(terms.trim, _.replaceChannels(_ - msg.channelId))) match {
-            case Success(None) => true // Retry
-            case Success(Some(sub)) => msg.reply(s"Unsubscribed from ${sub.feed.getTitle}"); false // Exit loop
-            case Failure(_) =>
-              msg.reply("Unable to unsubscribe. Either URL was invalid, ID was not found, or NAME didn't match any existing subs close enough.")
-              false // Exit loop
-          }
-        ) {}
+        findKeyByTerms(terms) match {
+          case None => msg.reply("Unable to subscribe. Either URL was wrong, ID was not found, " +
+                                          "or NAME didn't match any existing subs well enough.")
+          case Some(key) =>
+            unsubscribe(key, msg.channelId) match {
+              case None => msg.reply("This channel was not yet subscribed to that feed.")
+              case Some(f) => msg.reply(s"Unsubscribed from `${f.title.getOrEmpty}`")
+            }
+        }
       }
     }),
     Command("subs | subscriptions",
       "Lists subscriptions in the current channel.")(msg => {
       case "subs" | "subscriptions" =>
-        msg.reply(subs.values.filter(_.channels.contains(msg.channelId)).mkString("\n"))
+        msg.reply(subs.getR(msg.channelId).map(_.flatMap(formatFeed).mkString("\n", "\n", "")).getOrEmpty)
     }),
     Command("catalog [PAGE] [SEARCH TERMS]",
       "Lists all feeds the bot is aware of, 10 per page. The listing is ordered by the number of subscribed channels, " +
         "or by the relevance to the search terms, if provided.")(msg => {
       case gr"catalog ${pageStr: String}(\d+)${terms: String}(.*)" =>
         Try(pageStr.toInt) map { page =>
-          if (page < 1 || (page-1)*10 >= subs.size)
-            msg.reply(s"Page number must be between 1 and ${subs.size/10 + 1}!")
+          if (page < 1 || (page-1)*10 >= feeds.size)
+            msg.reply(s"Page number must be between 1 and ${feeds.size/10 + 1}.")
           else
-            msg.reply(orderByTerms(terms.trim).slice((page - 1) * 10, page * 10).mkString("\n"))
+            msg.reply(orderByTerms(terms.trim).slice((page - 1) * 10, page * 10).
+              flatMap(rf => formatFeed(rf.url)).mkString("\n","\n",""))
         } getOrElse msg.reply("Invalid page number.")
 
       case gr"catalog${terms: String}(.*)" =>
-        msg.reply(orderByTerms(terms.trim).take(10).map("\n" + _).mkString)
+        msg.reply(orderByTerms(terms.trim).take(10).
+          flatMap(rf => formatFeed(rf.url)).mkString("\n","\n",""))
     })
   )
 
-  import DataStore.Implicits.OptJsSuccessOps
-  import redbot.discord.Snowflake._
+  // JoinMap from URL strings to channel IDs
+  import FeedBot.{channelIdFormat, reducedFeedFormat}
+  import JoinMap.LeftKeyedFormat
+  private val subs: JoinMap[String, Channel.Id] = DataStore.getOrElse("feed_subs", JoinMap.empty[String, Channel.Id])
+  private def saveSubs(): Unit = DataStore.store("feed_subs", subs)(LeftKeyedFormat[String, Channel.Id])
 
-  private implicit val urlFormat: Format[URL] = Format(
-    Reads.StringReads.map(new URL(_)),
-    (o: URL) => Writes.StringWrites.writes(o.toString))
+  // Map from URL string to most recent copy of the feed
+  private val feeds: mutable.Map[String, ReducedFeed] = mutable.Map(DataStore.getOrElse("feed_cache", Map.empty[String, ReducedFeed]).toSeq:_*)
+  private def saveFeeds(): Unit = DataStore.store("feed_cache", feeds)
 
-  private implicit val setFormat: Format[Set[Channel.Id]] = Format(
-    Reads.set(Reads.LongReads.map(_.asId[Channel.Id])),
-    Writes.set)
-
-  private implicit val subFormat: Format[Subscription] = Format(
-    (json: JsValue) => (for {
-      url <- (json \ "url").asOpt[URL]
-      channels <- (json \ "channels").asOpt[Set[Channel.Id]]
-      feed <- Subscription.getFeed(url).toOption
-    } yield Subscription(url, channels, feed)).toJsResult(errMsg = "Unable to deserialize subscription"),
-
-    (o: Subscription) => Json.obj(
-      "url" -> o.url,
-      "channels" -> o.channels
-    ))
-
-  private implicit val subsFormat: Format[subsType] = Format(
-    Reads.ArrayReads[Subscription].map(arr => TrieMap(arr.toSeq.map(s => s.url.## -> s):_*)),
-    (o: subsType) => Writes.arrayWrites[Subscription].writes(o.values.toArray)
-  )
-
-  // Map[URL hash -> Feed]
-  private val subsIdent = "feed_subs"
-  private type subsType = TrieMap[Int, Subscription]
-
-  val subs: subsType = DataStore.get[subsType](subsIdent).getOrElse(new subsType())
-  private def saveSubs(): Unit = DataStore.store(subsIdent, subs)
-
-  private def replaceIfExists(key: Int, func: Subscription => Subscription): Unit = {
-    while (! {
-      subs.get(key).exists { sub =>
-        subs.replace(key, sub, func(sub))
-      }
-    }) {}
-    saveSubs()
+  private def formatFeed(url: String): Option[String] = feeds.get(url).map { feed =>
+    val hexHash = feed.url.##.toHex
+    val title = feed.title.getOrElse("")
+    val channelCount = subs.getL(url).size
+    s"[$hexHash] **$title** - *$channelCount channels*\n    $url"
   }
 
-  private def replaceByTerms(terms: String, func: Subscription => Subscription): Option[Subscription] =
-    findByTerms(terms) match {
-
-      case Some(sub) =>
-        // Replace subscription with new one that has new channel sub'd (atomic op in case subs changed in between)
-        if (subs.replace(sub.url.##, sub, func(sub))) {
-          saveSubs()
-          Some(sub) // Successful (don't retry)
-        } else None // Unsuccessful inserting into subs (need to retry)
-
-      case _ => throw new IllegalArgumentException // Unable to handle terms
-    }
-
-  private def findByTerms(terms: String) =
-    { // Handle as if is a URL
-      for {
-        url <- Try(new URL(terms)).toOption
-        sub <- Subscription.ofUrl(url).toOption
-      } yield subs.getOrElseUpdate(url.##, sub)
-
-    } orElse { // Handle as if is an existing ID
-      for {
-        id <- terms.toHash
-        feed <- subs.get(id)
-      } yield feed
-
-    } orElse { // Handle as if is an existing name
-
-      // Sort by string comparison certainty
-      val sorted = subs.values.map(sub => (sub, InputUtils.certainty(terms, sub.feed.getTitle))).toSeq
-        .sorted(Ordering.by[(Subscription, Int), Int](_._2).reverse)
-
-      sorted.length match {
-        case 1 if sorted.head._2 > 2 => // Ensure certainty > 2
-          Some(sorted.head._1)
-        case x if x > 1 && sorted(0)._2 - sorted(1)._2 > 3 => // Ensure highest certainty is > 3 more than second
-          Some(sorted.head._1)
-        case _ => None
+  // Returns Some(Success(ReducedFeed)) if successfully subscribes, None if already subscribed, Failure if encountered error
+  private def subscribe(url: String, channel: Channel.Id): Option[Try[ReducedFeed]] =
+    if (subs.isJoined(url, channel)) None
+    else Some(feeds.get(url) match {
+      case Some(f) =>
+        subs.join(url, channel)
+        saveSubs()
+        Success(f)
+      case None => getFeed(url).map(ReducedFeed(_)).map { f =>
+        feeds.update(url, f)
+        subs.join(url, channel)
+        saveFeeds()
+        saveSubs()
+        f
       }
+    })
 
+  // Returns Some(ReducedFeed) if successfully unsubscribes, None if wasn't subscribed
+  private def unsubscribe(url: String, channel: Channel.Id): Option[ReducedFeed] =
+    if (subs.isJoined(url, channel)) {
+      subs.unjoin(url, channel)
+      saveSubs()
+      feeds.get(url)
     }
+    else None
 
-  private def orderByChannelCount: Seq[Subscription] =
-    subs.values.toSeq
-      .sorted(Ordering.by[Subscription, Int]{ _.channels.size }(Ordering.Int.reverse))
 
-  private def orderByTerms(terms: String): Seq[Subscription] =
-    orderByChannelCount.sorted(Ordering.by[Subscription, Int]{ sub =>
-      InputUtils.certainty(sub.feed.getTitle, terms)
+  private def findKeyByHash(hash: Int): Option[String] =
+    feeds.keys.find(_.## == hash)
+  private def findKeyByUrl(url: String): Option[String] =
+    InputUtils.verifyURL(url).map(_.toString).toOption.
+      filter { f => feeds.contains(f) || getFeed(f).isSuccess }
+  private def findKeyByTitleFuzzy(title: String): Option[String] = if (feeds.isEmpty) None else {
+    val closest = feeds.toSeq.map { case (u, f) => (u, InputUtils.closeness(f.title.getOrEmpty, title)) }.
+                              maxBy(tuple => tuple._2)
+    closest match {
+      case (sub, c) if c > 5 => Some(sub)
+      case _ => None
+    }
+  }
+  private def findKeyByTerms(terms: String): Option[String] =
+    terms.fromHex.flatMap(findKeyByHash) orElse
+    findKeyByUrl(terms) orElse
+    findKeyByTitleFuzzy(terms)
+
+  private def orderByChannelCount: Seq[ReducedFeed] =
+    feeds.toSeq.sorted(Ordering.by[(String, ReducedFeed), Int] {
+      case (key, _) => subs.getL(key).map(_.size).getOrElse(0)
+    }(Ordering.Int.reverse)).map(_._2)
+  private def orderByTerms(terms: String): Seq[ReducedFeed] =
+    orderByChannelCount.sorted(Ordering.by[ReducedFeed, Int]{ sub =>
+      InputUtils.closeness(sub.title.getOrEmpty, terms)
     } (Ordering.Int.reverse) )
 
 
 
-  { // Every 2 minutes, update all the subs
+  { // Every 2 minutes, update all the feeds
     import scala.concurrent.duration._
-    val UPDATE_PERIOD = 2 minutes
+    val UPDATE_PERIOD = 2.minutes
 
     val exec = Executors.newScheduledThreadPool(8)
     exec.scheduleAtFixedRate(() => {
 
       // Time between updating subs (distributes updates across entire UPDATE_PERIOD rather than all at once)
-      val pause = (UPDATE_PERIOD/subs.size).toMillis
+      val pause = (UPDATE_PERIOD/feeds.size).toMillis
 
-      subs.foldLeft(0L){ case (wait, (key, sub)) =>
+      feeds.foldLeft(0L){ case (wait, (url, feed)) =>
         // Schedule to update this sub in $wait milliseconds
         exec.schedule((() => {
           // Get an updated feed
-          sub.fetchUpdate() match {
-            case Success((feed, entries)) =>
+          getFeed(url) match {
+            case Success(newFeed) =>
+              // Calculate new entries
+              val entries = newFeed.getEntries.asScala.filterNot { e =>
+                val reduced = ReducedEntry(e)
+                feed.entries.contains(reduced)
+              }
               // Send out new entries to all the subscribed channels
-              val embed = makeEmbed(feed, entries)
-              sub.channels.foreach(client.sendEmbed(_, embed))
+              val embed = makeEmbed(newFeed, entries)
+              for (channels <- subs.getL(url))
+                channels.foreach(client.sendEmbed(_, embed))
 
-              replaceIfExists(key, _.copy(feed = feed))
+              feeds.update(url, ReducedFeed(newFeed))
+              saveFeeds()
 
-            case Failure(e) => Logger.log(e)("Sub" -> sub) // Something went wrong updating the thread
+            case Failure(e) => Logger.log(e)("Sub" -> url) // Something went wrong updating the thread
           }
         }):Runnable, wait, MILLISECONDS)
 
@@ -203,47 +190,48 @@ case class FeedBot(client: Client) extends CommandBot {
 }
 
 object FeedBot {
+  import redbot.utils.OptParams._
   private val io = new SyndFeedInput()
 
-  case class Subscription(url: URL, channels: Set[Channel.Id], feed: SyndFeed) {
-    import Subscription._
-    import redbot.utils.OptParams._
+  private def getFeed(url: String): Try[SyndFeed] =
+    Try(io.build(new XmlReader(new URL(url))))
 
-    def fetchUpdate(): Try[(SyndFeed, Seq[SyndEntry])] =
-      getFeed(url).map { newFeed =>
-        val oldEntries = feed.getEntries.asScala
-        val newEntries = newFeed.getEntries.asScala
 
-        def entryEquals(e1: SyndEntry, e2: SyndEntry): Boolean = {
-          // If links are equal (null-safe)
-          (e1.getLink.? zip e2.getLink.?).map(t => t._1==t._2)
-        } orElse {
-          // Else if titles are equal (null-safe)
-          (e1.getTitle.? zip e2.getTitle.?).map(t => t._1==t._2)
-        } getOrElse false // Else they're not equal
-
-        // Filter entries that existed in the old entry list
-        val updates = newEntries.filter(e => oldEntries.exists(entryEquals(_, e)))
-        (newFeed, updates)
-      }
-
-    override lazy val toString: String = s"[${url.##.toHex}] **${feed.getTitle}** - *${channels.size} channels*\n    $url"
-
-    def replaceChannels(func: Set[Channel.Id] => Set[Channel.Id]): Subscription =
-      Subscription(url, func(channels), feed)
-
-    def copy(url: URL = this.url, channels: Set[Channel.Id] = this.channels, feed: SyndFeed = this.feed) =
-      Subscription(url, channels, feed)
+  private case class ReducedEntry(link: Option[String], title: Option[String]) {
+    def ==(o: ReducedEntry): Boolean =
+      (for { l1 <- link; l2 <- o.link } yield l1 == l2) orElse
+      (for { t1 <- title; t2 <- o.title } yield t1 == t2) getOrElse false
   }
-  object Subscription {
-    def ofUrl(url: URL): Try[Subscription] =
-      getFeed(url).map(new Subscription(url, Set.empty, _))
-
-    def getFeed(url: URL): Try[SyndFeed] =
-      Try(io.build(new XmlReader(url))).recoverWith {
-        case e => Logger.log(e)("URL" -> url); Failure(e) // Log errors getting URL
-      }
+  private object ReducedEntry {
+    def apply(entry: SyndEntry): ReducedEntry = new ReducedEntry(entry.getLink.?, entry.getTitle.?)
   }
+
+  private case class ReducedFeed(url: String, title: Option[String], entries: Seq[ReducedEntry])
+  private object ReducedFeed {
+    def apply(feed: SyndFeed): ReducedFeed = new ReducedFeed(
+      feed.getLink,
+      feed.getTitle.?,
+      feed.getEntries.asScala.map(ReducedEntry(_)))
+  }
+
+  import play.api.libs.functional.syntax._
+  import play.api.libs.json._
+
+  private implicit val reducedEntryFormat: Format[ReducedEntry] = Json.format
+  private implicit val reducedFeedFormat: Format[ReducedFeed] = Json.format
+
+  private implicit val urlFormat: Format[URL] = Format(
+    Reads.StringReads.flatMap(s => Reads(_ => InputUtils.verifyURL(s) match {
+      case Success(u) => JsSuccess(u)
+      case Failure(_) => JsError("Unable to validate URL")
+    })),
+    Writes.StringWrites.contramap(_.toString)
+  )
+
+  private implicit val channelIdFormat: Format[Channel.Id] = Format(
+    Reads.LongReads.map(_.asId[Channel.Id]),
+    Writes.LongWrites
+  )
 
 
   def makeEmbed(feed: SyndFeed, entries: Seq[SyndEntry]): Embed = {
@@ -256,7 +244,7 @@ object FeedBot {
         }
 
       case n if n.childNodes.size > 0 =>
-        n.childNodes.asScala.map(findImage).reverse.reduceLeft { _ orElse _ }
+        n.childNodes.asScala.map(findImage).reduceLeft { _ orElse _ }
 
       case _ => None
     }
@@ -321,7 +309,7 @@ object FeedBot {
       val e = entries.head
       val htmlOpt = e.getDescription.getValue.checkEmpty.map(Jsoup.parseBodyFragment) // Get desc html-parsed
       val imgOpt = htmlOpt.flatMap(findImage) // Find images in desc if they exist
-      val desc = htmlOpt.map(discordify).getOrElse("more") // Make description discord-friendly, default to "more"
+      val desc = htmlOpt.map(discordify).flatMap(_.checkEmpty).getOrElse("more") // Make description discord-friendly, default to "more"
 
       base copy(
         title = e.getTitle,
@@ -334,13 +322,27 @@ object FeedBot {
   }
 
 
+
+  implicit class Str2Option(val str: String) extends AnyVal {
+    def checkEmpty: Option[String] = if (str.isEmpty) None else Some(str)
+  }
+
+  implicit class Option2Str(val opt: Option[String]) extends AnyVal {
+    def getOrEmpty: String = opt.getOrElse("")
+  }
+
+
+
   implicit class Hash2Hex(val int: Int) extends AnyVal {
     def toHex: String = java.lang.Integer.toUnsignedString(int, 16)
   }
   implicit class Hex2Hash(val str: String) extends AnyVal {
-    def toHash: Option[Int] = Try(java.lang.Integer.parseUnsignedInt(str, 16)).toOption
+    def fromHex: Option[Int] = Try(java.lang.Integer.parseUnsignedInt(str, 16)).toOption
   }
-  implicit class Str2Option(val str: String) extends AnyVal {
-    def checkEmpty: Option[String] = if (str.isEmpty) None else Some(str)
+
+
+  implicit class Opt2JsRes[T](val o: Option[T]) extends AnyVal {
+    def toJsResult(errMsg: String): JsResult[T] =
+      o.map(JsSuccess(_)).getOrElse(JsError(errMsg))
   }
 }
