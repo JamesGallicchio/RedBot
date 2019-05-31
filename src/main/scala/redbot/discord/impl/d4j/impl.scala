@@ -1,7 +1,9 @@
 package redbot.discord.impl.d4j
 
 import java.awt.Color
+import java.util.function.Consumer
 
+import discord4j.core.`object`.entity.{MessageChannel, TextChannel}
 import discord4j.core.`object`.presence.{Activity, Presence}
 import discord4j.core.`object`.util.{Permission, Snowflake}
 import discord4j.core.`object`.{entity => d4j}
@@ -35,14 +37,13 @@ final class Client(private val tok: String) extends red.Client(tok) {
       .toFuture
 
   override def sendMessage(channel: red.Channel.Id, content: String): Unit =
-    client.getTextChannelById(Snowflake.of(channel)).flatMap(
-      _.createMessage(content)
+    client.getChannelById(Snowflake.of(channel)).flatMap(
+      _.asInstanceOf[TextChannel].createMessage(content)
     ).subscribe()
 
   override def sendEmbed(channel: Id, embed: Embed): Unit =
-    client.getTextChannelById(Snowflake.of(channel))
-      .flatMap(_.createMessage(new MessageCreateSpec().setEmbed {
-        val spec = new EmbedCreateSpec()
+    client.getChannelById(Snowflake.of(channel))
+      .flatMap(_.asInstanceOf[TextChannel].createEmbed(spec => {
         embed.title.map(spec.setTitle)
         embed.description.map(spec.setDescription)
         embed.url.map(spec.setUrl)
@@ -53,7 +54,6 @@ final class Client(private val tok: String) extends red.Client(tok) {
         embed.thumbnailUrl.map(spec.setThumbnail)
         embed.author.map(a => spec.setAuthor(a.name, a.url.orNull, a.iconUrl.orNull))
         embed.fields.map(f => spec.addField(f.name, f.value, f.inline))
-        spec
       })).subscribe()
 
   override def addMessageListener(handler: red.Message => Unit): Unit =
@@ -68,9 +68,9 @@ final class Client(private val tok: String) extends red.Client(tok) {
     val d4jPermList = ps.map {
       case red.Permission.ManageChannels => Permission.MANAGE_CHANNELS
     }.asJava
-    client.getGuildChannelById(Snowflake.of(c)).toScala.flatMap(_.getEffectivePermissions(Snowflake.of(u)).toScala)
-      .map(_.containsAll(d4jPermList))
-      .toFuture
+    client.getChannelById(Snowflake.of(c)).toScala.
+      flatMap(_.asInstanceOf[TextChannel].getEffectivePermissions(Snowflake.of(u)).toScala).
+      map(_.containsAll(d4jPermList)).toFuture
   }
 }
 
@@ -81,7 +81,7 @@ final class Message(private val msg: d4j.Message) extends AnyVal with red.Messag
     msg.getContent.toScala
 
   override def author: Option[red.User.Id] =
-    msg.getAuthorId.toScala.map(_.as[red.User.Id])
+    msg.getAuthor.toScala.map(_.getId.as[red.User.Id])
 
   override def channel: red.Channel.Id =
     msg.getChannelId.as[red.Channel.Id]
