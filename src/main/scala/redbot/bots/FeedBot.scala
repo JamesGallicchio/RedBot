@@ -277,14 +277,16 @@ object FeedBot {
 
     // Links text to link using [text](link) and prevents entire result from exceeding limit
     def limitLinked(text: String, link: String): String = {
+      val textTrim = text.trim
+      val linkTrim = link.trim
       val limit = 1024
 
-      if (text.isEmpty)
-        s"[more]($link)"
-      else if (text.length + link.length + 4 > limit)
-        s"${text.take(limit - link.length - 12)}... [more]($link)"
+      if (textTrim.isEmpty)
+        s"[more]($linkTrim)"
+      else if (textTrim.length + linkTrim.length + 4 > limit)
+        s"${textTrim.take(limit - linkTrim.length - 12)}... [more]($linkTrim)"
       else
-        s"[$text]($link)"
+        s"[$textTrim]($linkTrim)"
     }
 
     import redbot.utils.OptParams._
