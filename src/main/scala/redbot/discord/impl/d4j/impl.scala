@@ -38,7 +38,7 @@ final class Client(private val tok: String) extends red.Client(tok) {
 
   override def sendMessage(channel: red.Channel.Id, content: String): Unit =
     client.getChannelById(Snowflake.of(channel)).flatMap(
-      _.asInstanceOf[TextChannel].createMessage(content)
+      _.asInstanceOf[MessageChannel].createMessage(content)
     ).subscribe()
 
   override def sendEmbed(channel: Id, embed: Embed): Unit =
