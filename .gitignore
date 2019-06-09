@@ -1,15 +1,7 @@
-token.txt
-
-/logs/
+tokens.txt
 
 /.idea/
 
-/RedBot.iml
+target/
 
-/target/
-
-*.json
-
-/temp/
-
-/test/
+ssh*

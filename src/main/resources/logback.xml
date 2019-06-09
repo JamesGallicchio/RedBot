@@ -4,10 +4,10 @@
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
             <level>DEBUG</level>
         </filter>
-        <filter class="com.thatredhead.redbot.logging.LogHandler"/>
+        <!--<filter class="redbot.Logger"/>-->
         <file>logs/latest.log</file>
         <encoder>
-            <pattern>%d{MM-dd HH:mm:ss} [%t] %-5level %msg%n</pattern>
+            <pattern>%d{MM-dd HH:mm:ss} [%t{10}] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
 
@@ -16,7 +16,7 @@
             <level>INFO</level>
         </filter>
         <encoder>
-            <pattern>%d{HH:mm:ss.SS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <pattern>%d{HH:mm:ss.SS} %-5level %msg%n</pattern>
         </encoder>
     </appender>
 
@@ -25,6 +25,5 @@
         <appender-ref ref="STDOUT"/>
     </root>
 
-    <logger name="org.apache" level="NONE"/>
-    <logger name="httpclient" level="NONE"/>
+    <logger name="..." level="NONE"/>
 </configuration>
