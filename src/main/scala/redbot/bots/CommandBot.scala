@@ -42,8 +42,8 @@ abstract class CommandBot extends DiscordBot {
       case Success(Some(cmsg)) => handle(cmsg)
       case Success(None) => // Ignore that message
 
-      case Failure(e) =>
-        Logger.log(e)("Channel ID" -> msg.channel, "Message ID" -> msg.id)
+      case Failure(e) => // Shouldn't happen
+        Logger.error(e)("Channel ID" -> msg.channel, "Message ID" -> msg.id)
     }
   }
 }

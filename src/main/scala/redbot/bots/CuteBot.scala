@@ -140,7 +140,7 @@ object CuteBot {
         new URL(url).openStream().asString().filter(!Character.isWhitespace(_)) match {
           case gr""".*"link":"${link: String}(.+)".*""" => link
           case other =>
-            Logger.log("Weird response from Google")("Response" -> other)
+            Logger.error("Weird response from Google")("Response" -> other)
             throw CuteException("This search turned up no results!")
         }
       }
@@ -162,7 +162,7 @@ object CuteBot {
 
       // Otherwise log the error
       case e =>
-        Logger.log(e)("URL" -> noKeyUrl)
+        Logger.error(e)("URL" -> noKeyUrl)
         CuteException("Unhandled exception occurred. Check RedBot support server for more information.")
     })
   }

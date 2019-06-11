@@ -5,12 +5,16 @@ import org.slf4j.LoggerFactory
 object Logger {
   private val logger = LoggerFactory.getLogger(this.getClass)
 
-  def log(message: String)(context: (String, Any)*): Unit =
+  def info(message: String): Unit = logger.info(message)
+
+  def debug(message: String): Unit = logger.debug(message)
+
+  def error(message: String)(context: (String, Any)*): Unit =
     logger.error(
       message + "\n" + format(context) + "\n\n" + caller()
     )
 
-  def log(exception: Throwable)(context: (String, Any)*): Unit =
+  def error(exception: Throwable)(context: (String, Any)*): Unit =
     logger.error(
       exception.getMessage + "\n" + format(context) + "\n\n" + caller(), exception
     )

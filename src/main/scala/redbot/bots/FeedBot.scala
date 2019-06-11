@@ -182,7 +182,7 @@ case class FeedBot(client: Client) extends CommandBot {
               feeds.update(url, ReducedFeed(newFeed))
               saveFeeds()
 
-            case Failure(e) => Logger.log(e)("Sub" -> url) // Something went wrong updating the thread
+            case Failure(e) => Logger.error(e)("Sub" -> url) // Something went wrong updating the thread
           }
         }):Runnable, wait, MILLISECONDS)
 
