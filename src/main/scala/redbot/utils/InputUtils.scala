@@ -6,8 +6,8 @@ import java.net.URL
 object InputUtils {
   /**
     * Levenshtein distance between two strings
-    * @param s1
-    * @param s2
+    * @param s1 first string to compare
+    * @param s2 second string to compare
     * @return the Levenshtein distance
     */
   def distance(s1: String, s2: String, ignoreCaps: Boolean = false): Int =
@@ -18,13 +18,6 @@ object InputUtils {
 
   def closeness(s1: String, s2: String, ignoreCaps: Boolean = false): Int =
     Math.max(s1.length, s2.length) - distance(s1, s2, ignoreCaps)
-
-  @deprecated
-  def certainty(s1: String, s2: String): Double =
-    if (s1.length > s2.length)
-      (s1.length - levDistance(s1, s2)).toDouble/s1.length()
-    else
-      (s2.length - levDistance(s2, s1)).toDouble/s2.length()
 
   private def levDistance(s1: String, s2: String, ignoreCaps: Boolean = false): Int = {
     var firstRow = (0 to s2.length).toArray

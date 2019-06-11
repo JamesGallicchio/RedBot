@@ -9,7 +9,7 @@ package redbot.utils
 trait StateMachine[A] extends PartialFunction[A, Unit] {
 
   case class Transition(name: String, f: PartialFunction[A, Transition]) extends PartialFunction[A, Transition] {
-    def apply(a: A) = f(a)
+    def apply(a: A): Transition = f(a)
     def isDefinedAt(a: A): Boolean = f.isDefinedAt(a)
     def orElse(t: Transition) = Transition(name + "+" + t.name, f orElse t)
 
@@ -39,10 +39,11 @@ trait StateMachine[A] extends PartialFunction[A, Unit] {
     * @return the current transition
     */
   def current: Transition = curr
+
   /**
     * Imperative change of state. Discouraged but unavoidable sometimes.
     */
-  @deprecated
+  @deprecated("Discouraged for use.", "forever")
   def switchTo(t: Transition): Unit = curr = t
 
   /**
