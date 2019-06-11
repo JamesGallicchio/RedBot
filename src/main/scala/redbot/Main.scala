@@ -10,7 +10,7 @@ object Main {
   def main(args: Array[String]): Unit = {
 
     val tokenRegex = "(.+?)\\s+(.+)".r
-    val tokens = Resource.getAsStream("tokens.txt").lines
+    val tokens = (File.currentWorkingDirectory / "tokens.txt").lines
       .flatMap(tokenRegex.findFirstMatchIn).map(m => m.group(1) -> m.group(2)).toMap
 
     val bots = ParSeq(
