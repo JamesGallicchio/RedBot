@@ -4,6 +4,9 @@ version := "2.0.0"
 
 scalaVersion := "2.12.8"
 
+run / fork := true
+run / connectInput := true
+
 libraryDependencies ++= Seq(
   "org.scala-lang.modules" % "scala-java8-compat_2.12" % "0.9.0",
   "com.discord4j.discord4j" % "discord4j-core" % "3.0.6",
