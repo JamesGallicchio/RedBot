@@ -33,7 +33,7 @@ final class Client(private val tok: String) extends red.Client(tok) {
     .as[red.User.Id]
 
   override def getUser(id: red.User.Id): Future[red.User] =
-    client.getUserById(Snowflake.of(id)).toScala.map(new User(_))
+    client.getUserById(Snowflake.of(id)).asScala.map(new User(_))
       .toFuture
 
   override def sendMessage(channel: red.Channel.Id, content: String): Unit =
@@ -68,8 +68,8 @@ final class Client(private val tok: String) extends red.Client(tok) {
     val d4jPermList = ps.map {
       case red.Permission.ManageChannels => Permission.MANAGE_CHANNELS
     }.asJava
-    client.getChannelById(Snowflake.of(c)).toScala.
-      flatMap(_.asInstanceOf[TextChannel].getEffectivePermissions(Snowflake.of(u)).toScala).
+    client.getChannelById(Snowflake.of(c)).asScala.
+      flatMap(_.asInstanceOf[TextChannel].getEffectivePermissions(Snowflake.of(u)).asScala).
       map(_.containsAll(d4jPermList)).toFuture
   }
 }
