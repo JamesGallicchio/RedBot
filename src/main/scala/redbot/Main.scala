@@ -6,7 +6,7 @@ import redbot.discord.impl.d4j.Client
 import redbot.utils.Logger
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{Future, blocking}
 
 object Main {
   def main(args: Array[String]): Unit = {
@@ -28,8 +28,8 @@ object Main {
 
     bots.foreach { bot =>
       Future {
-        Logger.debug("Logging in bot " + bot.getClass.getSimpleName)
-        bot.client.login()
+        Logger.info("Logging in bot " + bot.getClass.getSimpleName)
+        blocking { bot.client.login() }
       }
     }
 
