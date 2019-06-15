@@ -91,7 +91,7 @@ case class Embed(title:        ?[String]       = None,
                  imageUrl:     ?[String]       = None,
                  thumbnailUrl: ?[String]       = None,
                  author:       ?[EmbedAuthor]  = None,
-                 fields: Traversable[EmbedField] = Traversable.empty
+                 fields: Iterable[EmbedField] = Iterable.empty
                 ) {
   def copy(title:        ?[String]      = title,
            description:  ?[String]      = description,
@@ -102,7 +102,7 @@ case class Embed(title:        ?[String]       = None,
            imageUrl:     ?[String]      = imageUrl,
            thumbnailUrl: ?[String]      = thumbnailUrl,
            author:       ?[EmbedAuthor] = author,
-           fields: Traversable[EmbedField] = fields
+           fields: Iterable[EmbedField] = fields
           ): Embed = Embed(title, description, url, timestamp, color, footer, imageUrl, thumbnailUrl, author, fields)
 }
 case class EmbedFooter(text: String, iconUrl: ?[String] = None)

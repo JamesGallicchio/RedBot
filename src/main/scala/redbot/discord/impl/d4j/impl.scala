@@ -1,14 +1,12 @@
 package redbot.discord.impl.d4j
 
 import java.awt.Color
-import java.util.function.Consumer
 
 import discord4j.core.`object`.entity.{MessageChannel, TextChannel}
 import discord4j.core.`object`.presence.{Activity, Presence}
 import discord4j.core.`object`.util.{Permission, Snowflake}
 import discord4j.core.`object`.{entity => d4j}
 import discord4j.core.event.domain.message.MessageCreateEvent
-import discord4j.core.spec.{EmbedCreateSpec, MessageCreateSpec}
 import discord4j.core.{DiscordClient, DiscordClientBuilder}
 import redbot.discord.Channel.Id
 import redbot.discord.Embed
@@ -16,7 +14,7 @@ import redbot.discord.impl.d4j.JavaConversions._
 import redbot.discord.impl.d4j.SnowflakeConversions._
 import redbot.{discord => red}
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.Future
 
 final class Client(private val tok: String) extends red.Client(tok) {
