@@ -15,7 +15,8 @@ import redbot.discord._
 import redbot.utils.{DataStore, InputUtils, JoinMap, Logger}
 import regex.Grinch
 
-import scala.jdk.CollectionConverters._
+//import scala.jdk.CollectionConverters._
+import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.util.{Failure, Success, Try}
 

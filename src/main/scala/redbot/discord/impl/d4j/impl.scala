@@ -14,7 +14,8 @@ import redbot.discord.impl.d4j.JavaConversions._
 import redbot.discord.impl.d4j.SnowflakeConversions._
 import redbot.{discord => red}
 
-import scala.jdk.CollectionConverters._
+//import scala.jdk.CollectionConverters._
+import scala.collection.JavaConverters._
 import scala.concurrent.Future
 
 final class Client(private val tok: String) extends red.Client(tok) {
