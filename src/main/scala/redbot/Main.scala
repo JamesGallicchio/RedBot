@@ -2,7 +2,7 @@ package redbot
 
 import better.files._
 import redbot.bots.{CuteBot, FeedBot, RedBot}
-import redbot.discord.impl.d4j.Client
+import redbot.discord.impl.d4j.D4JClient
 import redbot.utils.Logger
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -23,7 +23,7 @@ object Main {
 
     val bots = botTokens.flatMap { case (constr, name) =>
       tokens.get(name).orElse(throw new RuntimeException(s"Missing token for $name."))
-        .map { t => constr(new Client(t)) }
+        .map { t => constr(new D4JClient(t)) }
     }
 
     bots.foreach { bot =>

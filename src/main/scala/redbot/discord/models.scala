@@ -80,6 +80,10 @@ object Guild {
 sealed trait Permission
 object Permission {
   case object ManageChannels extends Permission
+
+  val DM_PERMISSION_SET: Set[Permission] = Set(
+    ManageChannels
+  )
 }
 
 case class Embed(title:        ?[String]       = None,
