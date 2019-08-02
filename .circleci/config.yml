@@ -22,7 +22,10 @@ jobs:
             # fallback to using the latest cache if no exact match is found
             - v1-dependencies-
 
-      - run: cat /dev/null | sbt test:compile
+      - run: sbt compile
+      
+      - store_artifacts:
+          path: target/scala_2.12
 
       - save_cache:
           paths:
