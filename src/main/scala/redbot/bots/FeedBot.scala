@@ -95,7 +95,7 @@ case class FeedBot(client: Client) extends CommandBot {
     val channels = subs.getL(url).map(_.size).getOrElse(0)
     val hexHash = url.##.toHex
     val title = feed.title.getOrElse("")
-    s"[$hexHash] **$title** - *$channels channels*\n    $url"
+    s"[$hexHash] **$title** - *$channels channels*\n    <$url>"
   }
 
   // Returns Some(Success(ReducedFeed)) if successfully subscribes, None if already subscribed, Failure if encountered error
