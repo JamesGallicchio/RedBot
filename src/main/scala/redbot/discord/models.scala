@@ -23,6 +23,14 @@ abstract class Client(val token: String) {
 
   def getUser(id: User.Id): Future[User]
 
+  def getChannel(id: Channel.Id): Future[Channel]
+
+  def getPM(id: User.Id): Future[Channel.Id]
+
+  def getGuilds(): Stream[Guild.Id]
+
+  def getMembers(id: Guild.Id): Stream[User.Id]
+
   def setPresence(presence: String): Unit
 
   def sendMessage(channel: Channel.Id, content: String): Unit
@@ -50,6 +58,7 @@ object Message {
 trait User extends Any {
   def id: User.Id
   def username: String
+  def discrim: String
   def isBot: Boolean
 }
 object User {
@@ -60,18 +69,25 @@ object User {
   def mention(u: User.Id): String = s"<@$u>"
 }
 
+trait Channel extends Any {
+  def id: Channel.Id
+  def isPM: Boolean
+}
 object Channel {
   sealed trait ChannelTag
   type Id = Snowflake with ChannelTag
 
+  def mention(c: Channel): String = mention(c.id)
   def mention(c: Channel.Id): String = s"<#$c>"
 }
+
 object Role {
   sealed trait RoleTag
   type Id = Snowflake with RoleTag
 
   def mention(r: Role.Id): String = s"<&$r>"
 }
+
 object Guild {
   sealed trait GuildTag
   type Id = Snowflake with GuildTag

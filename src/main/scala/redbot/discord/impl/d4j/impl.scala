@@ -34,6 +34,23 @@ final class D4JClient(private val tok: String) extends red.Client(tok) {
     client.getUserById(Snowflake.of(id)).asScala.map(new User(_))
       .toFuture
 
+  override def getPM(id: red.User.Id): Future[red.Channel.Id] =
+    client.getUserById(Snowflake.of(id)).asScala.
+      flatMap(_.getPrivateChannel.asScala).
+      map(_.getId.as[red.Channel.Id]).toFuture
+
+  override def getChannel(id: red.Channel.Id): Future[red.Channel] =
+    client.getChannelById(Snowflake.of(id)).asScala.map(new Channel(_))
+      .toFuture
+
+  override def getGuilds(): Stream[red.Guild.Id] =
+    client.getGuilds().asScala.map(_.getId.as[red.Guild.Id]).toStream()
+
+  override def getMembers(id: red.Guild.Id): Stream[red.User.Id] =
+    client.getGuildById(Snowflake.of(id)).asScala.
+      flatMapMany(_.getMembers.asScala).
+      map(_.getId.as[red.User.Id]).toStream()
+
   override def sendMessage(channel: red.Channel.Id, content: String): Unit =
     client.getChannelById(Snowflake.of(channel)).flatMap(
       _.asInstanceOf[MessageChannel].createMessage(content)
@@ -98,4 +115,10 @@ final class User(private val u: d4j.User) extends AnyVal with red.User {
   override def id: red.User.Id = u.getId.as[red.User.Id]
   override def isBot: Boolean = u.isBot
   override def username: String = u.getUsername
+  override def discrim: String = u.getDiscriminator
+}
+
+final class Channel(private val c: d4j.Channel) extends AnyVal with red.Channel {
+  override def id: red.Channel.Id = c.getId.as[red.Channel.Id]
+  override def isPM: Boolean = c.isInstanceOf[PrivateChannel]
 }
