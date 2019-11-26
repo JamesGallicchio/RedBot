@@ -5,6 +5,9 @@ import java.util.Optional
 import discord4j.core.`object`.util.Snowflake
 import reactor.core.publisher
 import reactor.core.scala.publisher.{PimpMyPublisher, SFlux, SMono}
+import redbot.utils.Logger
+
+import scala.concurrent.{Future, Promise}
 
 object JavaConversions {
   implicit class Optj2s[T >: Null](val op: Optional[T]) extends AnyVal {
@@ -18,6 +21,21 @@ object JavaConversions {
   }
   implicit class MonoJ2S[T](val mono: publisher.Mono[T]) extends AnyVal {
     def asScala: SMono[T] = PimpMyPublisher.jMono2SMono(mono)
+  }
+
+  implicit class MonoS2Future[T](val mono: SMono[T]) extends AnyVal {
+    def asFuture: Future[T] = {
+      Logger.debug("Building future from mono")
+      val p = Promise[T]
+      mono.subscribe({ x =>
+        Logger.debug(s"Completing promise with value $x")
+        p success x
+      }, { e =>
+        Logger.debug(s"Completing promise with error $e")
+        p failure e
+      })
+      p.future
+    }
   }
 }
 

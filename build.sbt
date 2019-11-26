@@ -1,6 +1,6 @@
 name := "RedBot"
 
-version := "2.0.1"
+version := "2.1.1"
 
 scalaVersion := "2.12.8"
 
@@ -10,7 +10,7 @@ run / connectInput := true
 libraryDependencies ++= Seq(
   "org.scala-lang.modules" %% "scala-java8-compat" % "0.9.0",
   //"org.scala-lang.modules" %% "scala-parallel-collections" % "0.2.0",
-  "com.discord4j.discord4j" % "discord4j-core" % "3.0.7",
+  "com.discord4j.discord4j" % "discord4j-core" % "3.0.11",
   "io.projectreactor" %% "reactor-scala-extensions" % "0.4.0",
   "ch.qos.logback" % "logback-classic" % "1.2.3",
   "io.github.soc" %% "regextractor" % "0.2",
@@ -28,6 +28,7 @@ resolvers ++= Seq(
 
 assemblyMergeStrategy in assembly := {
   case x if x.endsWith("io.netty.versions.properties") | x.endsWith("rome.properties") => MergeStrategy.filterDistinctLines
+  case x if x.endsWith("module-info.class") => MergeStrategy.rename
   case x =>
     val oldStrategy = (assemblyMergeStrategy in assembly).value
     oldStrategy(x)

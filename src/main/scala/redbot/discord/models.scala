@@ -46,6 +46,8 @@ trait Message extends Any {
   def content: Option[String]
   def author: Option[User.Id]
   def channel: Channel.Id
+
+  override def toString: String = s"Message(id=$id, content=$content, author=$author, channel=$channel)"
 }
 object Message {
   sealed trait MessageTag
@@ -60,6 +62,10 @@ trait User extends Any {
   def username: String
   def discrim: String
   def isBot: Boolean
+
+  def fullUsername: String = s"$username#$discrim"
+
+  override def toString: String = s"User(id=$id, username=$username#$discrim, isBot=$isBot)"
 }
 object User {
   sealed trait UserTag

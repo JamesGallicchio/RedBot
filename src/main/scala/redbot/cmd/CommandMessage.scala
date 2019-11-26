@@ -3,7 +3,6 @@ package redbot.cmd
 import redbot.discord._
 
 import scala.concurrent.Future
-
 import scala.concurrent.ExecutionContext.Implicits.global
 
 case class CommandMessage private(client: Client, msg: Message, user: User, content: String) {

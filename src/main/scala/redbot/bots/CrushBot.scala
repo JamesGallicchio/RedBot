@@ -22,31 +22,32 @@ case class CrushBot(client: Client) extends CommandBot {
   override def commands: Seq[Command[_]] = Vector(
     Command("crush <username#0000>",
       "Marks the specified user as one of your crushes") ( msg => {
-        case gr"crush $user(.+)#$discrim(\d{4})" =>
+        case gr"crush $user(.+)+" =>
           client.getChannel(msg.channelId).onComplete {
+            case Failure(e) => Logger.error(e)("User" -> msg.user, "Channel" -> msg.channelId)
             case Success(c) if !c.isPM =>
+              msg.reply("This command can only be used in PMs.")
+            case _ =>
               Future.sequence(
                 (for {
-                  g <- client.getGuilds
-                  ms = client.getMembers(g)
-                  if ms contains msg.user.id
-                  uid <- ms
+                  g <- client.getGuilds()
+                  uid <- client.getMembers(g)
                 } yield client.getUser(uid)).
                 map(fu => fu.map(Success(_)).recover{
                   case e => Failure(e)
                 })
               ).map(_
                 .collect { case Success(u) => (u,
-                  InputUtils.distance(u.username, user) +
-                  InputUtils.distance(u.discrim, discrim))
-                }
+                  InputUtils.distance(u.fullUsername, user, ignoreCaps = true))
+                }.filter(_._2 < 7)
               ).foreach { found =>
                 if (found.isEmpty)
-                  msg.reply(s"User not found. Check that the username and discriminant are correct.")
+                  msg.reply(s"User not found. I might not be in a server with them!")
                 else {
                   val closest = found.minBy(_._2)
                   if (closest._2 != 0) {
-                    msg.reply(s"User not found. Closest match: ${closest._1.username}#${closest._1.discrim}")
+                    msg.reply(s"User not found. Closest match: `${closest._1.username}#${closest._1.discrim}`." +
+                      "Rerun the command with the full username if that's who you want.")
                   } else {
                     val u = closest._1
     
@@ -55,7 +56,7 @@ case class CrushBot(client: Client) extends CommandBot {
     
                     if (crushes.getOrElseUpdate(u.id, Set.empty) contains msg.user.id) {
                       client.getPM(u.id).foreach { c =>
-                        client.sendMessage(c, s"You matched with ${msg.user.toString}!")
+                        client.sendMessage(c, s"You matched with ${msg.user.fullUsername}!")
                       }
                       msg.reply("It's a match! I've sent a message their way.")
                     } else {

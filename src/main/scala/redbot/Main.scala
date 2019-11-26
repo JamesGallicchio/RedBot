@@ -1,7 +1,7 @@
 package redbot
 
 import better.files._
-import redbot.bots.{CuteBot, FeedBot, RedBot}
+import redbot.bots.{CuteBot, FeedBot, RedBot, CrushBot}
 import redbot.discord.impl.d4j.D4JClient
 import redbot.utils.Logger
 
@@ -16,9 +16,10 @@ object Main {
       .flatMap(tokenRegex.findFirstMatchIn).map(m => m.group(1) -> m.group(2)).toMap
 
     val botTokens = Seq(
-      {RedBot.apply _} -> "test",
-      {FeedBot.apply _} -> "feed",
-      {CuteBot.apply _} -> "cute"
+      //{RedBot.apply _} -> "test",
+      //{FeedBot.apply _} -> "feed",
+      //{CuteBot.apply _} -> "cute",
+      {CrushBot.apply _} -> "crush"
     )
 
     val bots = botTokens.flatMap { case (constr, name) =>
@@ -34,9 +35,11 @@ object Main {
     }
 
     // Wait for Ctrl+D (EOF) in command line
-    while (System.in.read() != -1) {}
-    Logger.info("Exiting JVM now")
+    Scanner.stdin.foreach {
+      case x if x.exists(_ == EOF) =>
+        Logger.info("Exiting JVM now")
 
-    System.exit(0)
+        System.exit(0)
+    }
   }
 }

@@ -13,6 +13,7 @@ import redbot.discord.Channel.Id
 import redbot.discord.Embed
 import redbot.discord.impl.d4j.JavaConversions._
 import redbot.discord.impl.d4j.SnowflakeConversions._
+import redbot.utils.Logger
 import redbot.{discord => red}
 
 import scala.concurrent.Future
@@ -31,8 +32,8 @@ final class D4JClient(private val tok: String) extends red.Client(tok) {
     .as[red.User.Id]
 
   override def getUser(id: red.User.Id): Future[red.User] =
-    client.getUserById(Snowflake.of(id)).asScala.map(new User(_))
-      .toFuture
+    client.getUserById(Snowflake.of(id)).asScala.map(new User(_)).
+      asFuture
 
   override def getPM(id: red.User.Id): Future[red.Channel.Id] =
     client.getUserById(Snowflake.of(id)).asScala.
@@ -41,7 +42,7 @@ final class D4JClient(private val tok: String) extends red.Client(tok) {
 
   override def getChannel(id: red.Channel.Id): Future[red.Channel] =
     client.getChannelById(Snowflake.of(id)).asScala.map(new Channel(_))
-      .toFuture
+      .asFuture
 
   override def getGuilds(): Stream[red.Guild.Id] =
     client.getGuilds().asScala.map(_.getId.as[red.Guild.Id]).toStream()
@@ -58,7 +59,7 @@ final class D4JClient(private val tok: String) extends red.Client(tok) {
 
   override def sendEmbed(channel: Id, embed: Embed): Unit =
     client.getChannelById(Snowflake.of(channel))
-      .flatMap(_.asInstanceOf[TextChannel].createEmbed(spec => {
+      .flatMap(_.asInstanceOf[MessageChannel].createEmbed(spec => {
         embed.title.map(spec.setTitle)
         embed.description.map(spec.setDescription)
         embed.url.map(spec.setUrl)
@@ -88,7 +89,7 @@ final class D4JClient(private val tok: String) extends red.Client(tok) {
         ps.forall(red.Permission.DM_PERMISSION_SET.contains)
       )
       case _ => throw new IllegalArgumentException("Channel argument was neither a DM channel or a guild channel! :(")
-    }.toFuture
+    }.asFuture
   }
 }
 
